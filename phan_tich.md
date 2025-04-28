@@ -286,6 +286,6 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
 - Luồng sự kiện thay thế:
   - Nếu chưa có phản hồi, hệ thống hiển thị trạng thái "Chờ phản hồi".
 1. ## <a name="_toc196727142"></a><a name="_toc196727217"></a><a name="_toc196727243"></a><a name="_toc196727266"></a><a name="_toc196727430"></a><a name="_toc196727516"></a>Mô hình lớp
-![Mô tả ảnh](https://github.com/TrungNguyen0304/du-anBE/blob/main/images/fa687c25-1542-4118-85f4-9bc95619d929.jpg)
+![Mô tả ảnh](https://github.com/TrungNguyen0304/du-anBE/blob/main/images/59ccd2dd-fe67-4c89-8f7a-abce29646a6c.jpg)
 
 
