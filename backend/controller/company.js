@@ -2,6 +2,7 @@ const { use } = require("passport");
 const user = require("../models/user")
 const bcrypt = require("bcrypt");
 const Team = require("../models/team");
+const { notifyTeam } = require("../controller/notification");
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
 const createUser = async (req, res) => {
@@ -252,7 +253,7 @@ const createTeam = async (req, res) => {
         // Kiểm tra leader
         const leader = await user.findById(assignedLeader);
         if (!leader || leader.role !== "leader") {
-            return res.status(400).json({ message: "Leader không hợp lệ." });
+            return res.status(400).json({ message: "Leader không hợp lệ." }); s
         }
 
         // Kiểm tra tất cả các member
@@ -270,11 +271,15 @@ const createTeam = async (req, res) => {
         });
 
         await newTeam.save();
+        // Gửi thông báo cho leader và các members
+        await notifyTeam({ userId: assignedLeader, team: newTeam });
+        for (const member of assignedMembers) {
+            await notifyTeam({ userId: member, team: newTeam });
+        }
+
         const populatedTeam = await Team.findById(newTeam._id)
-            .populate('assignedLeader', 'id name') // Lấy id và name của leader
-            .populate('assignedMembers', 'id name'); // Lấy id và name của members
-
-
+            .populate('assignedLeader', 'id name')
+            .populate('assignedMembers', 'id name');
         res.status(201).json({
             message: "Tạo team thành công.",
             team: {
