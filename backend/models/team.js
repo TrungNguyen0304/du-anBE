@@ -14,5 +14,5 @@ const teamSchema = new mongoose.Schema({
       },
 ]})
 
-const Taem = mongoose.model("Taem", teamSchema)
-module.exports = Taem;
+const Team = mongoose.model("Team", teamSchema)
+module.exports = Team;

@@ -13,7 +13,18 @@ const {
     updateTeam,
     showallTeam,
     deleteTeam,
-    paginationTeam
+    paginationTeam,
+    //project
+    createProject,
+    updateProject,
+    showallProject,
+    deleteProject,
+    assignProject,
+    viewTeamProject,
+    getUnassignedProject,
+    paginationUnassignedProject,
+    getAssignedProjects,
+    paginationAssignedProjects
 
 } = require('../controller/company.js');
 const authenticateJWT = require('../middleware/auth.js');
@@ -37,9 +48,24 @@ router.post('/createTeam', authenticateJWT, authorize('company'), createTeam);
 router.put('/updateTeam/:id', authenticateJWT, authorize('company'), updateTeam);
 router.get('/showallTeam', authenticateJWT, authorize('company'), showallTeam);
 router.delete('/deleteTeam/:id', authenticateJWT, authorize('company'), deleteTeam);
-
 router.post('/paginationTeam', authenticateJWT, authorize('company'), paginationTeam);
+//
 
+// thêm sửa xóa , show sắp xếp, phân trang project và gán project vào team
+router.post('/createProject', authenticateJWT, authorize('company'), createProject);
+router.put('/updateProject/:id', authenticateJWT, authorize('company'), updateProject);
+router.get('/showallProject', authenticateJWT, authorize('company'), showallProject);
+router.delete('/deleteProject/:id', authenticateJWT, authorize('company'), deleteProject);
+router.post('/paginationProject', authenticateJWT, authorize('company'), paginationTeam);
+//assignProject
+router.put('/assignProject/:id', authenticateJWT, authorize('company'), assignProject);
+router.get('/viewTeamProject/:id', authenticateJWT, authorize('company'), viewTeamProject);
+// lấy ra dự án  chk giao
+router.get('/unassigned', authenticateJWT, authorize('company'), getUnassignedProject);
+router.post('/paginationunassigned', authenticateJWT, authorize('company'), paginationUnassignedProject);
+// lấy ra dự án đã được giao
+router.get('/getassigned', authenticateJWT, authorize('company'), getAssignedProjects);
+router.post('/paginationgetassigned', authenticateJWT, authorize('company'), paginationAssignedProjects);
 
 
 module.exports = router;
