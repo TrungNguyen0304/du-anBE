@@ -31,5 +31,36 @@ const notifyTeam = async ({ userId, team }) => {
   }
 };
 
+const notifyProject = async ({ userId, project }) => {
+  const io = getIO();
 
-module.exports = { notifyTeam };
+  const title = " Có dự án mới mới";
+  const body = `Bạn được giao: ${project.name}`;
+
+  if (isUserOnline(userId)) {
+    io.to(userId).emit("project-assigned", {
+      id: project._id,
+      name: project.name,
+      description: project.description,
+      deadline: project.deadline,
+      status: project.status,
+    });
+    console.log(`Sent socket to user room: ${userId}`);
+  } else {
+    const user = await User.findById(userId);
+    if (user?.fcmToken) {
+      try {
+        await sendNotification(user.fcmToken, title, body);
+        console.log("Sent FCM to offline user");
+      } catch (error) {
+        console.error("Error sending FCM:", error.message);
+      }
+    } else {
+      console.log("No FCM token for user.");
+    }
+  }
+};
+
+
+
+module.exports = { notifyTeam, notifyProject };
