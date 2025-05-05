@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
         default: "member",
         required: true,
     },
+    fcmToken: { type: String },
 })
 
 const User = mongoose.model("User", userSchema)
