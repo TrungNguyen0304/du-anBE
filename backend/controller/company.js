@@ -2,7 +2,7 @@ const { use } = require("passport");
 const user = require("../models/user")
 const bcrypt = require("bcrypt");
 const Team = require("../models/team");
-const { notifyTeam } = require("../controller/notification");
+const { notifyTeam, notifyProject } = require("../controller/notification");
 const Project = require("../models/project");
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
@@ -624,6 +624,11 @@ const assignProject = async (req, res) => {
         if (!team) {
             return res.status(404).json({ message: "Nhân viên không hợp lệ." });
         }
+        const assignedLeader = team.assignedLeader;
+        if (!assignedLeader) {
+            return res.status(400).json({ message: "Nhóm chưa có trưởng nhóm để thông báo." });
+        }
+
 
         // Gán thông tin
         project.assignedTeam = assignedTeam;
@@ -631,6 +636,8 @@ const assignProject = async (req, res) => {
         project.status = "pending";
 
         await project.save();
+
+        await notifyProject({ userId: assignedLeader.toString(), project });
 
         res.status(200).json({
             message: "Gán công việc thành công.",
