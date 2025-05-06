@@ -13,7 +13,7 @@ const generateToken = (user) => {
     email: user.email,
     role: user.role,
   };
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "5h" });
 };
 
 const login = (req, res, next) => {
