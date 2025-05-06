@@ -1,5 +1,5 @@
 const express = require('express');
-const { getMyTeam,viewAssignedProject,createTask,updateTask,showAllTasks} = require('../controller/leader.js');
+const { getMyTeam,viewAssignedProject,createTask,updateTask,showAllTasks,deleteTask,paginationTask,assignTask} = require('../controller/leader.js');
 const authenticateJWT = require('../middleware/auth.js');
 const authorize = require('../middleware/authorize.js');
 
@@ -10,5 +10,10 @@ router.get('/showallProject/', authenticateJWT, viewAssignedProject);
 router.post('/createTask', authenticateJWT, authorize('leader'), createTask);
 router.get('/showallTask/:projectId', authenticateJWT, authorize('leader'), showAllTasks);
 router.put('/updateTask/:id', authenticateJWT, authorize('leader'), updateTask);
+router.delete('/deleteTask/:id', authenticateJWT, authorize('leader'), deleteTask);
+router.post('/paginationTask', authenticateJWT, authorize('leader'), paginationTask);
+// gán task vào member
+
+router.put('/assignTask/:id', authenticateJWT, authorize('leader'), assignTask);
 
 module.exports = router;
