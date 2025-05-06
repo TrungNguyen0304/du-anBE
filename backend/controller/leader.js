@@ -113,7 +113,7 @@ const viewAssignedProject = async (req, res) => {
 const createTask = async (req, res) => {
   try {
     const { name, description, status, projectId, priority } = req.body;
-    const userId = req.user._id; 
+    const userId = req.user._id;
 
     if (!name || !projectId) {
       return res.status(400).json({ message: "Thiếu tên task hoặc projectId." });
@@ -224,35 +224,19 @@ const updateTask = async (req, res) => {
 };
 const deleteTask = async (req, res) => {
   try {
-    const { id } = req.params
-
-    const task = await Task.findById(id)
-    if (!task) {
-      res.status(404).json({ message: "Công việc không tồn tại" })
-    }
-    await Task.findByIdAndDelete(id);
-    
-    res.status(200).json({
-      message: "Xóa công việc thành công.",
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server.", error: error.message });
-  }
-};
-const showAllTasks = async (req, res) => {
-  try {
-    const { projectId } = req.params;
+    const { id } = req.params;
     const userId = req.user._id;
 
-    // 1. Kiểm tra projectId hợp lệ
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return res.status(400).json({ message: "projectId không hợp lệ." });
+    // 1. Tìm task
+    const task = await Task.findById(id);
+    if (!task) {
+      return res.status(404).json({ message: "Không tìm thấy task." });
     }
 
-    // 2. Tìm project
-    const project = await Project.findById(projectId);
+    // 2. Tìm project của task
+    const project = await Project.findById(task.projectId);
     if (!project) {
-      return res.status(404).json({ message: "Không tìm thấy project." });
+      return res.status(404).json({ message: "Không tìm thấy project liên quan." });
     }
 
     // 3. Kiểm tra project đã được gán team chưa
@@ -260,14 +244,47 @@ const showAllTasks = async (req, res) => {
       return res.status(400).json({ message: "Project chưa được gán cho team nào." });
     }
 
-    // 4. Kiểm tra user có phải là leader của team không
+    // 4. Kiểm tra quyền: user phải là leader của team đó
     const team = await Team.findById(project.assignedTeam);
     if (!team || team.assignedLeader.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Bạn không có quyền xem các task của project này." });
+      return res.status(403).json({ message: "Bạn không có quyền xóa task này." });
     }
 
-    // 5. Lấy tất cả task thuộc project
-    const tasks = await Task.find({ project: projectId });
+    // 5. Xóa task
+    await task.deleteOne();
+
+    res.status(200).json({ message: "Xóa task thành công." });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+const showAllTasks = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { sortBy = "createdAt", order = "desc" } = req.query;
+
+    // 1. Tìm tất cả các team mà user đang là leader
+    const teams = await Team.find({ assignedLeader: userId });
+    if (!teams || teams.length === 0) {
+      return res.status(403).json({ message: "Bạn không là leader của bất kỳ team nào." });
+    }
+
+    // 2. Lấy danh sách teamId
+    const teamIds = teams.map(team => team._id);
+
+    // 3. Tìm tất cả các project được gán cho các team này
+    const projects = await Project.find({ assignedTeam: { $in: teamIds } });
+    const projectIds = projects.map(project => project._id);
+
+    if (projectIds.length === 0) {
+      return res.status(200).json({ message: "Không có project nào được gán cho team của bạn.", tasks: [] });
+    }
+
+    // 4. Lấy tất cả các task thuộc các project đó, có sắp xếp
+    const sortOption = {};
+    sortOption[sortBy] = order === "asc" ? 1 : -1;
+
+    const tasks = await Task.find({ projectId: { $in: projectIds } }).sort(sortOption);
 
     res.status(200).json({
       message: "Lấy danh sách task thành công.",
@@ -277,11 +294,135 @@ const showAllTasks = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+const paginationTask = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { limit = 5, page = 1 } = req.body;
+
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
+    const offset = (parsedPage - 1) * parsedLimit;
+
+    // 1. Tìm team mà user là leader
+    const teams = await Team.find({ assignedLeader: userId });
+    if (!teams || teams.length === 0) {
+      return res.status(403).json({ message: "Bạn không là leader của bất kỳ team nào." });
+    }
+
+    const teamIds = teams.map(team => team._id);
+
+    // 2. Tìm project thuộc các team đó
+    const projects = await Project.find({ assignedTeam: { $in: teamIds } });
+    const projectIds = projects.map(p => p._id);
+    if (projectIds.length === 0) {
+      return res.status(200).json({ message: "Không có project nào được gán cho team của bạn.", tasks: [] });
+    }
+
+    // 3. Lấy task phân trang + tổng số
+    const [tasks, total] = await Promise.all([
+      Task.find({ projectId: { $in: projectIds } })
+        .skip(offset)
+        .limit(parsedLimit),
+      Task.countDocuments({ projectId: { $in: projectIds } })
+    ]);
+
+    const pages = Math.ceil(total / parsedLimit);
+
+    res.status(200).json({
+      message: "Lấy danh sách task phân trang thành công.",
+      tasks: tasks.map(task => ({
+        id: task._id,
+        name: task.name,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        projectId: task.projectId
+      })),
+      total,
+      limit: parsedLimit,
+      offset,
+      page: parsedPage,
+      pages
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server.", error: error.message });
+  }
+};
+const assignTask = async (req, res) => {
+  try {
+    const { id } = req.params;  // Lấy id từ URL
+    const { memberId, deadline } = req.body;
+
+    // Kiểm tra thông tin bắt buộc
+    if (!memberId || !deadline) {
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc (memberId, deadline)." });
+    }
+
+    // 1. Tìm task theo id
+    const task = await Task.findById(id);
+    if (!task) {
+      return res.status(404).json({ message: "Task không tồn tại." });
+    }
+
+    // 2. Tìm project của task
+    const project = await Project.findById(task.projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project không tồn tại." });
+    }
+
+    // 3. Kiểm tra project có assignedTeam
+    if (!project.assignedTeam) {
+      return res.status(400).json({ message: "Project chưa được gán cho team nào." });
+    }
+
+    // 4. Lấy thông tin team (Không kiểm tra trưởng nhóm)
+    const team = await Team.findById(project.assignedTeam);
+    if (!team) {
+      return res.status(404).json({ message: "Team không hợp lệ." });
+    }
+
+    // 5. Kiểm tra thành viên có trong team chính thức không
+    if (!Array.isArray(team.assignedMembers) || team.assignedMembers.length === 0) {
+      return res.status(400).json({ message: "Danh sách thành viên không hợp lệ." });
+    }
+
+    const isOfficialMember = team.assignedMembers.some(
+      m => m.toString() === memberId.toString()
+    );
+    if (!isOfficialMember) {
+      return res.status(400).json({ message: "Thành viên chưa chính thức trong team." });
+    }
+    // 7. Gán task cho thành viên và deadline
+    task.assignedMember = memberId;
+    task.deadline = new Date(deadline);
+
+    await task.save();
+
+    res.status(200).json({
+      message: "Gán task thành công.",
+      task: {
+        id: task._id,
+        name: task.name,
+        description: task.description,
+        assignedMember: task.assignedMember,
+        deadline: task.deadline,
+        status: task.status,
+        priority: task.priority
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server.", error: error.message });
+  }
+};
+
 module.exports = {
   getMyTeam,
   viewAssignedProject,
   createTask,
   updateTask,
   deleteTask,
-  showAllTasks
+  showAllTasks,
+  paginationTask,
+  assignTask
 };

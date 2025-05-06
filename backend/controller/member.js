@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Team = require("../models/team");
+const Task = require("../models/task")
+const Project = require("../models/project")
 
 const getMyTeam = async (req, res) => {
   try {
@@ -28,7 +30,51 @@ const getMyTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+const getMyTasks = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Lấy tất cả task của user
+    const tasks = await Task.find({ assignedMember: userId }).lean();
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: "Bạn chưa được giao task nào." });
+    }
+
+    // Lấy danh sách projectId liên quan
+    const projectIds = tasks.map(task => task.projectId);
+    const validProjects = await Project.find({
+      _id: { $in: projectIds },
+      assignedTeam: { $ne: null } // chỉ giữ lại project còn được gán cho team
+    }).select('_id');
+
+    const validProjectIds = validProjects.map(p => p._id.toString());
+
+    // Lọc task theo project còn hợp lệ
+    const filteredTasks = tasks.filter(task => validProjectIds.includes(task.projectId?.toString()));
+
+    if (filteredTasks.length === 0) {
+      return res.status(404).json({ message: "Bạn chưa được giao task nào." });
+    }
+
+    res.status(200).json({
+      message: "Lấy danh sách task của bạn thành công.",
+      tasks: filteredTasks.map(task => ({
+        id: task._id,
+        name: task.name,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        deadline: task.deadline,
+        projectId: task.projectId
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server.", error: error.message });
+  }
+};
 
 module.exports = {
-  getMyTeam
+  getMyTeam,
+  getMyTasks
 };

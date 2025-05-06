@@ -2,8 +2,9 @@ const { use } = require("passport");
 const user = require("../models/user")
 const bcrypt = require("bcrypt");
 const Team = require("../models/team");
-const { notifyTeam, notifyProject,notifyTeamRemoval } = require("../controller/notification");
+const { notifyTeam, notifyProject,notifyProjectRemoval } = require("../controller/notification");
 const Project = require("../models/project");
+const Task = require("../models/task")
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
 const createUser = async (req, res) => {
@@ -704,9 +705,9 @@ const revokeProjectAssignment = async (req, res) => {
 
         // Gửi thông báo cho leader cũ (nếu có)
         if (oldLeader) {
-            await notifyTeamRemoval({
+            await notifyProjectRemoval({
                 userId: oldLeader.toString(),
-                team: oldTeam
+                project: oldTeam
             });
         }
 
