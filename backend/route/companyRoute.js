@@ -24,7 +24,8 @@ const {
     getUnassignedProject,
     paginationUnassignedProject,
     getAssignedProjects,
-    paginationAssignedProjects
+    paginationAssignedProjects,
+    revokeProjectAssignment
 
 } = require('../controller/company.js');
 const authenticateJWT = require('../middleware/auth.js');
@@ -66,6 +67,8 @@ router.post('/paginationunassigned', authenticateJWT, authorize('company'), pagi
 // lấy ra dự án đã được giao
 router.get('/getassigned', authenticateJWT, authorize('company'), getAssignedProjects);
 router.post('/paginationgetassigned', authenticateJWT, authorize('company'), paginationAssignedProjects);
+// thu hồi lại dự án 
+router.put('/revokeProject/:id/revoke', authenticateJWT, authorize('company'), revokeProjectAssignment);
 
 
 module.exports = router;

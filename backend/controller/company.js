@@ -2,7 +2,7 @@ const { use } = require("passport");
 const user = require("../models/user")
 const bcrypt = require("bcrypt");
 const Team = require("../models/team");
-const { notifyTeam, notifyProject } = require("../controller/notification");
+const { notifyTeam, notifyProject,notifyTeamRemoval } = require("../controller/notification");
 const Project = require("../models/project");
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
@@ -676,6 +676,55 @@ const viewTeamProject = async (req, res) => {
         res.status(500).json({ message: "Lỗi server.", error: error.message });
     }
 };
+// lấy lại dự án 
+const revokeProjectAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const project = await Project.findById(id);
+        if (!project) {
+            return res.status(404).json({ message: "Không tìm thấy project." });
+        }
+
+        // Nếu project chưa được gán team thì không cần thu hồi
+        if (!project.assignedTeam) {
+            return res.status(400).json({ message: "Project chưa được gán cho team nào." });
+        }
+
+        // Lưu lại thông tin team cũ để gửi thông báo nếu cần
+        const oldTeam = await Team.findById(project.assignedTeam);
+        const oldLeader = oldTeam?.assignedLeader;
+
+        // Reset project assignment
+        project.assignedTeam = null;
+        project.deadline = null;
+        project.status = "pending";
+
+        await project.save();
+
+        // Gửi thông báo cho leader cũ (nếu có)
+        if (oldLeader) {
+            await notifyTeamRemoval({
+                userId: oldLeader.toString(),
+                team: oldTeam
+            });
+        }
+
+        res.status(200).json({
+            message: "Thu hồi dự án thành công.",
+            project: {
+                id: project._id,
+                name: project.name,
+                assignedTeam: null,
+                deadline: null,
+                status: project.status
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi server.", error: error.message });
+    }
+};
 // lấy ra công việc chk giao
 const getUnassignedProject = async (req, res) => {
     try {
@@ -848,6 +897,7 @@ module.exports = {
     getUnassignedProject,
     paginationUnassignedProject,
     getAssignedProjects,
-    paginationAssignedProjects
+    paginationAssignedProjects,
+    revokeProjectAssignment
 
 };
