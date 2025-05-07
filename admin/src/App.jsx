@@ -10,11 +10,50 @@ import Projects from "./pages/admin/Projects";
 import Jobs from "./pages/admin/Jobs";
 import ProjectProgress from "./pages/admin/ProjectProgress";
 import Login from "./pages/Login";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute";
+
+// Layout for Company
+const CompanyLayout = () => (
+  <div className="flex min-h-screen flex-col sm:flex-row">
+    <Sidebar />
+    <div className="flex-1 flex flex-col">
+      <Navbar />
+      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/member" element={<Member />} />
+          <Route path="/memberdetail" element={<MemberDetail />} />
+          <Route path="/departments" element={<Departments />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/projectprogress" element={<ProjectProgress />} />
+        </Routes>
+      </main>
+    </div>
+  </div>
+);
+
+// Layout for Leader
+// const LeaderLayout = () => (
+//   <div className="flex min-h-screen flex-col sm:flex-row">
+//     <Sidebar />
+//     <div className="flex-1 flex flex-col">
+//       <Navbar />
+//       <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+//         <Routes>
+//           <Route path="/" element={<Home />} />
+//           <Route path="/projects" element={<Projects />} />
+//           <Route path="/member" element={<Member />} />
+//         </Routes>
+//       </main>
+//     </div>
+//   </div>
+// );
 
 const App = () => {
   const isAuthenticated = localStorage.getItem("isLoggedIn") === "true";
   const location = useLocation();
+  const user = JSON.parse(localStorage.getItem("user"));
 
   return (
     <Routes>
@@ -29,7 +68,13 @@ const App = () => {
         path="/*"
         element={
           isAuthenticated ? (
-            <MainLayout />
+            user?.role === "company" ? (
+              <CompanyLayout />
+            ) : user?.role === "leader" ? (
+              <LeaderLayout />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           ) : (
             <Navigate to="/login" replace state={{ from: location }} />
           )
@@ -38,75 +83,5 @@ const App = () => {
     </Routes>
   );
 };
-
-// Main layout for authenticated users
-const MainLayout = () => (
-  <div className="flex min-h-screen flex-col sm:flex-row">
-    <Sidebar />
-    <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/member"
-            element={
-              <ProtectedRoute>
-                <Member />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/memberdetail"
-            element={
-              <ProtectedRoute>
-                <MemberDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/departments"
-            element={
-              <ProtectedRoute>
-                <Departments />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute>
-                <Projects />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/jobs"
-            element={
-              <ProtectedRoute>
-                <Jobs />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projectprogress"
-            element={
-              <ProtectedRoute>
-                <ProjectProgress />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </main>
-    </div>
-  </div>
-);
 
 export default App;
