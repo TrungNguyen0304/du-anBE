@@ -189,10 +189,10 @@ const showAllMember = async (req, res) => {
                 name: member.name,
                 email: member.email,
                 role: member.role,
-                gender: leader.gender,
-                dateOfBirth: leader.dateOfBirth,
-                phoneNumber: leader.phoneNumber,
-                address: leader.address,
+                gender: member.gender,
+                dateOfBirth: member.dateOfBirth,
+                phoneNumber: member.phoneNumber,
+                address: member.address,
             }))
         });
     } catch (error) {
