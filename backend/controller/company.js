@@ -2,14 +2,14 @@ const { use } = require("passport");
 const user = require("../models/user")
 const bcrypt = require("bcrypt");
 const Team = require("../models/team");
-const { notifyTeam, notifyProject,notifyProjectRemoval } = require("../controller/notification");
+const { notifyTeam, notifyProject, notifyProjectRemoval } = require("../controller/notification");
 const Project = require("../models/project");
 const Task = require("../models/task")
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
 const createUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, gender, dateOfBirth, phoneNumber, address } = req.body;
 
         const existingUser = await user.findOne({ email });
         if (existingUser) {
@@ -23,7 +23,11 @@ const createUser = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role: role || "member"
+            role: role || "member",
+            gender,
+            dateOfBirth,
+            phoneNumber,
+            address
         });
 
         await newEmployee.save();
@@ -34,7 +38,11 @@ const createUser = async (req, res) => {
                 id: newEmployee._id,
                 name: newEmployee.name,
                 email: newEmployee.email,
-                role: newEmployee.role
+                role: newEmployee.role,
+                gender: newEmployee.gender,
+                dateOfBirth: newEmployee.dateOfBirth,
+                phoneNumber: newEmployee.phoneNumber,
+                address: newEmployee.address
             }
         });
     } catch (error) {
@@ -44,7 +52,7 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, gender, dateOfBirth, phoneNumber, address } = req.body;
 
         const existingUser = await user.findById(id);
         if (!existingUser) {
@@ -69,6 +77,18 @@ const updateUser = async (req, res) => {
         if (role) {
             existingUser.role = role;
         }
+        if (gender) {
+            existingUser.gender = gender;
+        }
+        if (dateOfBirth) {
+            existingUser.dateOfBirth = dateOfBirth;
+        }
+        if (phoneNumber) {
+            existingUser.phoneNumber = phoneNumber;
+        }
+        if (address) {
+            existingUser.address = address;
+        }
 
         await existingUser.save();
         res.status(200).json({
@@ -77,7 +97,11 @@ const updateUser = async (req, res) => {
                 id: existingUser._id,
                 name: existingUser.name,
                 email: existingUser.email,
-                role: existingUser.role
+                role: existingUser.role,
+                gender: existingUser.gender,
+                dateOfBirth: existingUser.dateOfBirth,
+                phoneNumber: existingUser.phoneNumber,
+                address: existingUser.address,
             }
         });
 
@@ -129,7 +153,11 @@ const showAllLeaders = async (req, res) => {
                 id: leader._id,
                 name: leader.name,
                 email: leader.email,
-                role: leader.role
+                role: leader.role,
+                gender: leader.gender,
+                dateOfBirth: leader.dateOfBirth,
+                phoneNumber: leader.phoneNumber,
+                address: leader.address,
             }))
         });
     } catch (error) {
@@ -160,7 +188,11 @@ const showAllMember = async (req, res) => {
                 id: member._id,
                 name: member.name,
                 email: member.email,
-                role: member.role
+                role: member.role,
+                gender: leader.gender,
+                dateOfBirth: leader.dateOfBirth,
+                phoneNumber: leader.phoneNumber,
+                address: leader.address,
             }))
         });
     } catch (error) {
@@ -192,7 +224,11 @@ const paginationLeader = async (req, res) => {
                 id: leader._id,
                 name: leader.name,
                 email: leader.email,
-                role: leader.role
+                role: leader.role,
+                gender: leader.gender,
+                dateOfBirth: leader.dateOfBirth,
+                phoneNumber: leader.phoneNumber,
+                address: leader.address,
             })),
             total,
             page: parsedPage,
@@ -229,7 +265,11 @@ const paginationMember = async (req, res) => {
                 id: member._id,
                 name: member.name,
                 email: member.email,
-                role: member.role
+                role: member.role,
+                gender: leader.gender,
+                dateOfBirth: leader.dateOfBirth,
+                phoneNumber: leader.phoneNumber,
+                address: leader.address,
             })),
             total,
             page: parsedPage,
@@ -356,7 +396,10 @@ const showallTeam = async (req, res) => {
         // Tạo object để sort
         const sortOptions = {};
         sortOptions[sortField] = sortOrder;
-        const teams = await Team.find().sort(sortOptions).lean();
+        const teams = await Team.find().sort(sortOptions)
+            .populate('assignedLeader', 'name')
+            .populate('assignedMembers', 'name')
+            .lean();
 
         if (teams.length === 0) {
             return res.status(404).json({ message: "Không có công việc nào." });
@@ -664,10 +707,20 @@ const viewTeamProject = async (req, res) => {
 
         const team = await Team.findById(id);
         if (!team) {
-            return res.status(404).json({ message: "team không hợp lệ." });
+            return res.status(404).json({ message: "Team không hợp lệ." });
         }
 
-        const project = await Project.find({ assignedTeam: id });
+        const project = await Project.find({ assignedTeam: id })
+            .populate({
+                path: 'assignedTeam',
+                select: 'name assignedLeader assignedMembers',
+                populate: [
+                    { path: 'assignedLeader', select: 'name' },
+                    { path: 'assignedMembers', select: 'name' }
+                ]
+            })
+            .populate('assignedLeader', 'name')
+            .populate('assignedMembers', 'name');
 
         res.status(200).json({
             message: `Danh sách công việc của team ${team.name}`,
