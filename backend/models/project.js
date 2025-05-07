@@ -14,6 +14,17 @@ const projectSchema = new mongoose.Schema({
     ref: "Team", 
     required: false
   },
+  assignedLeader: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", 
+    required: false
+  },
+  assignedMembers: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", 
+    required: false
+  },
+  
   deadline: {
     type: Date,
     required: false
