@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Team = require("../models/team");
 const Project = require("../models/project")
 const Task = require("../models/task")
+const { notifyTask } = require("../controller/notification");
 const getMyTeam = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user._id);
@@ -397,7 +398,7 @@ const assignTask = async (req, res) => {
     task.deadline = new Date(deadline);
 
     await task.save();
-
+    await notifyTask({ userId: memberId.toString(), task });
     res.status(200).json({
       message: "Gán task thành công.",
       task: {

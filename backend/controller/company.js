@@ -4,7 +4,8 @@ const bcrypt = require("bcrypt");
 const Team = require("../models/team");
 const { notifyTeam, notifyProject, notifyProjectRemoval } = require("../controller/notification");
 const Project = require("../models/project");
-const Task = require("../models/task")
+const Task = require("../models/task");
+const User = require("../models/user");
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
 const createUser = async (req, res) => {
@@ -266,10 +267,10 @@ const paginationMember = async (req, res) => {
                 name: member.name,
                 email: member.email,
                 role: member.role,
-                gender: leader.gender,
-                dateOfBirth: leader.dateOfBirth,
-                phoneNumber: leader.phoneNumber,
-                address: leader.address,
+                gender: member.gender,
+                dateOfBirth: member.dateOfBirth,
+                phoneNumber: member.phoneNumber,
+                address: member.address,
             })),
             total,
             page: parsedPage,
@@ -281,7 +282,56 @@ const paginationMember = async (req, res) => {
         res.status(500).json({ message: "Lỗi server.", error: error.message });
     }
 };
-//
+const viewMember = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findById(id).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "Người dùng không tồn tại." });
+        }
+
+        // Tìm các team mà user là thành viên
+        const teams = await Team.find({ assignedMembers: id }).select("name");
+        // Tìm các task được gán cho user
+        const tasks = await Task.find({ assignedMember: id }).select("name description ")
+
+        res.status(200).json({
+            message: `Thông tin người dùng ${user.name}`,
+            user,
+            teams,
+            tasks,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi server.", error: error.message });
+    }
+};
+const viewLeader = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findById(id).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "Người dùng không tồn tại." });
+        }
+
+        // Tìm các team mà user là thành viên
+        const teams = await Team.find({ assignedLeader: id }).select("name");
+        // Lấy danh sách teamId
+        const teamIds = teams.map(team => team._id);
+        // Tìm các project được gán cho user
+        const projects = await Project.find({ assignedTeam: { $in: teamIds } }).select("name description");
+
+        res.status(200).json({
+            message: `Thông tin người dùng ${user.name}`,
+            user,
+            teams,
+            projects,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi server.", error: error.message });
+    }
+};
 
 // thêm sửa xóa leader và member vào team
 const createTeam = async (req, res) => {
@@ -936,6 +986,8 @@ module.exports = {
     showAllMember,
     paginationLeader,
     paginationMember,
+    viewMember,
+    viewLeader,
     createTeam,
     updateTeam,
     showallTeam,
@@ -952,6 +1004,5 @@ module.exports = {
     paginationUnassignedProject,
     getAssignedProjects,
     paginationAssignedProjects,
-    revokeProjectAssignment
-
+    revokeProjectAssignment,
 };
