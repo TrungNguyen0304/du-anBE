@@ -6,12 +6,10 @@ import {
   FaBuilding,
   FaProjectDiagram,
   FaBriefcase,
-  FaUserTag,
-  FaClock,
-  FaDollarSign,
   FaBars,
   FaTimes,
 } from "react-icons/fa";
+import { GiProgression } from "react-icons/gi";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,7 +69,7 @@ const Sidebar = () => {
             <SidebarItem
               icon={<FaUser />}
               label="Nhân Viên"
-              to="/employees"
+              to="/member"
               onClick={() => setIsOpen(false)}
             />
             <SidebarItem
@@ -94,21 +92,9 @@ const Sidebar = () => {
               onClick={() => setIsOpen(false)}
             />
             <SidebarItem
-              icon={<FaUserTag />}
-              label="Chức Vụ"
-              to="/positions"
-              onClick={() => setIsOpen(false)}
-            />
-            <SidebarItem
-              icon={<FaClock />}
-              label="Chấm Công"
-              to="/attendance"
-              onClick={() => setIsOpen(false)}
-            />
-            <SidebarItem
-              icon={<FaDollarSign />}
-              label="Lương"
-              to="/payroll"
+              icon={<GiProgression />}
+              label="Tiến độ dự án"
+              to="/projectprogress"
               onClick={() => setIsOpen(false)}
             />
           </div>
