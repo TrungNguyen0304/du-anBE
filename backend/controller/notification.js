@@ -115,5 +115,31 @@ const notifyTask = async ({ userId, task }) => {
     }
   }
 };
+// thông báo lấy lại task
+const notifyTaskRemoval = async ({ userId, task }) => {
+  const io = getIO();
 
-module.exports = { notifyTeam, notifyProject,notifyProjectRemoval,notifyTask};
+  const title = "nhiệm vụ dã bị hu hồi";
+  const body = `Thu hồi nhiệm vụ: ${task.name}`;
+
+  if (isUserOnline(userId)) {
+    io.to(userId).emit("task-removed", {
+      id: task._id,
+      name: task.name,
+    });
+    console.log(`Sent socket (task-removed) to user room: ${userId}`);
+  } else {
+    const user = await User.findById(userId);
+    if (user?.fcmToken) {
+      try {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Sent FCM (task removal) to userId: ${userId}`);
+      } catch (error) {
+        console.error("Error sending FCM:", error.message);
+      }
+    } else {
+      console.log("No FCM token for user.");
+    }
+  }
+};
+module.exports = { notifyTeam, notifyProject,notifyProjectRemoval,notifyTask,notifyTaskRemoval};
