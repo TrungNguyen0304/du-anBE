@@ -4,13 +4,15 @@ import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/admin/Home";
 import Member from "./pages/admin/Member";
-import MemberDetail from "./pages/admin/MemberDetail";
 import Departments from "./pages/admin/Departments";
 import Projects from "./pages/admin/Projects";
 import Jobs from "./pages/admin/Jobs";
 import ProjectProgress from "./pages/admin/ProjectProgress";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MemberDetail from "./pages/admin/Users/MemberDetail";
+import CreateUser from "./pages/admin/Users/createUser";
+import UpdateUser from "./pages/admin/Users/UpdateUser";
 
 const App = () => {
   const isAuthenticated = localStorage.getItem("isLoggedIn") === "true";
@@ -60,6 +62,22 @@ const MainLayout = () => (
             element={
               <ProtectedRoute>
                 <Member />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-user"
+            element={
+              <ProtectedRoute>
+                <CreateUser />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/update-user"
+            element={
+              <ProtectedRoute>
+                <UpdateUser />
               </ProtectedRoute>
             }
           />
