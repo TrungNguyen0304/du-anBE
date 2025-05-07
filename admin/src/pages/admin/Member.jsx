@@ -1,32 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-
-const initialData = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    department: "Phòng ban A",
-    dateofbirth: "2000-01-01",
-    position: "Chức vụ 1",
-    job: "Công việc 1",
-    joinDate: "2020-01-01",
-    salary: "10,000,000",
-  },
-  {
-    id: 2,
-    name: "Nguyễn Văn B",
-    department: "Phòng ban B",
-    dateofbirth: "1999-01-01",
-    position: "Chức vụ 2",
-    job: "Công việc 2",
-    joinDate: "2021-03-15",
-    salary: "12,000,000",
-  },
-];
+import axios from "axios";
 
 const Member = () => {
   const [showForm, setShowForm] = useState(false);
-  const [employees, setEmployees] = useState(initialData);
+  const [employees, setEmployees] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -34,9 +12,30 @@ const Member = () => {
     gender: "",
     dob: "",
     address: "",
-    phone: "",
+    phoneNumber: "",
     position: "",
   });
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(
+        "http://localhost:8001/api/company/showallLeaders",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setEmployees(res.data.leaders);
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách leader:", err);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -46,35 +45,62 @@ const Member = () => {
     }));
   };
 
-  const handleAddEmployee = () => {
-    if (!formData.name || !formData.position) {
-      alert("Vui lòng nhập đầy đủ thông tin!");
+  const handleAddEmployee = async () => {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.position
+    ) {
+      alert("Vui lòng nhập đầy đủ các thông tin bắt buộc!");
       return;
     }
 
-    const newEmployee = {
-      id: employees.length + 1,
-      name: formData.name,
-      department: "Chưa cập nhật",
-      dateofbirth: formData.dob,
-      position: formData.position,
-      job: "Đang cập nhật",
-      joinDate: new Date().toISOString().split("T")[0],
-      salary: "0",
-    };
+    const token = localStorage.getItem("token");
 
-    setEmployees((prev) => [...prev, newEmployee]);
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      gender: "",
-      dob: "",
-      address: "",
-      phone: "",
-      position: "",
-    });
-    setShowForm(false);
+    try {
+      await axios.post(
+        "http://localhost:8001/api/company/createUser",
+        {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          gender:
+            formData.gender === "Nam"
+              ? "0"
+              : formData.gender === "Nữ"
+              ? "1"
+              : "",
+          dob: formData.dob,
+          address: formData.address,
+          phoneNumber: formData.phoneNumber,
+          position: formData.position,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      await fetchEmployees();
+      alert("Thêm nhân viên thành công!");
+
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        gender: "",
+        dob: "",
+        address: "",
+        phoneNumber: "",
+        position: "",
+      });
+      setShowForm(false);
+    } catch (err) {
+      console.error("Lỗi khi thêm nhân viên:", err);
+      alert("Đã xảy ra lỗi khi thêm nhân viên!");
+    }
   };
 
   return (
@@ -91,7 +117,6 @@ const Member = () => {
 
       {showForm && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border p-4 rounded-lg bg-gray-50">
-          {/* Avatar */}
           <div className="flex flex-col items-center md:col-span-1">
             <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mb-2 text-sm text-gray-600">
               Chưa có avatar
@@ -101,7 +126,6 @@ const Member = () => {
             </button>
           </div>
 
-          {/* Form */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm md:col-span-2">
             <div>
               <input
@@ -180,10 +204,11 @@ const Member = () => {
                 placeholder="Địa Chỉ"
               />
             </div>
+
             <div>
               <input
-                name="phone"
-                value={formData.phone}
+                name="phoneNumber"
+                value={formData.phoneNumber}
                 onChange={handleInputChange}
                 className="border px-2 py-1 rounded w-full"
                 placeholder="Số Điện Thoại"
@@ -203,7 +228,6 @@ const Member = () => {
               </select>
             </div>
 
-            {/* Buttons */}
             <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end gap-4 mt-4">
               <button
                 onClick={() => setShowForm(false)}
@@ -222,7 +246,6 @@ const Member = () => {
         </div>
       )}
 
-      {/* Danh sách nhân viên */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300 rounded-md text-sm">
           <thead className="bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white">
@@ -230,37 +253,56 @@ const Member = () => {
               <th className="px-3 py-2 border">ID</th>
               <th className="px-3 py-2 border">Họ và Tên</th>
               <th className="px-3 py-2 border">Ngày sinh</th>
-              <th className="px-3 py-2 border">Phòng Ban</th>
-              <th className="px-3 py-2 border">Chức Vụ</th>
+              <th className="px-3 py-2 border">Giới tính</th>
+              <th className="px-3 py-2 border">Email</th>
+              <th className="px-3 py-2 border">Vai Trò</th>
               <th className="px-3 py-2 border">Chức Năng</th>
             </tr>
           </thead>
           <tbody>
-            {employees.map((emp) => (
-              <tr key={emp.id} className="even:bg-gray-100 text-center">
-                <td className="px-3 py-2 border">{emp.id}</td>
-                <td className="px-3 py-2 border">{emp.name}</td>
-                <td className="px-3 py-2 border">{emp.dateofbirth}</td>
-                <td className="px-3 py-2 border">{emp.department}</td>
-                <td className="px-3 py-2 border">{emp.position}</td>
-                <td className="px-3 py-2 border">
-                  <div className="flex justify-center gap-2 flex-wrap">
-                    <NavLink
-                      to="/memberdetail"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Xem
-                    </NavLink>
-                    <button className="text-green-600 hover:underline">
-                      Sửa
-                    </button>
-                    <button className="text-red-600 hover:underline">
-                      Xóa
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {employees.map((emp, index) => {
+              const formattedDate =
+                emp.dateOfBirth && !isNaN(Date.parse(emp.dateOfBirth))
+                  ? new Date(emp.dateOfBirth).toLocaleDateString("vi-VN")
+                  : "";
+
+              const gender =
+                emp.gender === "0" || emp.gender === 0
+                  ? "Nam"
+                  : emp.gender === "1" || emp.gender === 1
+                  ? "Nữ"
+                  : emp.gender || "";
+
+              return (
+                <tr
+                  key={emp.id || index}
+                  className="even:bg-gray-100 text-center"
+                >
+                  <td className="px-3 py-2 border">{index + 1}</td>
+                  <td className="px-3 py-2 border">{emp.name || ""}</td>
+                  <td className="px-3 py-2 border">{formattedDate}</td>
+                  <td className="px-3 py-2 border">{gender}</td>
+                  <td className="px-3 py-2 border">{emp.email || ""}</td>
+                  <td className="px-3 py-2 border">{emp.role || ""}</td>
+                  <td className="px-3 py-2 border">
+                    <div className="flex justify-center gap-2 flex-wrap">
+                      <NavLink
+                        to="/memberdetail"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Xem
+                      </NavLink>
+                      <button className="text-green-600 hover:underline">
+                        Sửa
+                      </button>
+                      <button className="text-red-600 hover:underline">
+                        Xóa
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
