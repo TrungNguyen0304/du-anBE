@@ -89,16 +89,16 @@ const notifyProjectRemoval = async ({ userId, project }) => {
   }
 };
 // thông báo cho member được gán task
-const notifyTask = async ({ userId, team }) => {
+const notifyTask = async ({ userId, task }) => {
   const io = getIO();
 
   const title = " ban mới được giao task";
-  const body = `Bạn được thêm vào nhóm: ${team.name}`;
+  const body = `nhiệm vụ của bạn: ${task.name}`;
 
   if (isUserOnline(userId)) {
-    io.to(userId).emit("team-assigned", {
-      id: team._id,
-      name: team.name,
+    io.to(userId).emit("task-assigned", {
+      id: task._id,
+      name: task.name,
     });
     console.log(`Sent socket to user room: ${userId}`);
   } else {
@@ -116,4 +116,4 @@ const notifyTask = async ({ userId, team }) => {
   }
 };
 
-module.exports = { notifyTeam, notifyProject,notifyProjectRemoval};
+module.exports = { notifyTeam, notifyProject,notifyProjectRemoval,notifyTask};
