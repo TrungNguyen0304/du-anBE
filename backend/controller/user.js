@@ -12,10 +12,15 @@ const generateToken = (user) => {
     name: user.name,
     email: user.email,
     role: user.role,
+    gender: user.gender,
+    dateOfBirth: user.dateOfBirth,
+    phoneNumber: user.phoneNumber,
+    address: user.address
+    
+
   };
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "5h" });
 };
-
 const login = (req, res, next) => {
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err || !user) {
