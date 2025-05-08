@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const Team = require("../models/team");
 const Task = require("../models/task")
 const Project = require("../models/project")
+const user = require("../models/user")
+const Report = require("../models/report");
 
 const getMyTeam = async (req, res) => {
   try {
@@ -73,8 +75,67 @@ const getMyTasks = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+const createReport = async (req, res) => {
+  try {
+    const { taskId, content, taskProgress, difficulties, feedback } = req.body;
+    const userId = req.user._id;
 
+    if (!taskId || !content || !taskProgress) {
+      return res
+        .status(400)
+        .json({ message: "Thiếu taskId, nội dung hoặc tiến độ công việc." });
+    }
+
+    // Tìm task kèm project -> assignedTeam
+    const task = await Task.findById(taskId)
+    .populate({
+      path: 'projectId',
+      populate: {
+        path: 'assignedTeam',
+        model: 'Team', // đảm bảo đúng model
+        populate: {
+          path: 'assignedLeader',
+          model: 'User'
+        }
+      }
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Không tìm thấy công việc." });
+    }
+
+    if (String(task.assignedMember) !== String(userId)) {
+      return res.status(403).json({ message: "Bạn không được giao công việc này." });
+    }
+
+    const team = task.projectId?.assignedTeam;
+    if (!team) {
+      return res.status(400).json({ message: "Công việc không có team hợp lệ." });
+    }
+    const report = new Report({
+      assignedMember: userId,
+      content,
+      difficulties,
+      taskProgress,
+      task: taskId,
+      team: team._id,
+      feedback
+    });
+
+    await report.save();
+
+    res.status(201).json({
+      message: "Gửi báo cáo thành công.",
+      report
+    });
+
+  } catch (error) {
+    console.error("createReport error:", error);
+    res.status(500).json({ message: "Lỗi server.", error: error.message });
+  }
+};
 module.exports = {
   getMyTeam,
-  getMyTasks
+  getMyTasks,
+  createReport
 };

@@ -336,7 +336,7 @@ const viewLeader = async (req, res) => {
 // thêm sửa xóa leader và member vào team
 const createTeam = async (req, res) => {
     try {
-        const { name, assignedLeader, assignedMembers } = req.body;
+        const { name, description, assignedLeader, assignedMembers } = req.body;
 
         if (!name || !assignedLeader || !assignedMembers || !Array.isArray(assignedMembers)) {
             return res.status(400).json({ message: "Thiếu thông tin bắt buộc (name, assignedLeader, assignedMembers phải là mảng)." });
@@ -346,6 +346,11 @@ const createTeam = async (req, res) => {
         const leader = await user.findById(assignedLeader);
         if (!leader || leader.role !== "leader") {
             return res.status(400).json({ message: "Leader không hợp lệ." }); s
+        }
+        // Kiểm tra leader đã được gán vào team nào chưa
+        const existingTeam = await Team.findOne({ assignedLeader });
+        if (existingTeam) {
+            return res.status(400).json({ message: "Leader đã được gán vào một team khác." });
         }
 
         // Kiểm tra tất cả các member
@@ -358,6 +363,7 @@ const createTeam = async (req, res) => {
         // Tạo team mới
         const newTeam = new Team({
             name,
+            description,
             assignedLeader: assignedLeader,
             assignedMembers: assignedMembers
         });
@@ -388,7 +394,7 @@ const createTeam = async (req, res) => {
 const updateTeam = async (req, res) => {
     try {
         const { id } = req.params;  // Lấy id từ params
-        const { name, assignedLeader, assignedMembers } = req.body;
+        const { name, assignedLeader, assignedMembers, description } = req.body;
 
         // Kiểm tra thông tin bắt buộc
         if (!name && !assignedLeader && !assignedMembers) {
@@ -415,6 +421,7 @@ const updateTeam = async (req, res) => {
         const updateData = {};
 
         if (name) updateData.name = name;
+        if (description) updateData.description = description;
         if (assignedLeader) updateData.assignedLeader = assignedLeader;
         if (assignedMembers) updateData.assignedMembers = assignedMembers;
 
@@ -430,6 +437,7 @@ const updateTeam = async (req, res) => {
             team: {
                 id: updatedTeam._id,
                 name: updatedTeam.name,
+                description: updatedTeam.description,
                 assignedLeader: updatedTeam.assignedLeader,
                 assignedMembers: updatedTeam.assignedMembers
             }
@@ -460,6 +468,7 @@ const showallTeam = async (req, res) => {
             teams: teams.map(team => ({
                 _id: team._id,
                 name: team.name,
+                description: team.description,
                 assignedLeader: team.assignedLeader,
                 assignedMembers: team.assignedMembers,
             }))
@@ -492,6 +501,7 @@ const paginationTeam = async (req, res) => {
             teams: teams.map(team => ({
                 id: team._id,
                 name: team.name,
+                description: team.description,
                 assignedLeader: team.assignedLeader,
                 assignedMembers: team.assignedMembers
             })),
