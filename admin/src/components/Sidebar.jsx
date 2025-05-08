@@ -8,14 +8,22 @@ import {
   FaBriefcase,
   FaBars,
   FaTimes,
+  FaAngleDown,
+  FaAngleUp,
 } from "react-icons/fa";
 import { GiProgression } from "react-icons/gi";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+    if (isEmployeeDropdownOpen) setIsEmployeeDropdownOpen(false); // Close dropdown when sidebar toggles
+  };
+
+  const toggleEmployeeDropdown = () => {
+    setIsEmployeeDropdownOpen(!isEmployeeDropdownOpen);
   };
 
   return (
@@ -66,16 +74,49 @@ const Sidebar = () => {
             MENU
           </p>
           <div className="flex flex-col gap-1">
-            <SidebarItem
-              icon={<FaUser />}
-              label="Nhân Viên"
-              to="/member"
-              onClick={() => setIsOpen(false)}
-            />
+            {/* Employee Dropdown */}
+            <div>
+              <div
+                className="flex items-center justify-between gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10"
+                onClick={toggleEmployeeDropdown}
+              >
+                <div className="flex items-center gap-3">
+                  <FaUser />
+                  <span>Quản Lý</span>
+                </div>
+                {isEmployeeDropdownOpen ? <FaAngleUp /> : <FaAngleDown />}
+              </div>
+              {isEmployeeDropdownOpen && (
+                <div className="ml-6 mt-1 flex flex-col gap-1">
+                  <NavLink
+                    to="/member"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
+                        isActive ? "bg-white/20" : ""
+                      }`
+                    }
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span>Nhân Viên</span>
+                  </NavLink>
+                  <NavLink
+                    to="/leader"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
+                        isActive ? "bg-white/20" : ""
+                      }`
+                    }
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span>Leader</span>
+                  </NavLink>
+                </div>
+              )}
+            </div>
+
             <SidebarItem
               icon={<FaBuilding />}
               label="Phòng Ban"
-              contributes
               to="/departments"
               onClick={() => setIsOpen(false)}
             />

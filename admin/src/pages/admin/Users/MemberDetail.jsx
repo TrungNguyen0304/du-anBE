@@ -47,7 +47,7 @@ const MemberDetail = () => {
 
         {/* Thông tin chia 2 cột */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             <li>
               <strong>• ID Nhân Viên:</strong> {employeeIndex || "N/A"}
             </li>
@@ -71,7 +71,7 @@ const MemberDetail = () => {
             </li>
           </ul>
 
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             <li>
               <strong>• Phòng Ban:</strong> {employee.department || "N/A"}
             </li>

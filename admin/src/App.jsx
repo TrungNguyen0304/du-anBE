@@ -8,9 +8,11 @@ import Projects from "./pages/admin/Projects";
 import Jobs from "./pages/admin/Jobs";
 import ProjectProgress from "./pages/admin/ProjectProgress";
 import Login from "./pages/Login";
-import Member from "./pages/admin/Member";
 import MemberDetail from "./pages/admin/Users/MemberDetail";
 import CreateUser from "./pages/admin/Users/createUser";
+import UpdateUser from "./pages/admin/Users/UpdateUser";
+import Leader from "./pages/admin/Users/Leader";
+import MemberPage from "./pages/admin/Users/Member";
 // import ProtectedRoute from "./components/ProtectedRoute";
 
 // Layout for Company
@@ -22,10 +24,12 @@ const CompanyLayout = () => (
       <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/member" element={<Member />} />
+          <Route path="/member" element={<MemberPage />} />
+          <Route path="/leader" element={<Leader />} />
           <Route path="/memberdetail" element={<MemberDetail />} />
           <Route path="/departments" element={<Departments />} />
           <Route path="/create-user" element={<CreateUser />} />
+          <Route path="/update-user" element={<UpdateUser />} />
 
           <Route path="/projects" element={<Projects />} />
           <Route path="/jobs" element={<Jobs />} />
