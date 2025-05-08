@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 const UserTable = ({
   title,
@@ -83,22 +84,30 @@ const UserTable = ({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300 rounded-md text-sm">
+        <table className="min-w-[900px] w-full table-fixed border border-gray-300 text-sm">
           <thead className="bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white">
             <tr>
-              <th className="px-3 py-2 border">ID</th>
-              <th className="px-3 py-2 border">Họ và Tên</th>
-              <th className="px-3 py-2 border">Ngày sinh</th>
-              <th className="px-3 py-2 border">Giới tính</th>
-              <th className="px-3 py-2 border">Email</th>
-              <th className="px-3 py-2 border">Vai Trò</th>
-              <th className="px-3 py-2 border">Chức Năng</th>
+              <th className="w-[5%] px-4 py-2 border text-center">ID</th>
+              <th className="w-[20%] px-4 py-2 border text-center">
+                Họ và Tên
+              </th>
+              <th className="w-[12%] px-4 py-2 border text-center">
+                Ngày sinh
+              </th>
+              <th className="w-[10%] px-4 py-2 border text-center">
+                Giới tính
+              </th>
+              <th className="w-[18%] px-4 py-2 border text-center">Email</th>
+              <th className="w-[10%] px-4 py-2 border text-center">Vai Trò</th>
+              <th className="w-[25%] px-4 py-2 border text-center">
+                Chức Năng
+              </th>
             </tr>
           </thead>
           <tbody>
             {paginatedUsers.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-3 py-2 text-center text-gray-500">
+                <td colSpan="7" className="px-4 py-2 text-center text-gray-500">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -116,7 +125,6 @@ const UserTable = ({
                     ? "Nữ"
                     : user.gender || "";
 
-                // Global index for display (e.g., 11–20 on page 2)
                 const globalIndex = (currentPage - 1) * PAGE_SIZE + index + 1;
 
                 return (
@@ -124,23 +132,30 @@ const UserTable = ({
                     key={user.id || index}
                     className="even:bg-gray-100 text-center"
                   >
-                    <td className="px-3 py-2 border">{globalIndex}</td>
-                    <td className="px-3 py-2 border">{user.name || ""}</td>
-                    <td className="px-3 py-2 border">{formattedDate}</td>
-                    <td className="px-3 py-2 border">{gender}</td>
-                    <td className="px-3 py-2 border">{user.email || ""}</td>
-                    <td className="px-3 py-2 border">{user.role || ""}</td>
-                    <td className="px-3 py-2 border">
-                      <div className="flex justify-center gap-4 flex-wrap">
+                    <td className="px-4 py-2 border">{globalIndex}</td>
+                    <td className="px-4 py-2 border">{user.name || ""}</td>
+                    <td className="px-4 py-2 border">{formattedDate}</td>
+                    <td className="px-4 py-2 border">{gender}</td>
+                    <td className="px-4 py-2 border truncate">
+                      {user.email || ""}
+                    </td>
+                    <td className="px-4 py-2 border">{user.role || ""}</td>
+                    <td className="px-4 py-2 border">
+                      <div className="flex justify-center gap-2 flex-wrap">
                         <NavLink
-                          to="/memberdetail"
+                          to={
+                            originPage === "leader"
+                              ? "/leader-detail"
+                              : "/member-detail"
+                          }
                           state={{
                             employee: user,
                             index: globalIndex,
                             originPage,
                           }}
-                          className="text-blue-600 hover:underline"
+                          className="flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 text-gray-800"
                         >
+                          <Eye className="w-4 h-4 mr-1" />
                           Xem
                         </NavLink>
                         <NavLink
@@ -150,14 +165,16 @@ const UserTable = ({
                             index: globalIndex,
                             originPage,
                           }}
-                          className="text-green-600 hover:underline"
+                          className="flex items-center px-3 py-1 border border-yellow-400 text-yellow-700 rounded hover:bg-yellow-50"
                         >
+                          <Pencil className="w-4 h-4 mr-1" />
                           Sửa
                         </NavLink>
                         <button
                           onClick={() => setDeleteTarget(user)}
-                          className="text-red-600 hover:underline"
+                          className="flex items-center px-3 py-1 border border-red-500 text-red-600 rounded hover:bg-red-50"
                         >
+                          <Trash2 className="w-4 h-4 mr-1" />
                           Xóa
                         </button>
                       </div>

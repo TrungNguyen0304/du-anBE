@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-    if (isEmployeeDropdownOpen) setIsEmployeeDropdownOpen(false); // Close dropdown when sidebar toggles
+    if (isEmployeeDropdownOpen) setIsEmployeeDropdownOpen(false);
   };
 
   const toggleEmployeeDropdown = () => {
@@ -42,9 +42,9 @@ const Sidebar = () => {
       </div>
 
       <aside
-        className={`fixed sm:static w-64 h-screen bg-gradient-to-b from-[#183d5d] to-[#1d557a] text-white p-4 sm:p-5 flex flex-col shadow-lg transition-transform duration-300 ${
+        className={`fixed sm:static flex-shrink-0 top-0 left-0 w-64 min-h-screen bg-gradient-to-b from-[#183d5d] to-[#1d557a] text-white p-4 sm:p-5 flex flex-col shadow-lg transition-transform duration-300 z-40 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } sm:translate-x-0 z-40`}
+        } sm:translate-x-0`}
       >
         <h1 className="text-lg sm:text-xl font-bold text-center mb-3">
           QUẢN LÝ NHÂN SỰ

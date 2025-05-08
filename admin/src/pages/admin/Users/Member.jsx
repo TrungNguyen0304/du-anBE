@@ -8,6 +8,7 @@ const MemberPage = () => {
       fetchUrl="http://localhost:8001/api/company/showallMember"
       deleteUrl="http://localhost:8001/api/company/deleteUser"
       originPage="member"
+      createLink="/create-user"
     />
   );
 };

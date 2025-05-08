@@ -8,6 +8,8 @@ const {
     showAllMember,
     paginationLeader,
     paginationMember,
+    viewMember,
+    viewLeader,
     // team
     createTeam,
     updateTeam,
@@ -39,6 +41,8 @@ router.put('/updateUser/:id', authenticateJWT, authorize('company'), updateUser)
 router.delete('/deleteUser/:id', authenticateJWT, authorize('company'), deleteUser);
 router.get('/showallLeaders', authenticateJWT, authorize('company'), showAllLeaders);
 router.get('/showallMember', authenticateJWT, authorize('company'), showAllMember);
+router.get('/viewMember/:id', authenticateJWT, authorize('company'), viewMember);
+router.get('/viewLeader/:id', authenticateJWT, authorize('company'), viewLeader);
 
 router.post('/paginationLeader', authenticateJWT, authorize('company'), paginationLeader);
 router.post('/paginationMember', authenticateJWT, authorize('company'), paginationMember);
