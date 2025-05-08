@@ -8,6 +8,7 @@ const Leader = () => {
       fetchUrl="http://localhost:8001/api/company/showallLeaders"
       deleteUrl="http://localhost:8001/api/company/deleteUser"
       originPage="leader"
+      createLink="/create-leader"
     />
   );
 };
