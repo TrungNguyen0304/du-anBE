@@ -14,6 +14,7 @@ const {
     showallTeam,
     deleteTeam,
     paginationTeam,
+    viewTeam,
     //project
     createProject,
     updateProject,
@@ -50,6 +51,8 @@ router.put('/updateTeam/:id', authenticateJWT, authorize('company'), updateTeam)
 router.get('/showallTeam', authenticateJWT, authorize('company'), showallTeam);
 router.delete('/deleteTeam/:id', authenticateJWT, authorize('company'), deleteTeam);
 router.post('/paginationTeam', authenticateJWT, authorize('company'), paginationTeam);
+router.get('/viewTeam/:id', authenticateJWT, authorize('company'), viewTeam);
+
 //
 
 // thêm sửa xóa , show sắp xếp, phân trang project và gán project vào team
