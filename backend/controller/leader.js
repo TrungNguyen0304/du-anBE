@@ -3,13 +3,15 @@ const Team = require("../models/team");
 const Project = require("../models/project")
 const Task = require("../models/task")
 const { notifyTask,notifyTaskRemoval } = require("../controller/notification");
+const Report = require("../models/report")
+const User = require("../models/user")
 const getMyTeam = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user._id);
 
     // Tìm tất cả nhóm mà userId có trong assignedLeader
     const teams = await Team.find({ assignedLeader: userId })
-      .populate('assignedLeader', 'name')
+      .populate('assignedLeader', ' name')
       .populate('assignedMembers', 'name');
 
     if (teams.length === 0) {
@@ -545,6 +547,96 @@ const getAssignedTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+// lấy ra tất cả những report member
+const showallRepor = async (req, res) => {
+  try {
+      const leaderId = req.user._id;
+
+      // Lấy các team mà user hiện tại là leader
+      const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id');
+      if (teamsLed.length === 0) {
+          return res.status(404).json({ message: "Không có team nào do bạn quản lý." });
+      }
+
+      const teamIds = teamsLed.map(team => team._id);
+
+      // Lọc report theo team và chỉ lấy các trường cần thiết
+      const reports = await Report.find({ team: { $in: teamIds } },'-team -feedback')
+          .populate({
+              path: 'task',
+              select: '_id name deadline', // Chỉ lấy các trường cần thiết
+          })
+          .populate({
+              path: 'assignedMember',
+              select: '_id name role', // Chỉ lấy các trường cần thiết
+          })
+          // .populate({
+          //     path: 'feedback',
+          //     select: '_id comment rating',
+          // })
+          .lean(); // Trả về dữ liệu thuần túy, không phải Mongoose document
+
+      if (!reports || reports.length === 0) {
+          return res.status(404).json({ message: "Không có báo cáo nào cho các team bạn quản lý." });
+      }
+
+      res.json(reports);
+  } catch (error) {
+      console.error("getReportsForLeader error:", error);
+      res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
+  }
+};
+// lây ra report của từng member(còn đang sai)
+const showAllReportMember = async (req, res) => {
+  try {
+    const leaderId = req.user._id;  // Lấy ID leader từ token
+    const memberId = new mongoose.Types.ObjectId(req.params.memberId);  // Lấy ID member từ URL
+
+    // Lấy các team mà leader quản lý
+    const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id');
+    if (teamsLed.length === 0) {
+      return res.status(403).json({ message: "Bạn không quản lý team nào." });
+    }
+
+    const teamIds = teamsLed.map(team => team._id);
+
+    // Kiểm tra thành viên có thuộc team leader không
+    const isMemberInTeam = await Team.findOne({
+      _id: { $in: teamIds },
+      assignedMembers: memberId
+    });
+
+    if (!isMemberInTeam) {
+      return res.status(403).json({ message: "Bạn không có quyền xem báo cáo của thành viên này." });
+    }
+
+    // Truy vấn báo cáo của member
+    const reports = await Report.find({
+      assignedMember: memberId,
+      team: { $in: teamIds }
+    }, '-team -feedback')
+      .populate({
+        path: 'task',
+        select: '_id name deadline'
+      })
+      .populate({
+        path: 'assignedMember',
+        select: '_id name role'
+      })
+      .lean();
+
+    if (!reports || reports.length === 0) {
+      return res.status(404).json({ message: "Không có báo cáo nào của thành viên này." });
+    }
+
+    res.json(reports);
+  } catch (error) {
+    console.error("showAllReportMember error:", error);
+    res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
+  }
+};
+
+// 
 module.exports = {
   getMyTeam,
   viewAssignedProject,
@@ -556,5 +648,7 @@ module.exports = {
   assignTask,
   revokeTaskAssignment,
   unassignedTask,
-  getAssignedTask
+  getAssignedTask,
+  showallRepor,
+  showAllReportMember
 };

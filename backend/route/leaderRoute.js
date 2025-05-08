@@ -9,7 +9,9 @@ const { getMyTeam,
     assignTask,
     revokeTaskAssignment,
     unassignedTask,
-    getAssignedTask
+    getAssignedTask,
+    showallRepor,
+    showAllReportMember
 } = require('../controller/leader.js');
 const authenticateJWT = require('../middleware/auth.js');
 const authorize = require('../middleware/authorize.js');
@@ -28,7 +30,12 @@ router.put('/assignTask/:id', authenticateJWT, authorize('leader'), assignTask);
 // thu thu hồi task
 router.put('/revokeTask/:id/revoke', authenticateJWT, authorize('leader'), revokeTaskAssignment);
 // lấy ra task chưa giao
-router.get('/unassignedTask/', authenticateJWT, unassignedTask);
-router.get('/getAssignedTask/', authenticateJWT, getAssignedTask);
+router.get('/unassignedTask/', authenticateJWT,authorize('leader'), unassignedTask);
+router.get('/getAssignedTask/', authenticateJWT,authorize('leader'), getAssignedTask);
+
+//show ra report của member
+router.get('/viewReport/', authenticateJWT,authorize('leader'), showallRepor);
+// lây ra report của từng member
+router.get('/viewReportMember/:id/', authenticateJWT,authorize('leader'), showAllReportMember);
 
 module.exports = router;
