@@ -8,10 +8,10 @@ const CreateUser = () => {
     email: "",
     password: "",
     gender: "",
-    dob: "",
+    dateOfBirth: "",
     address: "",
     phoneNumber: "",
-    position: "",
+    role: "",
   });
   const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ const CreateUser = () => {
       !formData.name ||
       !formData.email ||
       !formData.password ||
-      !formData.position
+      !formData.role
     ) {
       alert("Vui lòng nhập đầy đủ các thông tin bắt buộc!");
       return;
@@ -49,10 +49,10 @@ const CreateUser = () => {
               : formData.gender === "Nữ"
               ? "1"
               : "",
-          dob: formData.dob,
+          dateOfBirth: formData.dateOfBirth,
           address: formData.address,
           phoneNumber: formData.phoneNumber,
-          position: formData.position,
+          role: formData.role,
         },
         {
           headers: {
@@ -67,10 +67,10 @@ const CreateUser = () => {
         email: "",
         password: "",
         gender: "",
-        dob: "",
+        dateOfBirth: "",
         address: "",
         phoneNumber: "",
-        position: "",
+        role: "",
       });
       navigate("/member");
     } catch (err) {
@@ -155,8 +155,8 @@ const CreateUser = () => {
           <div>
             <input
               type="date"
-              name="dob"
-              value={formData.dob}
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
               onChange={handleInputChange}
               className="border px-2 py-1 rounded w-full"
             />
@@ -184,14 +184,14 @@ const CreateUser = () => {
 
           <div>
             <select
-              name="position"
-              value={formData.position}
+              name="role"
+              value={formData.role}
               onChange={handleInputChange}
               className="border px-2 py-1 rounded w-full"
             >
               <option value="">Chức Vụ</option>
-              <option value="Leader">Leader</option>
-              <option value="Member">Nhân viên</option>
+              <option value="leader">Leader</option>
+              <option value="member">Nhân viên</option>
             </select>
           </div>
 

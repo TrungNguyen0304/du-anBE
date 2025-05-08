@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const UpdateUser = () => {
   const location = useLocation();
@@ -8,17 +9,23 @@ const UpdateUser = () => {
 
   const [formData, setFormData] = useState({
     name: employee?.name || "",
-    dateOfBirth: employee?.dateOfBirth || "",
-    gender: employee?.gender || "",
-    phoneNumber: employee?.phoneNumber || "",
     email: employee?.email || "",
+    password: "",
+    gender:
+      employee?.gender === "0" || employee?.gender === 0
+        ? "Nam"
+        : employee?.gender === "1" || employee?.gender === 1
+        ? "Nữ"
+        : "",
+    dateOfBirth: employee?.dateOfBirth
+      ? new Date(employee.dateOfBirth).toISOString().split("T")[0]
+      : "",
     address: employee?.address || "",
-    department: employee?.department || "",
-    position: employee?.position || "",
-    job: employee?.job || "",
+    phoneNumber: employee?.phoneNumber || "",
+    role: employee?.role || "",
   });
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -26,12 +33,45 @@ const UpdateUser = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Gửi dữ liệu cập nhật tới API hoặc xử lý tại đây
-    console.log("Updated Employee:", formData);
-    alert("Thông tin đã được cập nhật (chưa kết nối API)");
-    navigate(-1);
+  const handleUpdateEmployee = async () => {
+    if (!formData.name || !formData.email || !formData.role) {
+      alert("Vui lòng nhập đầy đủ các thông tin bắt buộc!");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      await axios.put(
+        `http://localhost:8001/api/company/updateUser/${employee.id}`,
+        {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password || undefined,
+          gender:
+            formData.gender === "Nam"
+              ? "0"
+              : formData.gender === "Nữ"
+              ? "1"
+              : "",
+          dateOfBirth: formData.dateOfBirth,
+          address: formData.address,
+          phoneNumber: formData.phoneNumber,
+          role: formData.role,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Cập nhật thông tin nhân viên thành công!");
+      navigate("/member");
+    } catch (err) {
+      console.error("Lỗi khi cập nhật nhân viên:", err);
+      alert("Đã xảy ra lỗi khi cập nhật nhân viên!");
+    }
   };
 
   if (!employee) {
@@ -39,8 +79,8 @@ const UpdateUser = () => {
       <div className="p-6">
         <p className="text-red-600">Không có dữ liệu nhân viên để cập nhật.</p>
         <button
-          onClick={() => navigate(-1)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+          onClick={() => navigate("/member")}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Quay lại
         </button>
@@ -49,133 +89,140 @@ const UpdateUser = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-xl font-semibold mb-4 text-center text-blue-700">
-        Cập Nhật Thông Tin Nhân Viên
-      </h2>
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
-        <div>
-          <label className="block font-medium mb-1">Họ Tên</label>
-          <input
-            type="text"
-            name="name"
-            className="w-full border rounded px-3 py-2"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
+    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full max-w-7xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Cập Nhật Nhân Viên</h2>
 
-        <div>
-          <label className="block font-medium mb-1">Ngày Sinh</label>
-          <input
-            type="date"
-            name="dateOfBirth"
-            className="w-full border rounded px-3 py-2"
-            value={formData.dateOfBirth}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Giới Tính</label>
-          <select
-            name="gender"
-            className="w-full border rounded px-3 py-2"
-            value={formData.gender}
-            onChange={handleChange}
-          >
-            <option value="">-- Chọn --</option>
-            <option value="0">Nam</option>
-            <option value="1">Nữ</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Số Điện Thoại</label>
-          <input
-            type="text"
-            name="phoneNumber"
-            className="w-full border rounded px-3 py-2"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Email</label>
-          <input
-            type="email"
-            name="email"
-            className="w-full border rounded px-3 py-2"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Địa Chỉ</label>
-          <input
-            type="text"
-            name="address"
-            className="w-full border rounded px-3 py-2"
-            value={formData.address}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Phòng Ban</label>
-          <input
-            type="text"
-            name="department"
-            className="w-full border rounded px-3 py-2"
-            value={formData.department}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Chức Vụ</label>
-          <input
-            type="text"
-            name="position"
-            className="w-full border rounded px-3 py-2"
-            value={formData.position}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block font-medium mb-1">Công Việc</label>
-          <input
-            type="text"
-            name="job"
-            className="w-full border rounded px-3 py-2"
-            value={formData.job}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="md:col-span-2 flex justify-between mt-4">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            Quay lại
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Cập nhật
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border p-4 rounded-lg bg-gray-50">
+        <div className="flex flex-col items-center md:col-span-1">
+          <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mb-2 text-sm text-gray-600">
+            Chưa có avatar
+          </div>
+          <button className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+            Upload
           </button>
         </div>
-      </form>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm md:col-span-2">
+          <div>
+            <input
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+              placeholder="Họ và Tên"
+              required
+            />
+          </div>
+
+          <div>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+              placeholder="Email"
+              required
+            />
+          </div>
+
+          <div>
+            <input
+              type="text"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+              placeholder="Mật khẩu mới (nếu muốn thay đổi)"
+            />
+          </div>
+
+          <div className="flex items-center space-x-4 col-span-1 sm:col-span-2 md:col-span-3">
+            <span>Giới Tính:</span>
+            <label>
+              <input
+                type="radio"
+                name="gender"
+                value="Nam"
+                checked={formData.gender === "Nam"}
+                onChange={handleInputChange}
+                className="mr-1"
+              />{" "}
+              Nam
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="gender"
+                value="Nữ"
+                checked={formData.gender === "Nữ"}
+                onChange={handleInputChange}
+                className="mr-1"
+              />{" "}
+              Nữ
+            </label>
+          </div>
+
+          <div>
+            <input
+              type="date"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+            />
+          </div>
+
+          <div>
+            <input
+              name="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+              placeholder="Địa Chỉ"
+            />
+          </div>
+
+          <div>
+            <input
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+              placeholder="Số Điện Thoại"
+            />
+          </div>
+
+          <div>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleInputChange}
+              className="border px-2 py-1 rounded w-full"
+              required
+            >
+              <option value="">Chức Vụ</option>
+              <option value="leader">Leader</option>
+              <option value="member">Nhân viên</option>
+            </select>
+          </div>
+
+          <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end gap-4 mt-4">
+            <button
+              onClick={() => navigate("/member")}
+              className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleUpdateEmployee}
+              className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
+            >
+              Cập nhật
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
