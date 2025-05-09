@@ -589,53 +589,46 @@ const showallRepor = async (req, res) => {
 // lây ra report của từng member(còn đang sai)
 const showAllReportMember = async (req, res) => {
   try {
-    const leaderId = req.user._id;  // Lấy ID leader từ token
-    const memberId = new mongoose.Types.ObjectId(req.params.memberId);  // Lấy ID member từ URL
+      const id = req.params.id; 
+      const leaderId = req.user._id; 
 
-    // Lấy các team mà leader quản lý
-    const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id');
-    if (teamsLed.length === 0) {
-      return res.status(403).json({ message: "Bạn không quản lý team nào." });
-    }
+      // Tìm các team do leader quản lý
+      const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id assignedMembers');
+      console.log("teamsLed:", teamsLed); // Debug để kiểm tra teamsLed
+      if (!teamsLed || teamsLed.length === 0) {
+          return res.status(403).json({ message: "Bạn không quản lý team nào." });
+      }
 
-    const teamIds = teamsLed.map(team => team._id);
+      // Kiểm tra xem id có thuộc team của leader không
+      const isMemberInTeam = teamsLed.some(team => 
+          Array.isArray(team.assignedMembers) && team.assignedMembers.some(member => member.toString() === id)
+      );
+      if (!isMemberInTeam) {
+          return res.status(403).json({ message: "Bạn không có quyền xem báo cáo của thành viên này." });
+      }
 
-    // Kiểm tra thành viên có thuộc team leader không
-    const isMemberInTeam = await Team.findOne({
-      _id: { $in: teamIds },
-      assignedMembers: memberId
-    });
+      // Lọc báo cáo của thành viên được chỉ định
+      const reports = await Report.find({ assignedMember: id }, '-team -feedback')
+          .populate({
+              path: 'task',
+              select: '_id name deadline', 
+          })
+          .populate({
+              path: 'assignedMember',
+              select: '_id name role',
+          })
+          .lean(); // Trả về dữ liệu thuần túy, không phải Mongoose document
 
-    if (!isMemberInTeam) {
-      return res.status(403).json({ message: "Bạn không có quyền xem báo cáo của thành viên này." });
-    }
+      if (!reports || reports.length === 0) {
+          return res.status(404).json({ message: "Thành viên này chưa gửi báo cáo nào." });
+      }
 
-    // Truy vấn báo cáo của member
-    const reports = await Report.find({
-      assignedMember: memberId,
-      team: { $in: teamIds }
-    }, '-team -feedback')
-      .populate({
-        path: 'task',
-        select: '_id name deadline'
-      })
-      .populate({
-        path: 'assignedMember',
-        select: '_id name role'
-      })
-      .lean();
-
-    if (!reports || reports.length === 0) {
-      return res.status(404).json({ message: "Không có báo cáo nào của thành viên này." });
-    }
-
-    res.json(reports);
+      res.json(reports);
   } catch (error) {
-    console.error("showAllReportMember error:", error);
-    res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
+      console.error("getReportsForMember error:", error);
+      res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
   }
 };
-
 // 
 module.exports = {
   getMyTeam,
