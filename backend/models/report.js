@@ -33,6 +33,11 @@ const reportSchema = new Schema({
         ref: "User",
         required: true
     },
+    assignedLeader: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     feedback: {
         type: Schema.Types.ObjectId,
         ref: 'Feedback',
