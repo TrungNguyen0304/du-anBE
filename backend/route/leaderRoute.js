@@ -11,7 +11,8 @@ const { getMyTeam,
     unassignedTask,
     getAssignedTask,
     showallRepor,
-    showAllReportMember
+    showAllReportMember,
+    evaluateMemberReport
 } = require('../controller/leader.js');
 const authenticateJWT = require('../middleware/auth.js');
 const authorize = require('../middleware/authorize.js');
@@ -37,5 +38,6 @@ router.get('/getAssignedTask/', authenticateJWT,authorize('leader'), getAssigned
 router.get('/viewReport/', authenticateJWT,authorize('leader'), showallRepor);
 // lây ra report của từng member
 router.get('/viewReportMember/:id/', authenticateJWT,authorize('leader'), showAllReportMember);
-
+// đánh giá báo cáo của member
+router.post('/evaluateMemberReport/:id', authenticateJWT, authorize('leader'), evaluateMemberReport);
 module.exports = router;

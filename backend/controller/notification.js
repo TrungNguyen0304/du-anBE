@@ -142,4 +142,63 @@ const notifyTaskRemoval = async ({ userId, task }) => {
     }
   }
 };
-module.exports = { notifyTeam, notifyProject,notifyProjectRemoval,notifyTask,notifyTaskRemoval};
+const notifyReport = async ({ userId, task, report, member }) => {
+  const io = getIO();
+
+  const title = "Báo cáo công việc mới";
+  const body = `Thành viên ${member} đã gửi báo cáo cho task: ${task.name}`;
+
+  if (isUserOnline(userId)) {
+    io.to(userId).emit("report-submitted", {
+      reportId: report._id,
+      taskId: task._id,
+      taskName: task.name,
+      member,
+      submittedAt: report.createdAt,
+    });
+    console.log(`Sent socket to leader room: ${userId}`);
+  } else {
+    const user = await User.findById(userId);
+    if (user?.fcmToken) {
+      try {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Sent FCM to offline leader with userId: ${userId}`);
+      } catch (error) {
+        console.error("Error sending FCM:", error.message);
+      }
+    } else {
+      console.log("No FCM token for leader.");
+    }
+  }
+};
+const notifyEvaluateLeader = async ({ userId, feedback, report }) => {
+  const io = getIO();
+
+  const title = "Báo cáo của bạn đã được đánh giá";
+  const body = `Bạn nhận được đánh giá: ${feedback.score}/10 - ${feedback.comment}`;
+
+  if (isUserOnline(userId)) {
+    io.to(userId).emit("report-evaluated", {
+      reportId: report._id,
+      feedbackId: feedback._id,
+      score: feedback.score,
+      comment: feedback.comment,
+      evaluatedAt: feedback.createdAt
+    });
+    console.log(`Sent socket to member room: ${userId}`);
+  } else {
+    const user = await User.findById(userId);
+    if (user?.fcmToken) {
+      try {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Sent FCM to offline member with userId: ${userId}`);
+      } catch (error) {
+        console.error("Error sending FCM:", error.message);
+      }
+    } else {
+      console.log("No FCM token for member.");
+    }
+  }
+};
+
+module.exports = { notifyTeam, notifyProject,notifyProjectRemoval,notifyTask,notifyTaskRemoval,notifyReport,notifyEvaluateLeader};

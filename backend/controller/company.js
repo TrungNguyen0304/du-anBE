@@ -29,7 +29,6 @@ const createUser = async (req, res) => {
             dateOfBirth,
             phoneNumber,
             address
-            
         });
 
         await newEmployee.save();
@@ -426,7 +425,9 @@ const updateTeam = async (req, res) => {
         if (assignedMembers) updateData.assignedMembers = assignedMembers;
 
         // Cập nhật team
-        const updatedTeam = await Team.findByIdAndUpdate(id, updateData, { new: true });
+        const updatedTeam = await Team.findByIdAndUpdate(id, updateData, { new: true })
+            .populate("assignedLeader", "name ") // chỉ lấy name, email
+            .populate("assignedMembers", "name ");
 
         if (!updatedTeam) {
             return res.status(404).json({ message: "Team không tồn tại." });
