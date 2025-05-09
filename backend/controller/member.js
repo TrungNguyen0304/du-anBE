@@ -4,6 +4,7 @@ const Task = require("../models/task")
 const Project = require("../models/project")
 const user = require("../models/user")
 const Report = require("../models/report");
+const { notifyReport } = require("../controller/notification");
 
 const getMyTeam = async (req, res) => {
   try {
@@ -86,13 +87,11 @@ const createReport = async (req, res) => {
         .json({ message: "Thiếu taskId, nội dung hoặc tiến độ công việc." });
     }
 
-    // Tìm task kèm project -> assignedTeam
-    const task = await Task.findById(taskId)
-    .populate({
+    const task = await Task.findById(taskId).populate({
       path: 'projectId',
       populate: {
         path: 'assignedTeam',
-        model: 'Team', // đảm bảo đúng model
+        model: 'Team',
         populate: {
           path: 'assignedLeader',
           model: 'User'
@@ -109,9 +108,12 @@ const createReport = async (req, res) => {
     }
 
     const team = task.projectId?.assignedTeam;
-    if (!team) {
-      return res.status(400).json({ message: "Công việc không có team hợp lệ." });
+    const assignedLeader = team?.assignedLeader;
+
+    if (!team || !assignedLeader) {
+      return res.status(400).json({ message: "Không tìm thấy team hoặc leader." });
     }
+
     const report = new Report({
       assignedMember: userId,
       content,
@@ -119,10 +121,18 @@ const createReport = async (req, res) => {
       taskProgress,
       task: taskId,
       team: team._id,
+      assignedLeader: assignedLeader._id,
       feedback
     });
 
     await report.save();
+
+    await notifyReport({
+      userId: assignedLeader._id.toString(),
+      task,
+      report,
+      member: req.user.name || 'Thành viên' // fallback nếu thiếu tên
+    });
 
     res.status(201).json({
       message: "Gửi báo cáo thành công.",
@@ -134,8 +144,51 @@ const createReport = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
+const showAllFeedback = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Tìm tất cả báo cáo của member kèm feedback
+    const reports = await Report.find({ assignedMember: userId })
+      .populate({
+        path: 'feedback',
+        model: 'Feedback'
+      })
+      .populate({
+        path: 'task',
+        select: 'name'
+      })
+      .sort({ createdAt: -1 }); // Mới nhất trước
+
+    // Lọc ra những báo cáo đã có feedback
+    const feedbacks = reports
+      .filter(r => r.feedback)
+      .map(r => ({
+        reportId: r._id,
+        taskName: r.task?.name || 'Không rõ',
+        feedbackId: r.feedback._id,
+        comment: r.feedback.comment,
+        score: r.feedback.score,
+        from: r.feedback.from,
+        createdAt: r.feedback.createdAt
+      }));
+
+    res.status(200).json({
+      message: "Lấy danh sách đánh giá thành công.",
+      feedbacks
+    });
+
+  } catch (error) {
+    console.error("showAllFeedback error:", error);
+    res.status(500).json({ message: "Lỗi server.", error: error.message });
+  }
+};
+
+
 module.exports = {
   getMyTeam,
   getMyTasks,
-  createReport
+  createReport,
+  showAllFeedback
 };

@@ -425,7 +425,9 @@ const updateTeam = async (req, res) => {
         if (assignedMembers) updateData.assignedMembers = assignedMembers;
 
         // Cập nhật team
-        const updatedTeam = await Team.findByIdAndUpdate(id, updateData, { new: true });
+        const updatedTeam = await Team.findByIdAndUpdate(id, updateData, { new: true })
+            .populate("assignedLeader", "name ") // chỉ lấy name, email
+            .populate("assignedMembers", "name ");
 
         if (!updatedTeam) {
             return res.status(404).json({ message: "Team không tồn tại." });
@@ -536,50 +538,50 @@ const deleteTeam = async (req, res) => {
 };
 const viewTeam = async (req, res) => {
     try {
-      const { id } = req.params;
-  
-      // Lấy thông tin team và populate leader & members
-      const team = await Team.findById(id)
-        .populate("assignedLeader", "name email")
-        .populate("assignedMembers", "name email")
-        .lean();
-  
-      if (!team) {
-        return res.status(404).json({ message: "Không tìm thấy team." });
-      }
-  
-      // Lấy project của team này
-      const projects = await Project.find({ assignedTeam: id })
-        .select("name description deadline status")
-        .lean();
-  
-      // Lấy danh sách projectId
-      const projectIds = projects.map(p => p._id);
-  
-      // Lấy các task thuộc các project này
-      const tasks = await Task.find({ projectId: { $in: projectIds } })
-        .select("name description assignedMember projectId status deadline priority")
-        .populate("assignedMember", "name email")
-        .populate("projectId", "name description")
-        .lean();
-  
-      res.status(200).json({
-        message: `Thông tin Team: ${team.name}`,
-        team: {
-          _id: team._id,
-          name: team.name,
-          description: team.description,
-          assignedLeader: team.assignedLeader,
-          assignedMembers: team.assignedMembers,
-          projects,
-          tasks
+        const { id } = req.params;
+
+        // Lấy thông tin team và populate leader & members
+        const team = await Team.findById(id)
+            .populate("assignedLeader", "name email")
+            .populate("assignedMembers", "name email")
+            .lean();
+
+        if (!team) {
+            return res.status(404).json({ message: "Không tìm thấy team." });
         }
-      });
+
+        // Lấy project của team này
+        const projects = await Project.find({ assignedTeam: id })
+            .select("name description deadline status")
+            .lean();
+
+        // Lấy danh sách projectId
+        const projectIds = projects.map(p => p._id);
+
+        // Lấy các task thuộc các project này
+        const tasks = await Task.find({ projectId: { $in: projectIds } })
+            .select("name description assignedMember projectId status deadline priority")
+            .populate("assignedMember", "name email")
+            .populate("projectId", "name description")
+            .lean();
+
+        res.status(200).json({
+            message: `Thông tin Team: ${team.name}`,
+            team: {
+                _id: team._id,
+                name: team.name,
+                description: team.description,
+                assignedLeader: team.assignedLeader,
+                assignedMembers: team.assignedMembers,
+                projects,
+                tasks
+            }
+        });
     } catch (error) {
-      console.error("Lỗi khi lấy thông tin team:", error);
-      res.status(500).json({ message: "Lỗi server", error: error.message });
+        console.error("Lỗi khi lấy thông tin team:", error);
+        res.status(500).json({ message: "Lỗi server", error: error.message });
     }
-  };
+};
 //
 
 // thêm sửa xóa project và phân sắp xếp, phân trang, và gán project cho team
