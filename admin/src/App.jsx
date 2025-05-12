@@ -15,13 +15,14 @@ import MemberDetail from "./pages/admin/Users/MemberDetail";
 import LeaderDetail from "./pages/admin/Users/LeaderDetail";
 import CreateLeader from "./pages/admin/Users/CreateLeader";
 import Departments from "./pages/admin/Departments/Departments";
-import Projects from "./pages/admin/Projects/Projects";
+import ProjectAssigned from "./pages/admin/Projects/ProjectAssigned";
 import CreateProject from "./pages/admin/Projects/CreateProject";
 import UpdateProject from "./pages/admin/Projects/UpdateProject";
 import ProjectDetail from "./pages/admin/Projects/ProjectDetail";
 import CreateDepartment from "./pages/admin/Departments/CreateDepartment";
 import UpdateDepartment from "./pages/admin/Departments/UpdateDepartment";
 import DepartmentDetail from "./pages/admin/Departments/DepartmentDetail";
+import Unassigned from "./pages/admin/Projects/Unassigned";
 // import ProtectedRoute from "./components/ProtectedRoute";
 
 // Layout for Company
@@ -49,7 +50,8 @@ const CompanyLayout = () => (
           <Route path="/create-leader" element={<CreateLeader />} />
           <Route path="/update-user" element={<UpdateUser />} />
 
-          <Route path="/projects" element={<Projects />} />
+          <Route path="/project-assigned" element={<ProjectAssigned />} />
+          <Route path="/project-unassigned" element={<Unassigned />} />
           <Route path="/create-projects" element={<CreateProject />} />
           <Route path="/update-projects/:id" element={<UpdateProject />} />
           <Route path="/project-detail/:id" element={<ProjectDetail />} />

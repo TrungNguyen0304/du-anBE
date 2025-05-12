@@ -13,13 +13,16 @@ const ProjectDetail = () => {
       try {
         const token = localStorage.getItem("token"); // hoặc từ context/store
 
-        const response = await fetch(`http://localhost:8001/api/company/viewTeamProject/${id}`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
+        const response = await fetch(
+          `http://localhost:8001/api/company/viewTeamProject/${id}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
 
         const data = await response.json();
 
@@ -42,7 +45,9 @@ const ProjectDetail = () => {
   }, [id, navigate]);
 
   if (loading) {
-    return <div className="text-center mt-10 text-gray-600">Đang tải dữ liệu...</div>;
+    return (
+      <div className="text-center mt-10 text-gray-600">Đang tải dữ liệu...</div>
+    );
   }
 
   if (error || !project) {
@@ -80,27 +85,45 @@ const ProjectDetail = () => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        {(project.assignedTeam?.assignedLeader?.name ||
+          (project.assignedTeam?.assignedMembers &&
+            project.assignedTeam.assignedMembers.length > 0) ||
+          project.assignedTeam?.name) && (
           <div>
-            <h3 className="text-xl font-semibold text-gray-800">Người Phụ Trách</h3>
-            <p className="text-gray-600">
-              <strong>Leader:</strong> {project.assignedTeam?.assignedLeader?.name}
-            </p>
-            <p className="text-gray-600">
-              <strong>Nhân viên:</strong>{" "}
-              {project.assignedTeam?.assignedMembers
-                .map((member) => member.name)
-                .join(", ")}
-            </p>
-            <p className="text-gray-600">
-              <strong>Phòng ban:</strong> {project.assignedTeam?.name}
-            </p>
+            <h3 className="text-xl font-semibold text-gray-800">
+              Người Phụ Trách
+            </h3>
+
+            {project.assignedTeam?.assignedLeader?.name && (
+              <p className="text-gray-600">
+                <strong>Leader:</strong>{" "}
+                {project.assignedTeam.assignedLeader.name}
+              </p>
+            )}
+
+            {project.assignedTeam?.assignedMembers &&
+              project.assignedTeam.assignedMembers.length > 0 && (
+                <p className="text-gray-600">
+                  <strong>Nhân viên:</strong>{" "}
+                  {project.assignedTeam.assignedMembers
+                    .map((member) => member.name)
+                    .join(", ")}
+                </p>
+              )}
+
+            {project.assignedTeam?.name && (
+              <p className="text-gray-600">
+                <strong>Phòng ban:</strong> {project.assignedTeam.name}
+              </p>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       <div className="mt-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Danh Sách Công Việc</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          Danh Sách Công Việc
+        </h3>
         {project.tasks && project.tasks.length > 0 ? (
           <div className="space-y-4">
             {project.tasks.map((task) => (
@@ -113,7 +136,8 @@ const ProjectDetail = () => {
                   <strong>Trạng thái:</strong> {task.status}
                 </p>
                 <p className="text-gray-600">
-                  <strong>Người thực hiện:</strong> {task.assignee?.name || "Chưa phân công"}
+                  <strong>Người thực hiện:</strong>{" "}
+                  {task.assignee?.name || "Chưa phân công"}
                 </p>
               </div>
             ))}
@@ -125,7 +149,7 @@ const ProjectDetail = () => {
 
       <div className="flex justify-end mt-6">
         <button
-          onClick={() => navigate("/projects")}
+          onClick={() => navigate(-1)}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
         >
           Quay lại
