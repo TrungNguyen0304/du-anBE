@@ -11,8 +11,10 @@ const reportSchema = new Schema({
         required: true
     },
     taskProgress: {
-        type: String,
-        required: true
+        type: Number,
+        required: true,
+        min: 0,
+        max: 100
     },
     task: {
         type: mongoose.Schema.Types.ObjectId,
