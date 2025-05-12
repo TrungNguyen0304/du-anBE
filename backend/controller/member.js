@@ -76,74 +76,80 @@ const getMyTasks = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-const createReport = async (req, res) => {
-  try {
-    const { taskId, content, taskProgress, difficulties, feedback } = req.body;
-    const userId = req.user._id;
+// const createReport = async (req, res) => {
+//   try {
+//     const { taskId, content, taskProgress, difficulties, feedback } = req.body;
+//     const userId = req.user._id;
 
-    if (!taskId || !content || !taskProgress) {
-      return res
-        .status(400)
-        .json({ message: "Thiếu taskId, nội dung hoặc tiến độ công việc." });
-    }
+//     if (!taskId || !content || !taskProgress) {
+//       return res
+//         .status(400)
+//         .json({ message: "Thiếu taskId, nội dung hoặc tiến độ công việc." });
+//     }
 
-    const task = await Task.findById(taskId).populate({
-      path: 'projectId',
-      populate: {
-        path: 'assignedTeam',
-        model: 'Team',
-        populate: {
-          path: 'assignedLeader',
-          model: 'User'
-        }
-      }
-    });
+//     const task = await Task.findById(taskId).populate({
+//       path: 'projectId',
+//       populate: {
+//         path: 'assignedTeam',
+//         model: 'Team',
+//         populate: {
+//           path: 'assignedLeader',
+//           model: 'User'
+//         }
+//       }
+//     });
 
-    if (!task) {
-      return res.status(404).json({ message: "Không tìm thấy công việc." });
-    }
+//     if (!task) {
+//       return res.status(404).json({ message: "Không tìm thấy công việc." });
+//     }
 
-    if (String(task.assignedMember) !== String(userId)) {
-      return res.status(403).json({ message: "Bạn không được giao công việc này." });
-    }
+//     if (String(task.assignedMember) !== String(userId)) {
+//       return res.status(403).json({ message: "Bạn không được giao công việc này." });
+//     }
 
-    const team = task.projectId?.assignedTeam;
-    const assignedLeader = team?.assignedLeader;
+//     const team = task.projectId?.assignedTeam;
+//     const assignedLeader = team?.assignedLeader;
 
-    if (!team || !assignedLeader) {
-      return res.status(400).json({ message: "Không tìm thấy team hoặc leader." });
-    }
+//     if (!team || !assignedLeader) {
+//       return res.status(400).json({ message: "Không tìm thấy team hoặc leader." });
+//     }
 
-    const report = new Report({
-      assignedMember: userId,
-      content,
-      difficulties,
-      taskProgress,
-      task: taskId,
-      team: team._id,
-      assignedLeader: assignedLeader._id,
-      feedback
-    });
+//     const report = new Report({
+//       assignedMember: userId,
+//       content,
+//       difficulties,
+//       taskProgress,
+//       task: taskId,
+//       team: team._id,
+//       assignedLeader: assignedLeader._id,
+//       feedback
+//     });
 
-    await report.save();
+//     await report.save();
+    
+//     // Cập nhật task.progress nếu cần
+//     if (typeof taskProgress === 'number' && taskProgress >= 0 && taskProgress <= 100) {
+//       task.progress = taskProgress;
+//       await task.save();
+//     }
 
-    await notifyReport({
-      userId: assignedLeader._id.toString(),
-      task,
-      report,
-      member: req.user.name || 'Thành viên'
-    });
+//     await notifyReport({
+//       userId: assignedLeader._id.toString(),
+//       task,
+//       report,
+//       member: req.user.name || 'Thành viên'
+//     });
 
-    res.status(201).json({
-      message: "Gửi báo cáo thành công.",
-      report
-    });
+//     res.status(201).json({
+//       message: "Gửi báo cáo thành công.",
+//       report
+//     });
 
-  } catch (error) {
-    console.error("createReport error:", error);
-    res.status(500).json({ message: "Lỗi server.", error: error.message });
-  }
-};
+//   } catch (error) {
+//     console.error("createReport error:", error);
+//     res.status(500).json({ message: "Lỗi server.", error: error.message });
+//   }
+// };
 const showAllFeedback = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -255,6 +261,88 @@ const updateTaskStatus = async (req, res) => {
 
   } catch (error) {
     console.error("updateTaskStatus error:", error);
+    res.status(500).json({ message: "Lỗi server.", error: error.message });
+  }
+};
+// ghi đề taskProgress lên
+const createReport = async (req, res) => {
+  try {
+    const { taskId, content, taskProgress, difficulties, feedback } = req.body;
+    const userId = req.user._id;
+
+    if (!taskId || !content || taskProgress === undefined) {
+      return res.status(400).json({ message: "Thiếu taskId, nội dung hoặc tiến độ công việc." });
+    }
+
+    // Xử lý giá trị taskProgress nếu nó có dấu %
+    let progress = taskProgress;
+    if (typeof taskProgress === "string" && taskProgress.includes("%")) {
+      progress = taskProgress.replace("%", ""); // Loại bỏ dấu %
+      progress = parseInt(progress, 10); // Chuyển đổi thành số nguyên
+    }
+
+    if (isNaN(progress) || progress < 0 || progress > 100) {
+      return res.status(400).json({ message: "Tiến độ công việc không hợp lệ." });
+    }
+
+    const task = await Task.findById(taskId).populate({
+      path: 'projectId',
+      populate: {
+        path: 'assignedTeam',
+        model: 'Team',
+        populate: {
+          path: 'assignedLeader',
+          model: 'User'
+        }
+      }
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Không tìm thấy công việc." });
+    }
+
+    if (String(task.assignedMember) !== String(userId)) {
+      return res.status(403).json({ message: "Bạn không được giao công việc này." });
+    }
+
+    const team = task.projectId?.assignedTeam;
+    const assignedLeader = team?.assignedLeader;
+
+    if (!team || !assignedLeader) {
+      return res.status(400).json({ message: "Không tìm thấy team hoặc leader." });
+    }
+
+    const report = new Report({
+      assignedMember: userId,
+      content,
+      difficulties,
+      taskProgress: progress, // Sử dụng giá trị đã xử lý
+      task: taskId,
+      team: team._id,
+      assignedLeader: assignedLeader._id,
+      feedback
+    });
+
+    await report.save();
+
+    // Cập nhật task.progress với giá trị progress mới từ báo cáo
+    task.progress = progress; // Ghi đè lên task.progress
+    await task.save();
+
+    await notifyReport({
+      userId: assignedLeader._id.toString(),
+      task,
+      report,
+      member: req.user.name || 'Thành viên'
+    });
+
+    res.status(201).json({
+      message: "Gửi báo cáo thành công.",
+      report
+    });
+
+  } catch (error) {
+    console.error("createReport error:", error);
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };

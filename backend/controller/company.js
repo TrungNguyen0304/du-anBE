@@ -177,7 +177,7 @@ const showAllLeaders = async (req, res) => {
     res.status(200).json({
       message: "Lấy danh sách leader thành công.",
       leaders: leaders.map((leader) => ({
-        id: leader._id,
+        _id: leader._id,
         name: leader.name,
         email: leader.email,
         role: leader.role,
@@ -213,7 +213,7 @@ const showAllMember = async (req, res) => {
     res.status(200).json({
       message: "Lấy danh sách member thành công.",
       members: members.map((member) => ({
-        id: member._id,
+        _id: member._id,
         name: member.name,
         email: member.email,
         role: member.role,

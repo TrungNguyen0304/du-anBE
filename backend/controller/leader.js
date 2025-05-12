@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Team = require("../models/team");
 const Project = require("../models/project")
 const Task = require("../models/task")
-const { notifyTask, notifyTaskRemoval, notifyEvaluateLeader} = require("../controller/notification");
+const { notifyTask, notifyTaskRemoval, notifyEvaluateLeader } = require("../controller/notification");
 const Report = require("../models/report")
 const User = require("../models/user");
 const Feedback = require("../models/Feedback");
@@ -116,7 +116,7 @@ const viewAssignedProject = async (req, res) => {
 
 const createTask = async (req, res) => {
   try {
-    const { name, description, status, projectId, priority } = req.body;
+    const { name, description, status, projectId, priority, progress } = req.body;
     const userId = req.user._id;
 
     if (!name || !projectId) {
@@ -145,6 +145,7 @@ const createTask = async (req, res) => {
     const allowedPriorities = [1, 2, 3];
     const taskStatus = allowedStatuses.includes(status) ? status : "pending";
     const taskPriority = allowedPriorities.includes(priority) ? priority : 2;
+    const taskProgress = typeof progress === "number" && progress >= 0 && progress <= 100 ? progress : 0;
 
     const newTask = new Task({
       name,
@@ -152,6 +153,7 @@ const createTask = async (req, res) => {
       status: taskStatus,
       projectId: projectId,
       priority: taskPriority,
+      progress: taskProgress
     });
 
     await newTask.save();
