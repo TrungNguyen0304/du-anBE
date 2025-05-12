@@ -142,6 +142,7 @@ const notifyTaskRemoval = async ({ userId, task }) => {
     }
   }
 };
+// thông báo khi member report 
 const notifyReport = async ({ userId, task, report, member }) => {
   const io = getIO();
 
@@ -171,6 +172,7 @@ const notifyReport = async ({ userId, task, report, member }) => {
     }
   }
 };
+// thông báo khi leader feedback
 const notifyEvaluateLeader = async ({ userId, feedback, report }) => {
   const io = getIO();
 
@@ -200,5 +202,45 @@ const notifyEvaluateLeader = async ({ userId, feedback, report }) => {
     }
   }
 };
+// thông báo khi member update status
+const notifyStatusTask = async ({ userId, task, member, oldStatus }) => {
+  
+  const io = getIO();
+  const title = "Trạng thái Nhiệm Vụ";
+  const body = `Thành viên ${member} đã thay đổi trạng thái từ ${oldStatus} thành ${task.status}`;
 
-module.exports = { notifyTeam, notifyProject,notifyProjectRemoval,notifyTask,notifyTaskRemoval,notifyReport,notifyEvaluateLeader};
+  if (isUserOnline(userId)) {
+    io.to(userId).emit("report-submitted", {
+      taskId: task._id,
+      taskName: task.name,
+      taskStatus: task.status,
+      member,
+      oldStatus,
+      submittedAt: new Date(),
+    });
+    console.log(`Sent socket to leader room: ${userId}`);
+  } else {
+    const user = await User.findById(userId);
+    if (user?.fcmToken) {
+      try {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Sent FCM to offline leader with userId: ${userId}`);
+      } catch (error) {
+        console.error("Error sending FCM:", error.message);
+      }
+    } else {
+      console.log("No FCM token for leader.");
+    }
+  }
+};
+
+module.exports = {
+  notifyTeam,
+  notifyProject,
+  notifyProjectRemoval,
+  notifyTask,
+  notifyTaskRemoval,
+  notifyReport,
+  notifyEvaluateLeader,
+  notifyStatusTask
+};
