@@ -42,7 +42,7 @@ const CompanyLayout = () => (
           {/* Phòng Ban */}
           <Route path="/departments" element={<Departments />} />
           <Route path="/create-department" element={<CreateDepartment />} />
-          <Route path="/update-department" element={<UpdateDepartment />} />
+          <Route path="/update-department/:id" element={<UpdateDepartment />} />
           <Route path="/department-detail" element={<DepartmentDetail />} />
 
           <Route path="/create-user" element={<CreateUser />} />

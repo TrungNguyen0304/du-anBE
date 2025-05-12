@@ -41,11 +41,9 @@ const Departments = () => {
   const handleView = (id) => {
     navigate("/department-detail", { state: { departmentId: id } });
   };
-
-  const handleEdit = (id) => {
-    navigate("/update-department", { state: { departmentId: id } });
-  };
-
+const handleEdit = (id) => {
+  navigate(`/update-department/${id}`);
+};
   const handleDeleteClick = (id) => {
     setSelectedDepartmentId(id);
     setIsConfirmModalOpen(true);
