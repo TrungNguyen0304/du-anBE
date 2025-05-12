@@ -16,14 +16,20 @@ import { GiProgression } from "react-icons/gi";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
     if (isEmployeeDropdownOpen) setIsEmployeeDropdownOpen(false);
+    if (isProjectDropdownOpen) setIsProjectDropdownOpen(false);
   };
 
   const toggleEmployeeDropdown = () => {
     setIsEmployeeDropdownOpen(!isEmployeeDropdownOpen);
+  };
+
+  const toggleProjectDropdown = () => {
+    setIsProjectDropdownOpen(!isProjectDropdownOpen);
   };
 
   return (
@@ -120,12 +126,47 @@ const Sidebar = () => {
               to="/departments"
               onClick={() => setIsOpen(false)}
             />
-            <SidebarItem
-              icon={<FaProjectDiagram />}
-              label="Dự Án"
-              to="/projects"
-              onClick={() => setIsOpen(false)}
-            />
+
+            {/* Project Dropdown */}
+            <div>
+              <div
+                className="flex items-center justify-between gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10"
+                onClick={toggleProjectDropdown}
+              >
+                <div className="flex items-center gap-3">
+                  <FaProjectDiagram />
+                  <span>Dự Án</span>
+                </div>
+                {isProjectDropdownOpen ? <FaAngleUp /> : <FaAngleDown />}
+              </div>
+              {isProjectDropdownOpen && (
+                <div className="ml-6 mt-1 flex flex-col gap-1">
+                  <NavLink
+                    to="/project-assigned"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
+                        isActive ? "bg-white/20" : ""
+                      }`
+                    }
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span>Dự Án Đã Gán</span>
+                  </NavLink>
+                  <NavLink
+                    to="/project-unassigned"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
+                        isActive ? "bg-white/20" : ""
+                      }`
+                    }
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span>Dự Án Chưa Gán</span>
+                  </NavLink>
+                </div>
+              )}
+            </div>
+
             <SidebarItem
               icon={<FaBriefcase />}
               label="Công Việc"

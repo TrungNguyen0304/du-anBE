@@ -62,7 +62,7 @@ const UpdateProject = () => {
   };
 
   const handleCancel = () => {
-    navigate("/projects");
+    navigate(-1);
   };
 
   return (
