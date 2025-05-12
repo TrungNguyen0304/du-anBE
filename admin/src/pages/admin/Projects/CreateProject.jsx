@@ -1,17 +1,35 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const CreateProject = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [leader, setLeader] = useState("");
-  const [members, setMembers] = useState("");
-  const [department, setDepartment] = useState("");
+  const [priority, setPriority] = useState(2);
+  const status = "pending"; // Mặc định là "chờ xử lý"
   const navigate = useNavigate();
 
-  const handleCreate = () => {
-    alert("Dự án đã được tạo!");
-    navigate("/projects");
+  const handleCreate = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post("http://localhost:8001/api/company/createProject", {
+        name,
+        description,
+        status,
+        priority: Number(priority),
+      },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Dự án đã được tạo!");
+      navigate("/projects");
+    } catch (error) {
+      alert(`Tạo dự án thất bại: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   const handleCancel = () => {
@@ -46,40 +64,28 @@ const CreateProject = () => {
           />
         </div>
         <div>
-          <label htmlFor="leader" className="block text-gray-700">
-            Leader
-          </label>
+          <label className="block text-gray-700">Trạng Thái</label>
           <input
             type="text"
-            id="leader"
-            className="w-full p-2 border border-gray-300 rounded"
-            value={leader}
-            onChange={(e) => setLeader(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded bg-gray-100"
+            value="Chờ xử lý"
+            disabled
           />
         </div>
         <div>
-          <label htmlFor="members" className="block text-gray-700">
-            Nhân Viên
+          <label htmlFor="priority" className="block text-gray-700">
+            Mức Ưu Tiên
           </label>
-          <input
-            type="text"
-            id="members"
+          <select
+            id="priority"
             className="w-full p-2 border border-gray-300 rounded"
-            value={members}
-            onChange={(e) => setMembers(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="department" className="block text-gray-700">
-            Phòng Ban
-          </label>
-          <input
-            type="text"
-            id="department"
-            className="w-full p-2 border border-gray-300 rounded"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-          />
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value={1}>Cao</option>
+            <option value={2}>Trung bình</option>
+            <option value={3}>Thấp</option>
+          </select>
         </div>
       </div>
       <div className="flex justify-end gap-4 mt-6">
