@@ -53,6 +53,7 @@ const CompanyLayout = () => (
           <Route path="/create-projects" element={<CreateProject />} />
           <Route path="/update-projects/:id" element={<UpdateProject />} />
           <Route path="/project-detail/:id" element={<ProjectDetail />} />
+
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/projectprogress" element={<ProjectProgress />} />
         </Routes>

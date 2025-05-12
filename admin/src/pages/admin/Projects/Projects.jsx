@@ -1,28 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const dummyProjects = [
-  {
-    id: 1,
-    name: "Dự án Quản lý Website",
-    description: "Xây dựng hệ thống website công ty.",
-    leader: "Nguyễn Văn A",
-    members: ["Trần Thị B", "Lê Văn C"],
-    department: "Phòng Kỹ Thuật",
-  },
-  {
-    id: 2,
-    name: "Ứng dụng Mobile ABC",
-    description: "Phát triển ứng dụng mobile cho khách hàng.",
-    leader: "Phạm Thị D",
-    members: ["Nguyễn Văn B", "Trần Thị E"],
-    department: "Phòng Phát Triển",
-  },
-];
+import axios from "axios";
 
 const Projects = () => {
-  const [projects, setProjects] = useState(dummyProjects);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Token không tồn tại. Vui lòng đăng nhập lại.");
+          navigate("/login"); // Redirect to login if no token
+          return;
+        }
+
+        const response = await axios.get(
+          "http://localhost:8001/api/company/showallProject",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setProjects(response.data.projects || []);
+      } catch (error) {
+        console.error("Lỗi khi tải dự án:", error);
+        setError("Không thể tải danh sách dự án.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [navigate]);
 
   const handleAdd = () => {
     navigate("/create-projects");
@@ -32,10 +47,24 @@ const Projects = () => {
     navigate(`/update-projects/${id}`);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Bạn có chắc muốn xóa dự án này?");
     if (confirmDelete) {
-      setProjects(projects.filter((p) => p.id !== id));
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(
+          `http://localhost:8001/api/company/deleteProject/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setProjects(projects.filter((p) => p._id !== id));
+      } catch (error) {
+        console.error("Lỗi khi xóa dự án:", error);
+        setError("Không thể xóa dự án.");
+      }
     }
   };
 
@@ -55,44 +84,48 @@ const Projects = () => {
         </button>
       </div>
 
-      {projects.length === 0 ? (
+      {loading ? (
+        <p>Đang tải dữ liệu...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : projects.length === 0 ? (
         <p className="text-gray-500">Chưa có dự án nào.</p>
       ) : (
         <div className="space-y-4">
           {projects.map((project) => (
             <div
-              key={project.id}
+              key={project._id}
               className="border rounded-lg p-4 hover:shadow transition"
             >
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-semibold">{project.name}</h3>
-                  <p className="text-gray-600">{project.description}</p>
                   <p className="text-gray-600">
-                    <strong>Leader:</strong> {project.leader}
+                    <span className="font-semibold text-black">Mô tả:</span>{" "}
+                    {project.description}
                   </p>
                   <p className="text-gray-600">
-                    <strong>Nhân viên:</strong> {project.members.join(", ")}
+                    <strong>Trạng thái:</strong> {project.status}
                   </p>
                   <p className="text-gray-600">
-                    <strong>Phòng ban:</strong> {project.department}
+                    <strong>Ưu tiên:</strong> {project.priority}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleViewProjectDetail(project.id)}
+                    onClick={() => handleViewProjectDetail(project._id)}
                     className="flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
                   >
                     Xem
                   </button>
                   <button
-                    onClick={() => handleEdit(project.id)}
+                    onClick={() => handleEdit(project._id)}
                     className="flex items-center px-3 py-1 border border-yellow-400 text-yellow-700 rounded hover:bg-yellow-50"
                   >
                     Sửa
                   </button>
                   <button
-                    onClick={() => handleDelete(project.id)}
+                    onClick={() => handleDelete(project._id)}
                     className="flex items-center px-3 py-1 border border-red-500 text-red-600 rounded hover:bg-red-50"
                   >
                     Xóa
