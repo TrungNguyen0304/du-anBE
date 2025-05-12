@@ -70,7 +70,7 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(profileData.user));
 
         setError(null); // Xóa thông báo lỗi nếu đăng nhập thành công
-        navigate("/", { replace: true });
+        navigate("/member", { replace: true });
       } catch (err) {
         setError(err.message); // Hiển thị thông báo lỗi khi đăng nhập thất bại
       } finally {
