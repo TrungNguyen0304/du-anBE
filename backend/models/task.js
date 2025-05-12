@@ -11,12 +11,12 @@ const taskSchema = new mongoose.Schema({
   },
   assignedMember: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", 
+    ref: "User",
     required: false
   },
   projectId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Project", 
+    ref: "Project",
     required: false
   },
   deadline: {
@@ -25,8 +25,14 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["in_progress", "completed", "cancelled","pending","revoked"],
+    enum: ["in_progress", "completed", "cancelled", "pending", "revoked"],
     default: "draft"
+  },
+  progress: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
   },
   priority: {
     type: Number,
@@ -34,7 +40,7 @@ const taskSchema = new mongoose.Schema({
     default: 2
   },
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
 
