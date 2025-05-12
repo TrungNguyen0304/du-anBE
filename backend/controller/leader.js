@@ -630,7 +630,6 @@ const showAllReportMember = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
   }
 };
-
 const evaluateMemberReport = async (req, res) => {
   try {
     const { id } = req.params; // id của report
