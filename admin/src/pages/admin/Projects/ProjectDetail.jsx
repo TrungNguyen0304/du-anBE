@@ -137,7 +137,7 @@ const ProjectDetail = () => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">Chưa có công việc nào.</p>
+          <p className="text-gray-500">Chưa có công việc nào cả.</p>
         )}
       </div>
 
