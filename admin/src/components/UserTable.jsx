@@ -72,7 +72,7 @@ const UserTable = ({
   );
 
   return (
-    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full max-w-7xl mx-auto relative">
+    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full mx-auto relative">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h2 className="text-2xl font-bold">{title}</h2>
         <NavLink

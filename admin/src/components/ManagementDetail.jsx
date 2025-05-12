@@ -73,7 +73,7 @@ const ManagementDetail = ({ fetchUrl, title, isLeader = false }) => {
   if (!employee) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-8 bg-white rounded-xl shadow-lg max-w-md w-full text-center">
+        <div className="p-8 bg-white rounded-xl shadow-lg w-full text-center">
           <p className="text-red-600 text-lg font-medium mb-4">
             {error || "Không có dữ liệu nhân viên."}
           </p>
