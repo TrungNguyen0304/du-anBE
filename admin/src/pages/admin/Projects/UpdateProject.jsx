@@ -1,46 +1,64 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-const dummyProjects = [
-  {
-    id: 1,
-    name: "Dự án Quản lý Website",
-    description: "Xây dựng hệ thống website công ty.",
-    leader: "Nguyễn Văn A",
-    members: ["Trần Thị B", "Lê Văn C"],
-    department: "Phòng Kỹ Thuật",
-  },
-  {
-    id: 2,
-    name: "Ứng dụng Mobile ABC",
-    description: "Phát triển ứng dụng mobile cho khách hàng.",
-    leader: "Phạm Thị D",
-    members: ["Nguyễn Văn B", "Trần Thị E"],
-    department: "Phòng Phát Triển",
-  },
-];
+import axios from "axios";
 
 const UpdateProject = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const project = dummyProjects.find((p) => p.id === parseInt(id));
+  const token = localStorage.getItem("token");
 
-  const [name, setName] = useState(project?.name || "");
-  const [description, setDescription] = useState(project?.description || "");
-  const [leader, setLeader] = useState(project?.leader || "");
-  const [members, setMembers] = useState(project?.members.join(", ") || "");
-  const [department, setDepartment] = useState(project?.department || "");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("pending");
+  const [priority, setPriority] = useState(2);
 
   useEffect(() => {
-    if (!project) {
-      alert("Dự án không tồn tại!");
-      navigate("/projects");
-    }
-  }, [project, navigate]);
+    const fetchProject = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8001/api/company/viewTeamProject/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const project = response.data.project;
+        setName(project.name || "");
+        setDescription(project.description || "");
+        setStatus(project.status || "pending");
+        setPriority(project.priority || 2);
+      } catch (error) {
+        alert("Không tìm thấy dự án hoặc lỗi xác thực.");
+        navigate("/projects");
+      }
+    };
 
-  const handleUpdate = () => {
-    alert("Dự án đã được cập nhật!");
-    navigate("/projects");
+    fetchProject();
+  }, [id, navigate, token]);
+
+  const handleUpdate = async () => {
+    try {
+      await axios.put(
+        `http://localhost:8001/api/company/updateProject/${id}`,
+        {
+          name,
+          description,
+          status,
+          priority,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Dự án đã được cập nhật!");
+      navigate("/projects");
+    } catch (error) {
+      alert("Lỗi khi cập nhật dự án hoặc xác thực thất bại.");
+    }
   };
 
   const handleCancel = () => {
@@ -75,40 +93,35 @@ const UpdateProject = () => {
           />
         </div>
         <div>
-          <label htmlFor="leader" className="block text-gray-700">
-            Leader
+          <label htmlFor="status" className="block text-gray-700">
+            Trạng Thái
           </label>
-          <input
-            type="text"
-            id="leader"
+          <select
+            id="status"
             className="w-full p-2 border border-gray-300 rounded"
-            value={leader}
-            onChange={(e) => setLeader(e.target.value)}
-          />
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="pending">Đang chờ</option>
+            <option value="in_progress">Đang thực hiện</option>
+            <option value="completed">Hoàn thành</option>
+            <option value="cancelled">Đã hủy</option>
+          </select>
         </div>
         <div>
-          <label htmlFor="members" className="block text-gray-700">
-            Nhân Viên
+          <label htmlFor="priority" className="block text-gray-700">
+            Mức Độ Ưu Tiên
           </label>
-          <input
-            type="text"
-            id="members"
+          <select
+            id="priority"
             className="w-full p-2 border border-gray-300 rounded"
-            value={members}
-            onChange={(e) => setMembers(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="department" className="block text-gray-700">
-            Phòng Ban
-          </label>
-          <input
-            type="text"
-            id="department"
-            className="w-full p-2 border border-gray-300 rounded"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-          />
+            value={priority}
+            onChange={(e) => setPriority(Number(e.target.value))}
+          >
+            <option value={1}>Cao</option>
+            <option value={2}>Trung bình</option>
+            <option value={3}>Thấp</option>
+          </select>
         </div>
       </div>
       <div className="flex justify-end gap-4 mt-6">
