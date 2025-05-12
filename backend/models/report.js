@@ -30,7 +30,12 @@ const reportSchema = new Schema({
     },
     assignedMember: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Giả sử nhân viên nằm trong model User
+        ref: "User",
+        required: true
+    },
+    assignedLeader: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
         required: true
     },
     feedback: {

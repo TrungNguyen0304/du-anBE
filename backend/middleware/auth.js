@@ -19,7 +19,7 @@ const authenticateJWT = (req, res, next) => {
       return res.status(401).json({ message: "Token không chứa thông tin người dùng hợp lệ." });
     }
 
-    // console.log("Token hợp lệ. User ID:", decoded._id); 
+    // socket.userId = decoded._id;
 
     req.user = decoded;
     next();
