@@ -372,17 +372,18 @@ const viewLeader = async (req, res) => {
 const createTeam = async (req, res) => {
   try {
     const { name, description, assignedLeader, assignedMembers } = req.body;
-
     if (
       !name ||
       !assignedLeader ||
       !assignedMembers ||
       !Array.isArray(assignedMembers)
     ) {
-      return res.status(400).json({
-        message:
-          "Thiếu thông tin bắt buộc (name, assignedLeader, assignedMembers phải là mảng).",
-      });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Thiếu thông tin bắt buộc (name, assignedLeader, assignedMembers phải là mảng).",
+        });
     }
 
     // Kiểm tra leader
@@ -442,7 +443,6 @@ const createTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 const updateTeam = async (req, res) => {
   try {
     const { id } = req.params; // Lấy id từ params
@@ -488,8 +488,8 @@ const updateTeam = async (req, res) => {
     const updatedTeam = await Team.findByIdAndUpdate(id, updateData, {
       new: true,
     })
-      .populate("assignedLeader", "name")
-      .populate("assignedMembers", "name");
+      .populate("assignedLeader", "name ") // chỉ lấy name, email
+      .populate("assignedMembers", "name ");
 
     if (!updatedTeam) {
       return res.status(404).json({ message: "Team không tồn tại." });
@@ -509,7 +509,6 @@ const updateTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 const showallTeam = async (req, res) => {
   try {
     const sortField = req.query.sort || "name";
@@ -542,7 +541,6 @@ const showallTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
-
 const paginationTeam = async (req, res) => {
   try {
     const { limit = 3, page = 1 } = req.body;
@@ -581,7 +579,6 @@ const paginationTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 const deleteTeam = async (req, res) => {
   try {
     const { id } = req.params;
@@ -602,7 +599,6 @@ const deleteTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 const viewTeam = async (req, res) => {
   try {
     const { id } = req.params;
@@ -651,8 +647,6 @@ const viewTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
-
-//
 
 // thêm sửa xóa project và phân sắp xếp, phân trang, và gán project cho team
 const createProject = async (req, res) => {
