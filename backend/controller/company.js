@@ -890,14 +890,10 @@ const assignProject = async (req, res) => {
 
 const viewTeamProject = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params;  // Lấy id của project
 
-    const team = await Team.findById(id);
-    if (!team) {
-      return res.status(404).json({ message: "Team không hợp lệ." });
-    }
-
-    const project = await Project.find({ assignedTeam: id })
+    // Tìm project theo id
+    const project = await Project.findById(id)
       .populate({
         path: "assignedTeam",
         select: "name assignedLeader assignedMembers",
@@ -909,14 +905,20 @@ const viewTeamProject = async (req, res) => {
       .populate("assignedLeader", "name")
       .populate("assignedMembers", "name");
 
+    // Kiểm tra nếu không tìm thấy project
+    if (!project) {
+      return res.status(404).json({ message: "Project không hợp lệ." });
+    }
+
     res.status(200).json({
-      message: `Danh sách công việc của team ${team.name}`,
+      message: `Chi tiết dự án ${project.name}`,
       project,
     });
   } catch (error) {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 
 // lấy lại dự án
 const revokeProjectAssignment = async (req, res) => {
