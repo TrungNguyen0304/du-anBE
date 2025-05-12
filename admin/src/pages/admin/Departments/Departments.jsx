@@ -6,6 +6,8 @@ import axios from "axios";
 const Departments = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,15 +22,10 @@ const Departments = () => {
           }
         );
 
-        // Kiểm tra nếu response.data.teams là mảng
         if (Array.isArray(response.data.teams)) {
-          setDepartments(response.data.teams); // Lưu mảng teams vào state
+          setDepartments(response.data.teams);
         } else {
-          console.error(
-            "Dữ liệu trả về không phải là mảng teams:",
-            response.data
-          );
-          setDepartments([]); // Nếu không phải mảng, gán mảng rỗng
+          setDepartments([]);
         }
       } catch (error) {
         console.error("Lỗi khi gọi API:", error);
@@ -49,10 +46,32 @@ const Departments = () => {
     navigate("/update-department", { state: { departmentId: id } });
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm("Bạn có chắc muốn xóa phòng ban này?");
-    if (confirmDelete) {
-      alert(`Đã xóa phòng ban ID: ${id}`);
+  const handleDeleteClick = (id) => {
+    setSelectedDepartmentId(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedDepartmentId) return;
+    try {
+      await axios.delete(
+        `http://localhost:8001/api/company/deleteTeam/${selectedDepartmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setDepartments((prev) =>
+        prev.filter((dept) => dept._id !== selectedDepartmentId)
+      );
+      alert("Đã xóa phòng ban thành công.");
+    } catch (error) {
+      console.error("Lỗi khi xóa phòng ban:", error);
+      alert("Không thể xóa phòng ban. Vui lòng thử lại.");
+    } finally {
+      setIsConfirmModalOpen(false);
+      setSelectedDepartmentId(null);
     }
   };
 
@@ -72,8 +91,36 @@ const Departments = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        {/* Tiêu đề */}
+      {/* Modal xác nhận xóa */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] max-w-md text-center">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Bạn có chắc muốn xóa phòng ban này?
+            </h3>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  setSelectedDepartmentId(null);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Nội dung chính */}
+      <div className="w-full mx-auto bg-white p-6 rounded-xl shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-1">
@@ -91,7 +138,6 @@ const Departments = () => {
           </button>
         </div>
 
-        {/* Bảng danh sách phòng ban */}
         <div className="overflow-x-auto">
           <table className="min-w-[640px] w-full border border-gray-200 text-sm md:text-base">
             <thead className="bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white">
@@ -112,30 +158,32 @@ const Departments = () => {
               ) : (
                 departments.map((dept, index) => (
                   <tr
-                    key={dept.id}
+                    key={dept._id || `dept-${index}`}
                     className="hover:bg-gray-50 text-center even:bg-gray-100"
                   >
                     <td className="px-4 py-2 border">{index + 1}</td>
-                    <td className="px-4 py-2 border">{dept.name}</td>
-                    <td className="px-4 py-2 border">{dept.description}</td>
+                    <td className="px-4 py-2 border">{dept.name || "N/A"}</td>
+                    <td className="px-4 py-2 border">
+                      {dept.description || "N/A"}
+                    </td>
                     <td className="px-4 py-2 border">
                       <div className="flex justify-center gap-2 flex-wrap">
                         <button
-                          onClick={() => handleView(dept.id)}
+                          onClick={() => handleView(dept._id)}
                           className="flex items-center px-3 py-1 border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           Xem
                         </button>
                         <button
-                          onClick={() => handleEdit(dept.id)}
+                          onClick={() => handleEdit(dept._id)}
                           className="flex items-center px-3 py-1 border border-yellow-400 text-yellow-700 rounded hover:bg-yellow-50"
                         >
                           <Pencil className="w-4 h-4 mr-1" />
                           Sửa
                         </button>
                         <button
-                          onClick={() => handleDelete(dept.id)}
+                          onClick={() => handleDeleteClick(dept._id)}
                           className="flex items-center px-3 py-1 border border-red-500 text-red-600 rounded hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4 mr-1" />

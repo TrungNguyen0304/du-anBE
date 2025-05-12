@@ -1,4 +1,3 @@
-import React from "react";
 import ManagementDetail from "../../../components/ManagementDetail";
 
 const MemberDetail = () => {

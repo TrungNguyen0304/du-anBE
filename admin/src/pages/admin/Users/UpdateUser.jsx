@@ -89,7 +89,7 @@ const UpdateUser = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full mx-auto">
       <h2 className="text-2xl font-bold mb-4">Cập Nhật Nhân Viên</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border p-4 rounded-lg bg-gray-50">

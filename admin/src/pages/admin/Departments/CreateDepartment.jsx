@@ -16,7 +16,7 @@ const CreateDepartment = () => {
   const itemsPerPage = 6;
   const navigate = useNavigate();
 
-  // Fetch leaders and members
+  // Fetch leaders and members with id and name
   useEffect(() => {
     const fetchLeaders = async () => {
       try {
@@ -28,7 +28,10 @@ const CreateDepartment = () => {
             },
           }
         );
-        setLeadersList(res.data.leaders.map((l) => l.name));
+        // Save both id and name for leaders
+        setLeadersList(
+          res.data.leaders.map((l) => ({ id: l.id, name: l.name }))
+        );
       } catch (err) {
         console.error("Lỗi khi tải leaders:", err);
       }
@@ -44,7 +47,10 @@ const CreateDepartment = () => {
             },
           }
         );
-        setMembersList(res.data.members.map((m) => m.name));
+        // Save both id and name for members
+        setMembersList(
+          res.data.members.map((m) => ({ id: m.id, name: m.name }))
+        );
       } catch (err) {
         console.error("Lỗi khi tải members:", err);
       }
@@ -54,18 +60,43 @@ const CreateDepartment = () => {
     fetchMembers();
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newDepartment = { name, description, leader, employees };
-    console.log("Tạo phòng ban:", newDepartment);
-    alert("Phòng ban đã được tạo!");
-    navigate("/departments");
+
+    const newDepartment = {
+      name,
+      description,
+      assignedLeader: leader, // ID of the leader
+      assignedMembers: employees, // Array of employee IDs
+    };
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8001/api/company/createTeam",
+        newDepartment,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Phòng ban được tạo:", res.data);
+      alert("Phòng ban đã được tạo!");
+      navigate("/departments");
+    } catch (err) {
+      console.error(
+        "Lỗi khi tạo phòng ban:",
+        err.response?.data || err.message
+      );
+      alert("Tạo phòng ban thất bại!");
+    }
   };
 
   const handleCancel = () => navigate("/departments");
 
   const filteredMembers = membersList.filter((emp) =>
-    emp.toLowerCase().includes(searchQuery.toLowerCase())
+    emp.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
@@ -76,7 +107,7 @@ const CreateDepartment = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-md">
+      <div className="w-full mx-auto bg-white p-6 md:p-10 rounded-xl shadow-md">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
           Tạo Phòng Ban Mới
         </h2>
@@ -121,9 +152,9 @@ const CreateDepartment = () => {
               required
             >
               <option value="">-- Chọn người quản lý --</option>
-              {leadersList.map((emp, index) => (
-                <option key={index} value={emp}>
-                  {emp}
+              {leadersList.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name}
                 </option>
               ))}
             </select>
@@ -149,20 +180,20 @@ const CreateDepartment = () => {
               Nhân viên (nhấn + để thêm, − để xóa)
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
-              {paginatedMembers.map((emp, index) => {
-                const isSelected = employees.includes(emp);
+              {paginatedMembers.map((emp) => {
+                const isSelected = employees.includes(emp.id);
                 return (
                   <div
-                    key={index}
+                    key={emp.id}
                     className="flex items-center justify-between border border-gray-300 rounded p-2"
                   >
-                    <span>{emp}</span>
+                    <span>{emp.name}</span>
                     <button
                       type="button"
                       onClick={() =>
                         isSelected
-                          ? setEmployees(employees.filter((e) => e !== emp))
-                          : setEmployees([...employees, emp])
+                          ? setEmployees(employees.filter((e) => e !== emp.id))
+                          : setEmployees([...employees, emp.id])
                       }
                       className={`px-2 py-1 rounded font-bold transition ${
                         isSelected
@@ -181,9 +212,10 @@ const CreateDepartment = () => {
               <div className="mt-2">
                 <h4 className="font-medium text-gray-700 mb-1">Đã chọn:</h4>
                 <ul className="list-disc list-inside text-gray-800">
-                  {employees.map((emp, idx) => (
-                    <li key={idx}>{emp}</li>
-                  ))}
+                  {employees.map((empId) => {
+                    const emp = membersList.find((m) => m.id === empId);
+                    return <li key={empId}>{emp.name}</li>;
+                  })}
                 </ul>
               </div>
             )}
