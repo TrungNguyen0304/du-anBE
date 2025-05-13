@@ -11,7 +11,12 @@ const teamSchema = new mongoose.Schema({
     ref: "User",
     required: false
   },
-  assignedMembers: [{
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false
+  },
+  assignedMembers: [{ 
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: false
@@ -28,6 +33,7 @@ const teamSchema = new mongoose.Schema({
     ref: "Task",
     required: false
   },
+  
 })
 
 const Team = mongoose.model("Team", teamSchema)
