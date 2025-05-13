@@ -155,7 +155,7 @@ const showAllFeedback = async (req, res) => {
     const userId = req.user._id;
 
     // Lấy các report của member, có feedback và task
-    const reports = await Report.find({ assignedMember: userId })
+    const reports = await Report.find({ assignedMembers: userId })
       .populate({
         path: 'feedback',
         model: 'Feedback'

@@ -730,12 +730,12 @@ const evaluateMemberReport = async (req, res) => {
       score,
       from: 'Leader',
       to: 'Member'
-    });
+  });
 
     await feedback.save();
 
     await notifyEvaluateLeader({
-      userId: report.assignedMember.toString(),
+      userId: report.assignedMembers.toString(),
       feedback,
       report
     });
@@ -863,6 +863,63 @@ const createReportCompany = async (req, res) => {
   }
 };
 // 
+// xem tất cả đánh giá 
+const showAllFeedback = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Lấy các report thuộc team mà user là assignedLeader
+    const reports = await Report.find()
+      .populate({
+        path: 'team',
+        match: { assignedLeader: userId }, // Chỉ lấy team mà user là leader
+        populate: {
+          path: 'assignedLeader',
+          model: 'User',
+          select: 'name email'
+        }
+      })
+      .populate({
+        path: 'feedback',
+        model: 'Feedback',
+        match: { from: 'Company', to: 'Leader' }, // Chỉ lấy feedback từ Company đến Leader
+        select: 'comment score from createdAt'
+      })
+      .sort({ createdAt: -1 });
+
+    // Lọc và định dạng feedback
+    const feedbacks = reports
+      .filter(r => r.team && r.feedback) // Chỉ lấy report có team (user là leader) và có feedback
+      .map(r => ({
+        feedbackId: r.feedback._id,
+        team: {
+          teamId: r.team?._id || null,
+          teamName: r.team?.name || 'Không rõ',
+          leaderName: r.team?.assignedLeader?.name || 'Không rõ'
+        },
+        report: {
+          reportId: r._id,
+          content: r.content
+        },
+        comment: r.feedback.comment,
+        score: r.feedback.score,
+        from: r.feedback.from,
+        createdAt: r.feedback.createdAt
+      }));
+
+    res.status(200).json({
+      message: "Lấy danh sách đánh giá thành công.",
+      feedbacks
+    });
+
+  } catch (error) {
+    console.error("showAllFeedbackLeader error:", error);
+    res.status(500).json({
+      message: "Lỗi server.",
+      error: error.message
+    });
+  }
+};
 module.exports = {
   getMyTeam,
   viewAssignedProject,
@@ -878,5 +935,6 @@ module.exports = {
   showallReport,
   showAllReportMember,
   evaluateMemberReport,
-  createReportCompany
+  createReportCompany,
+  showAllFeedback
 };
