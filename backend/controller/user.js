@@ -15,7 +15,8 @@ const generateToken = (user) => {
     gender: user.gender,
     dateOfBirth: user.dateOfBirth,
     phoneNumber: user.phoneNumber,
-    address: user.address
+    address: user.address,
+    
   };
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "5h" });
 };

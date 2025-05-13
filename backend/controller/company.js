@@ -10,6 +10,7 @@ const {
 const Project = require("../models/project");
 const Task = require("../models/task");
 const User = require("../models/user");
+const Report = require('../models/report');
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
 const createUser = async (req, res) => {
@@ -647,7 +648,6 @@ const viewTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
-
 // thêm sửa xóa project và phân sắp xếp, phân trang, và gán project cho team
 const createProject = async (req, res) => {
   try {
@@ -918,8 +918,6 @@ const viewTeamProject = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
-
 // lấy lại dự án
 const revokeProjectAssignment = async (req, res) => {
   try {
@@ -970,7 +968,6 @@ const revokeProjectAssignment = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 // lấy ra công việc chk giao
 const getUnassignedProject = async (req, res) => {
   try {
@@ -1004,7 +1001,6 @@ const getUnassignedProject = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 const paginationUnassignedProject = async (req, res) => {
   try {
     const { limit = 3, page = 1 } = req.body;
@@ -1043,9 +1039,7 @@ const paginationUnassignedProject = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 //
-
 // lấy ra dự án đã được giao
 const getAssignedProjects = async (req, res) => {
   try {
@@ -1120,6 +1114,108 @@ const paginationAssignedProjects = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+// show all report 
+const showAllReportLeader = async (req, res) => {
+  try {
+    const companyId = req.user._id; // Lấy ID của công ty từ JWT token
+
+    // Lọc báo cáo chỉ liên quan đến project
+    const reports = await Report.find({ assignedLeader: { $exists: true }, project: { $exists: true } })
+      .populate({
+        path: 'assignedLeader',
+        select: '_id name role', // Lấy thông tin leader
+        match: { role: 'leader' }, // Chỉ lấy báo cáo của những người có role là "leader"
+      })
+      .populate({
+        path: 'assignedMembers',
+        select: '_id name role', // Lấy thông tin thành viên
+      })
+      .populate({
+        path: 'team',
+        select: '_id name', // Lấy thông tin team
+      })
+      .populate({
+        path: 'task',
+        select: '_id name deadline', // Lấy thông tin task
+      })
+      .populate({
+        path: 'project',
+        select: '_id name deadline', // Lấy thông tin project
+      })
+      .lean(); // Trả về dữ liệu thuần túy, không phải Mongoose document
+
+    if (!reports || reports.length === 0) {
+      return res.status(404).json({ message: "Không có báo cáo nào từ các leader về project." });
+    }
+
+    // Lọc ra chỉ báo cáo của các leader có role là "leader" và có project
+    const leaderReports = reports.filter(report => report.assignedLeader && report.assignedLeader.role === 'leader' && report.project);
+
+    if (leaderReports.length === 0) {
+      return res.status(404).json({ message: "Không có báo cáo nào từ các leader về project." });
+    }
+
+    res.json({
+      message: "Danh sách báo cáo của các leader về project",
+      reports: leaderReports,
+    });
+  } catch (error) {
+    console.error("showAllReportLeader error:", error);
+    res.status(500).json({ message: "Lỗi khi lấy báo cáo của leader về project.", error: error.message });
+  }
+};
+// 
+// xem report từ team
+const viewReportTeam = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Lấy thông tin team và populate leader & members
+    const team = await Team.findById(id)
+      .populate("assignedLeader", "name email")
+      .populate("assignedMembers", "name email")
+      .lean();
+
+    if (!team) {
+      return res.status(404).json({ message: "Không tìm thấy team." });
+    }
+
+    // Lấy project của team này
+    const projects = await Project.find({ assignedTeam: id })
+      .select("name description deadline status")
+      .lean();
+
+    // Lấy danh sách projectId
+    const projectIds = projects.map((p) => p._id);
+
+    // Lấy các report thuộc các project của team này (dựa trên projectId)
+    const reports = await Report.find({ project: { $in: projectIds } })
+      .select(
+        "content difficulties taskProgress project team createdAt assignedMembers assignedLeader feedback"
+      )
+      .populate("project", "name description") // Populate project
+      .populate("assignedMembers", "name email") // Populate members
+      .populate("assignedLeader", "name email") // Populate leader
+      .populate("feedback", "content createdAt") // Populate feedback nếu có
+      .lean();
+
+    res.status(200).json({
+      message: `Thông tin Team: ${team.name}`,
+      team: {
+        _id: team._id,
+        name: team.name,
+        description: team.description,
+        assignedLeader: team.assignedLeader,
+        assignedMembers: team.assignedMembers,
+        projects,
+        reports,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin team:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
 
 //
 module.exports = {
@@ -1150,4 +1246,6 @@ module.exports = {
   paginationAssignedProjects,
   revokeProjectAssignment,
   viewTeam,
+  showAllReportLeader,
+  viewReportTeam
 };

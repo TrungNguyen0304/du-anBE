@@ -24,6 +24,17 @@ const projectSchema = new mongoose.Schema({
     ref: "User", 
     required: false
   },
+  companyManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", 
+    required: false
+  },
+  
+  team: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Team", 
+    required: false
+  },
   
   deadline: {
     type: Date,
