@@ -233,7 +233,7 @@ const notifyStatusTask = async ({ userId, task, member, oldStatus }) => {
     }
   }
 };
-
+// thông báo khi report cho company
 const notifyReportCompany = async ({ userId, project, report, leader }) => {
   const io = getIO();
 
@@ -263,6 +263,36 @@ const notifyReportCompany = async ({ userId, project, report, leader }) => {
     }
   }
 };
+// thông váo khi đánh giá report từ leader
+const notifyEvaluateCompany = async ({ userId, feedback, report }) => {
+  const io = getIO();
+
+  const title = "Báo cáo của bạn đã được đánh giá";
+  const body = `Bạn nhận được đánh giá: ${feedback.score}/10 - ${feedback.comment}`;
+
+  if (isUserOnline(userId)) {
+    io.to(userId).emit("report-evaluated", {
+      reportId: report._id,
+      feedbackId: feedback._id,
+      score: feedback.score,
+      comment: feedback.comment,
+      evaluatedAt: feedback.createdAt
+    });
+    console.log(`Sent socket to member room: ${userId}`);
+  } else {
+    const user = await User.findById(userId);
+    if (user?.fcmToken) {
+      try {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Sent FCM to offline member with userId: ${userId}`);
+      } catch (error) {
+        console.error("Error sending FCM:", error.message);
+      }
+    } else {
+      console.log("No FCM token for member.");
+    }
+  }
+};
 
 module.exports = {
   notifyTeam,
@@ -273,5 +303,6 @@ module.exports = {
   notifyReport,
   notifyEvaluateLeader,
   notifyStatusTask,
-  notifyReportCompany
+  notifyReportCompany,
+  notifyEvaluateCompany
 };

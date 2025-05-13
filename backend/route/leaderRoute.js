@@ -13,7 +13,8 @@ const { getMyTeam,
     showallReport,
     showAllReportMember,
     evaluateMemberReport,
-    createReportCompany
+    createReportCompany,
+    showAllFeedback
 } = require('../controller/leader.js');
 const authenticateJWT = require('../middleware/auth.js');
 const authorize = require('../middleware/authorize.js');
@@ -43,5 +44,7 @@ router.get('/viewReportMember/:id/', authenticateJWT,authorize('leader'), showAl
 router.post('/evaluateMemberReport/:id', authenticateJWT, authorize('leader'), evaluateMemberReport);
 // bao của của leader dành cho company
 router.post('/createReportCompany/',authenticateJWT, authorize('leader'), createReportCompany);
+// xem tat ca danh gia
+router.get('/showAllFeedback/',authenticateJWT,authorize('leader'),showAllFeedback)
 
 module.exports = router;

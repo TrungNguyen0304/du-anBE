@@ -30,7 +30,8 @@ const {
     paginationAssignedProjects,
     revokeProjectAssignment,
     showAllReportLeader,
-    viewReportTeam
+    viewReportTeam,
+    evaluateLeaderReport
 
 } = require('../controller/company.js');
 const authenticateJWT = require('../middleware/auth.js');
@@ -80,8 +81,9 @@ router.post('/paginationgetassigned', authenticateJWT, authorize('company'), pag
 router.put('/revokeProject/:id/revoke', authenticateJWT, authorize('company'), revokeProjectAssignment);
 // xem report từ leader
 router.get('/showAllReportLeader', authenticateJWT, authorize('company'), showAllReportLeader);
-//
+// xem report team đó 
 router.get('/viewReportTeam/:id', authenticateJWT, authorize('company'), viewReportTeam);
-
+// đánh giá report team đó
+router.post('/evaluateLeaderReport/:id', authenticateJWT, authorize('company'), evaluateLeaderReport);
 
 module.exports = router;

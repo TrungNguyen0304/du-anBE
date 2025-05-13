@@ -6,10 +6,12 @@ const {
   notifyTeam,
   notifyProject,
   notifyProjectRemoval,
+  notifyEvaluateCompany
 } = require("../controller/notification");
 const Project = require("../models/project");
 const Task = require("../models/task");
 const User = require("../models/user");
+const Feedback = require("../models/Feedback");
 const Report = require('../models/report');
 
 // thêm sửa xóa , show sắp xếp, phân trang leader và member
@@ -1070,7 +1072,6 @@ const getAssignedProjects = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 const paginationAssignedProjects = async (req, res) => {
   try {
     const { limit = 3, page = 1 } = req.body;
@@ -1164,7 +1165,6 @@ const showAllReportLeader = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lấy báo cáo của leader về project.", error: error.message });
   }
 };
-// 
 // xem report từ team
 const viewReportTeam = async (req, res) => {
   try {
@@ -1216,7 +1216,79 @@ const viewReportTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+//feedback project leader
+const evaluateLeaderReport = async (req, res) => {
+  try {
+    const { id } = req.params; // id của report
+    const { comment, score } = req.body;
+    const userId = req.user._id; // companyManager hiện tại
 
+    // Kiểm tra score hợp lệ
+    if (typeof score !== 'number' || score < 0 || score > 10) {
+      return res.status(400).json({ message: 'Điểm đánh giá phải từ 0 đến 10.' });
+    }
+
+    // Kiểm tra quyền: chỉ companyManager (role: 'company') được đánh giá
+    if (req.user.role !== "company") {
+      return res.status(403).json({ message: 'Chỉ quản lý công ty được phép đánh giá báo cáo.' });
+    }
+
+    // Lấy report kèm thông tin team
+    const report = await Report.findById(id).populate({
+      path: 'team',
+      populate: {
+        path: 'assignedLeader',
+        model: 'User'
+      }
+    });
+
+    if (!report) {
+      return res.status(404).json({ message: 'Báo cáo không tồn tại.' });
+    }
+
+    // Kiểm tra đã feedback chưa
+    const existingFeedback = await Feedback.findOne({ report: id, from: 'Company', to: 'Leader' });
+    if (existingFeedback) {
+      return res.status(400).json({ message: 'Báo cáo này đã được công ty đánh giá.' });
+    }
+
+    // Tạo feedback
+    const feedback = new Feedback({
+      report: id,
+      comment,
+      score,
+      from: 'Company',
+      to: 'Leader'
+    });
+
+    await feedback.save();
+
+  
+    await notifyEvaluateCompany({
+      userId: report.assignedLeader._id.toString(),
+      feedback,
+      report
+    });
+
+    // Cập nhật lại report
+    report.feedback = feedback._id;
+    await report.save();
+
+    // Trả về phản hồi
+    res.status(201).json({
+      message: 'Đánh giá báo cáo thành công.',
+      feedback,
+      companyManagerId: userId.toString() // Hiển thị ID của companyManager
+    });
+
+  } catch (error) {
+    console.error("evaluateLeaderReport error:", error);
+    res.status(500).json({
+      message: 'Lỗi server.',
+      error: error.message
+    });
+  }
+};
 //
 module.exports = {
   createUser,
@@ -1247,5 +1319,6 @@ module.exports = {
   revokeProjectAssignment,
   viewTeam,
   showAllReportLeader,
-  viewReportTeam
+  viewReportTeam,
+  evaluateLeaderReport
 };
