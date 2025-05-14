@@ -1,8 +1,8 @@
 const User = require("../models/user");
 const Team = require("../models/team");
 const Project = require("../models/project")
-const { getIO, getSocketIdByUserId, isUserOnline } = require("../socket/socketHandler");
 const { sendNotification } = require("../utils/firebase-admin");
+const { getIO, getSocketIdByUserId, isUserOnline } = require("../socket/socketHandler");
 
 // thông báo được mời vào taem
 const notifyTeam = async ({ userId, team }) => {
@@ -204,7 +204,7 @@ const notifyEvaluateLeader = async ({ userId, feedback, report }) => {
 };
 // thông báo khi member update status
 const notifyStatusTask = async ({ userId, task, member, oldStatus }) => {
-  
+
   const io = getIO();
   const title = "Trạng thái Nhiệm Vụ";
   const body = `Thành viên ${member} đã thay đổi trạng thái từ ${oldStatus} thành ${task.status}`;
@@ -293,7 +293,78 @@ const notifyEvaluateCompany = async ({ userId, feedback, report }) => {
     }
   }
 };
+// gửi thông báo khi trễ deadline 
+const notifyTaskOverdue = async ({ userId, task }) => {
+  const io = getIO();
+  const title = "Task trễ deadline";
+  const body = `Task "${task.name}" của bạn đã trễ deadline!`;
+  const userIdStr = String(userId);
 
+  try {
+    if (isUserOnline(userIdStr)) {
+      io.to(userIdStr).emit("task-overdue", {
+        id: task._id,
+        name: task.name,
+        deadline: task.deadline,
+        status: task.status,
+        message: body,
+      });
+      console.log(`Sent socket notification to user: ${userIdStr}`);
+    } else {
+      const user = await User.findById(userIdStr);
+      if (user?.fcmToken) {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Sent FCM notification to offline user: ${userIdStr}`);
+      } else {
+        console.log(`No FCM token found for user: ${userIdStr}`);
+      }
+    }
+  } catch (error) {
+    console.error(`Error in notifyTaskOverdue for user ${userIdStr}:`, error.message);
+  }
+};
+
+const notifyProjectOverdue = async ({ project }) => {
+  const io = getIO();
+  const title = "Dự án trễ hạn chót";
+  const body = `Dự án Team bạn đang làm "${project.name}" đã trễ hạn chót!`;
+
+  try {
+    const team = await Team.findById(project.assignedTeam); // Bỏ populate
+    if (!team || !team.assignedLeader) {
+      console.log(`Không tìm thấy Team hoặc leader cho dự án: ${project._id}`);
+      return;
+    }
+
+    const leaderId = String(team.assignedLeader); // team.assignedLeader là ObjectId
+
+    if (!leaderId || leaderId === "null" || leaderId === "undefined") {
+      console.log(`Không có leader hợp lệ để thông báo cho dự án: ${project._id}`);
+      return;
+    }
+
+    if (isUserOnline(leaderId)) {
+      io.to(leaderId).emit("project-overdue", {
+        id: project._id,
+        name: project.name,
+        deadline: project.deadline,
+        status: project.status,
+        message: body,
+      });
+      console.log(`Đã gửi thông báo socket tới leader: ${leaderId}`);
+    } else {
+      const user = await User.findById(leaderId);
+      if (user?.fcmToken) {
+        await sendNotification(user.fcmToken, title, body);
+        console.log(`Đã gửi thông báo FCM tới leader offline: ${leaderId}`);
+      } else {
+        console.log(`Không tìm thấy FCM token cho leader: ${leaderId}`);
+      }
+    }
+  } catch (error) {
+    console.error(`Lỗi trong notifyProjectOverdue cho dự án ${project._id}:`, error.message);
+  }
+};
 module.exports = {
   notifyTeam,
   notifyProject,
@@ -304,5 +375,7 @@ module.exports = {
   notifyEvaluateLeader,
   notifyStatusTask,
   notifyReportCompany,
-  notifyEvaluateCompany
+  notifyEvaluateCompany,
+  notifyTaskOverdue,
+  notifyProjectOverdue
 };
