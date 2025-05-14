@@ -155,7 +155,7 @@ const showAllFeedback = async (req, res) => {
     const userId = req.user._id;
 
     // Lấy các report của member, có feedback và task
-    const reports = await Report.find({ assignedMember: userId })
+    const reports = await Report.find({ assignedMembers: userId })
       .populate({
         path: 'feedback',
         model: 'Feedback'
@@ -277,8 +277,8 @@ const createReport = async (req, res) => {
     // Xử lý giá trị taskProgress nếu nó có dấu %
     let progress = taskProgress;
     if (typeof taskProgress === "string" && taskProgress.includes("%")) {
-      progress = taskProgress.replace("%", ""); // Loại bỏ dấu %
-      progress = parseInt(progress, 10); // Chuyển đổi thành số nguyên
+      progress = taskProgress.replace("%", ""); 
+      progress = parseInt(progress, 10);
     }
 
     if (isNaN(progress) || progress < 0 || progress > 100) {
@@ -313,7 +313,7 @@ const createReport = async (req, res) => {
     }
 
     const report = new Report({
-      assignedMember: userId,
+      assignedMembers: userId,
       content,
       difficulties,
       taskProgress: progress, // Sử dụng giá trị đã xử lý
@@ -346,10 +346,6 @@ const createReport = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
-
-
-
 
 module.exports = {
   getMyTeam,

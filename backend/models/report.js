@@ -16,9 +16,15 @@ const reportSchema = new Schema({
         min: 0,
         max: 100
     },
+    
     task: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Task",
+        required: false
+    },
+    project: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Project",
         required: false
     },
     team: {
@@ -30,11 +36,12 @@ const reportSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    assignedMember: {
+    assignedMembers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: false
     },
+    ],
     assignedLeader: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
