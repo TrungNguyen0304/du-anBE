@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Team = require("../models/team");
 const Project = require("../models/project")
 const Task = require("../models/task")
-const { notifyTask, notifyTaskRemoval, notifyEvaluateLeader } = require("../controller/notification");
+const { notifyTask, notifyTaskRemoval, notifyEvaluateLeader,notifyReportCompany } = require("../controller/notification");
 const Report = require("../models/report")
 const User = require("../models/user");
 const Feedback = require("../models/Feedback");
@@ -57,7 +57,7 @@ const viewAssignedProject = async (req, res) => {
     res.status(200).json({
       message: "Danh sách nhiệm vụ nhóm bạn phụ trách:",
       projects: projects.map(project => ({
-        id: project._id,
+        _id: project._id,
         name: project.name,
         description: project.description,
         deadline: project.deadline,
@@ -551,42 +551,98 @@ const getAssignedTask = async (req, res) => {
   }
 };
 // lấy ra tất cả những report member
-const showallRepor = async (req, res) => {
+// const showallRepor = async (req, res) => {
+//   try {
+//     const leaderId = req.user._id;
+
+//     // Lấy các team mà user hiện tại là leader
+//     const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id name');
+//     console.log("teamsLed:", teamsLed); // Debug các team mà leader quản lý
+//     if (teamsLed.length === 0) {
+//       return res.status(404).json({ message: "Không có team nào do bạn quản lý." });
+//     }
+
+//     const teamIds = teamsLed.map(team => team._id);
+
+//     // Lọc báo cáo của tất cả thành viên trong các team mà leader quản lý
+//     const reports = await Report.find({ 
+//       team: { $in: teamIds } // Lọc theo team mà leader quản lý
+//     }, '-team -feedback')
+//       .populate({
+//         path: 'task',
+//         select: '_id name deadline', // Chỉ lấy các trường cần thiết
+//       })
+//       .populate({
+//         path: 'assignedMembers',
+//         select: '_id name role', // Chỉ lấy các trường cần thiết
+//       })
+//       // .populate({
+//       //     path: 'feedback',
+//       //     select: '_id comment rating',
+//       // })
+//       .lean(); // Trả về dữ liệu thuần túy, không phải Mongoose document
+
+//     console.log("Reports:", reports); // Debug các báo cáo trả về
+
+//     if (!reports || reports.length === 0) {
+//       return res.status(404).json({ message: "Không có báo cáo nào cho các team bạn quản lý." });
+//     }
+
+//     res.json(reports);
+//   } catch (error) {
+//     console.error("getReportsForLeader error:", error);
+//     res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
+//   }
+// };
+const showallReport = async (req, res) => {
   try {
     const leaderId = req.user._id;
 
-    // Lấy các team mà user hiện tại là leader
-    const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id');
-    if (teamsLed.length === 0) {
-      return res.status(404).json({ message: "Không có team nào do bạn quản lý." });
+    // 1. Tìm tất cả team mà leader đang quản lý
+    const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id name assignedMembers');
+    if (!teamsLed || teamsLed.length === 0) {
+      return res.status(404).json({ message: "Bạn không quản lý team nào." });
     }
 
+    // 2. Lấy danh sách ID các team và tất cả member trong các team đó
     const teamIds = teamsLed.map(team => team._id);
 
-    // Lọc report theo team và chỉ lấy các trường cần thiết
-    const reports = await Report.find({ team: { $in: teamIds } }, '-team -feedback')
+    // Gộp tất cả thành viên trong các team lại thành một mảng duy nhất (không trùng)
+    const memberIds = [
+      ...new Set(
+        teamsLed.flatMap(team =>
+          team.assignedMembers.map(member => member.toString())
+        )
+      )
+    ].filter(id => id !== leaderId.toString());
+
+    if (memberIds.length === 0) {
+      return res.status(404).json({ message: "Không có thành viên nào trong team của bạn." });
+    }
+
+    // 3. Tìm tất cả báo cáo của các member trong team mà leader quản lý
+    const reports = await Report.find({
+      team: { $in: teamIds },
+      assignedMembers: { $in: memberIds }
+    }, '-team -feedback')
       .populate({
         path: 'task',
-        select: '_id name deadline', // Chỉ lấy các trường cần thiết
+        select: '_id name deadline',
       })
       .populate({
-        path: 'assignedMember',
-        select: '_id name role', // Chỉ lấy các trường cần thiết
+        path: 'assignedMembers',
+        select: '_id name role',
       })
-      // .populate({
-      //     path: 'feedback',
-      //     select: '_id comment rating',
-      // })
-      .lean(); // Trả về dữ liệu thuần túy, không phải Mongoose document
+      .lean();
 
     if (!reports || reports.length === 0) {
-      return res.status(404).json({ message: "Không có báo cáo nào cho các team bạn quản lý." });
+      return res.status(404).json({ message: "Không có báo cáo nào từ các thành viên trong team của bạn." });
     }
 
     res.json(reports);
   } catch (error) {
-    console.error("getReportsForLeader error:", error);
-    res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
+    console.error("Lỗi khi lấy báo cáo cho leader:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy báo cáo.", error: error.message });
   }
 };
 // lây ra report của từng member
@@ -597,7 +653,6 @@ const showAllReportMember = async (req, res) => {
 
     // Tìm các team do leader quản lý
     const teamsLed = await Team.find({ assignedLeader: leaderId }).select('_id assignedMembers');
-    console.log("teamsLed:", teamsLed); // Debug để kiểm tra teamsLed
     if (!teamsLed || teamsLed.length === 0) {
       return res.status(403).json({ message: "Bạn không quản lý team nào." });
     }
@@ -611,13 +666,13 @@ const showAllReportMember = async (req, res) => {
     }
 
     // Lọc báo cáo của thành viên được chỉ định
-    const reports = await Report.find({ assignedMember: id }, '-team -feedback')
+    const reports = await Report.find({ assignedMembers: id }, '-team -feedback')
       .populate({
         path: 'task',
         select: '_id name deadline',
       })
       .populate({
-        path: 'assignedMember',
+        path: 'assignedMembers',
         select: '_id name role',
       })
       .lean(); // Trả về dữ liệu thuần túy, không phải Mongoose document
@@ -675,12 +730,12 @@ const evaluateMemberReport = async (req, res) => {
       score,
       from: 'Leader',
       to: 'Member'
-    });
+  });
 
     await feedback.save();
 
     await notifyEvaluateLeader({
-      userId: report.assignedMember.toString(),
+      userId: report.assignedMembers.toString(),
       feedback,
       report
     });
@@ -698,8 +753,173 @@ const evaluateMemberReport = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server.', error: error.message });
   }
 };
+const createReportCompany = async (req, res) => {
+  try {
+    const { projectId, content, taskProgress, difficulties, feedback } = req.body;
+    const userId = req.user._id;
 
+    // Validate req.user
+    if (!req.user || !userId) {
+      return res.status(401).json({ message: "Không tìm thấy thông tin người dùng." });
+    }
+
+    // Kiểm tra dữ liệu bắt buộc
+    if (!projectId || !content || taskProgress === undefined) {
+      return res.status(400).json({ message: "Thiếu projectId, nội dung hoặc tiến độ công việc." });
+    }
+
+    // Xử lý tiến độ nếu dạng string có dấu %
+    let progress = taskProgress;
+    if (typeof taskProgress === "string" && taskProgress.includes("%")) {
+      progress = parseInt(taskProgress.replace("%", ""), 10);
+    }
+
+    // Kiểm tra tiến độ hợp lệ
+    if (isNaN(progress) || progress < 0 || progress > 100) {
+      return res.status(400).json({ message: "Tiến độ công việc không hợp lệ." });
+    }
+
+    // Tìm dự án và populate thông tin team và leader
+    const project = await Project.findById(projectId).populate({
+      path: 'assignedTeam',
+      populate: {
+        path: 'assignedLeader',
+        model: 'User'
+      }
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: "Không tìm thấy dự án." });
+    }
+
+    const team = project.assignedTeam;
+    const assignedLeader = team?.assignedLeader;
+
+    if (!team || !assignedLeader) {
+      return res.status(400).json({ message: "Không tìm thấy team hoặc leader của dự án." });
+    }
+
+    // Kiểm tra quyền: chỉ leader của team mới được báo cáo
+    if (String(assignedLeader._id) !== String(userId)) {
+      return res.status(403).json({ message: "Chỉ leader của team được báo cáo tiến độ dự án." });
+    }
+
+    // Tìm companyManager (người dùng với role: 'company')
+    const companyManager = await User.findOne({ role: 'company' });
+    if (!companyManager) {
+      return res.status(400).json({ message: "Không tìm thấy thông tin quản lý công ty." });
+    }
+
+    // Tạo báo cáo
+    const report = new Report({
+      content,
+      difficulties,
+      taskProgress: progress,
+      project: projectId,
+      team: team._id,
+      assignedLeader: userId,
+      feedback,
+      assignedMembers: []
+    });
+
+    await report.save();
+
+    // Cập nhật tiến độ dự án
+    project.progress = progress;
+    await project.save();
+
+    // Gửi thông báo
+    await notifyReportCompany({
+      userId: companyManager._id.toString(),
+      project,
+      report,
+      leader: req.user.name || 'Leader'
+    });
+
+    // Populate lại báo cáo vừa lưu
+    const savedReport = await report.populate([
+      { path: "team", select: "name" },
+      { path: "assignedLeader", select: "name" }
+    ]);
+
+    // Xóa trường assignedMember nếu có
+    if (savedReport._doc?.assignedMember) {
+      delete savedReport._doc.assignedMember;
+    }
+
+    // Trả về phản hồi với companyManager ID
+    res.status(201).json({
+      message: "Gửi báo cáo dự án thành công.",
+      report: savedReport,
+      companyManagerId: companyManager._id.toString() // Hiển thị ID của companyManager
+    });
+
+  } catch (error) {
+    console.error("createReportCompany error:", error);
+    res.status(500).json({
+      message: "Lỗi server.",
+      error: error.message
+    });
+  }
+};
 // 
+// xem tất cả đánh giá 
+const showAllFeedback = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Lấy các report thuộc team mà user là assignedLeader
+    const reports = await Report.find()
+      .populate({
+        path: 'team',
+        match: { assignedLeader: userId }, // Chỉ lấy team mà user là leader
+        populate: {
+          path: 'assignedLeader',
+          model: 'User',
+          select: 'name email'
+        }
+      })
+      .populate({
+        path: 'feedback',
+        model: 'Feedback',
+        match: { from: 'Company', to: 'Leader' }, // Chỉ lấy feedback từ Company đến Leader
+        select: 'comment score from createdAt'
+      })
+      .sort({ createdAt: -1 });
+
+    // Lọc và định dạng feedback
+    const feedbacks = reports
+      .filter(r => r.team && r.feedback) // Chỉ lấy report có team (user là leader) và có feedback
+      .map(r => ({
+        feedbackId: r.feedback._id,
+        team: {
+          teamId: r.team?._id || null,
+          teamName: r.team?.name || 'Không rõ',
+          leaderName: r.team?.assignedLeader?.name || 'Không rõ'
+        },
+        report: {
+          reportId: r._id,
+          content: r.content
+        },
+        comment: r.feedback.comment,
+        score: r.feedback.score,
+        from: r.feedback.from,
+        createdAt: r.feedback.createdAt
+      }));
+
+    res.status(200).json({
+      message: "Lấy danh sách đánh giá thành công.",
+      feedbacks
+    });
+
+  } catch (error) {
+    console.error("showAllFeedbackLeader error:", error);
+    res.status(500).json({
+      message: "Lỗi server.",
+      error: error.message
+    });
+  }
+};
 module.exports = {
   getMyTeam,
   viewAssignedProject,
@@ -712,7 +932,9 @@ module.exports = {
   revokeTaskAssignment,
   unassignedTask,
   getAssignedTask,
-  showallRepor,
+  showallReport,
   showAllReportMember,
-  evaluateMemberReport
+  evaluateMemberReport,
+  createReportCompany,
+  showAllFeedback
 };
