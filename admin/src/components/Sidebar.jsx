@@ -12,25 +12,127 @@ import {
   FaAngleUp,
 } from "react-icons/fa";
 import { GiProgression } from "react-icons/gi";
+import { RiTeamFill } from "react-icons/ri";
+import { TbSubtask } from "react-icons/tb";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+  const [isTaskDropdownOpen, setIsTaskDropdownOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-    if (isEmployeeDropdownOpen) setIsEmployeeDropdownOpen(false);
-    if (isProjectDropdownOpen) setIsProjectDropdownOpen(false);
+    setIsEmployeeDropdownOpen(false);
+    setIsProjectDropdownOpen(false);
+    setIsTaskDropdownOpen(false);
   };
 
-  const toggleEmployeeDropdown = () => {
-    setIsEmployeeDropdownOpen(!isEmployeeDropdownOpen);
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const role = user.role;
+
+  const menuItems = {
+    admin: {
+      title: "QUẢN LÝ NHÂN SỰ",
+      main: [
+        {
+          label: "Trang Chủ",
+          to: "/",
+          icon: <FaThLarge />,
+        },
+      ],
+      menu: [
+        {
+          label: "Quản Lý",
+          icon: <FaUser />,
+          dropdown: true,
+          items: [
+            { label: "Nhân Viên", to: "/member" },
+            { label: "Leader", to: "/leader" },
+          ],
+        },
+        {
+          label: "Phòng Ban",
+          to: "/departments",
+          icon: <FaBuilding />,
+        },
+        {
+          label: "Dự Án",
+          icon: <FaProjectDiagram />,
+          dropdown: true,
+          items: [
+            { label: "Dự Án Đã Gán", to: "/project-assigned" },
+            { label: "Dự Án Chưa Gán", to: "/project-unassigned" },
+          ],
+        },
+        {
+          label: "Công Việc",
+          to: "/jobs",
+          icon: <FaBriefcase />,
+        },
+        {
+          label: "Tiến độ dự án",
+          to: "/projectprogress",
+          icon: <GiProgression />,
+        },
+      ],
+    },
+    leader: {
+      title: "QUẢN LÝ NHÂN VIÊN",
+      main: [
+        {
+          label: "Trang Chủ Leader",
+          to: "/",
+          icon: <FaThLarge />,
+        },
+      ],
+      menu: [
+        {
+          label: "Quản Lý Nhân Viên",
+          icon: <FaUser />,
+          to: "/teams-table",
+        },
+        {
+          label: "Nhiệm Vụ",
+          icon: <TbSubtask />,
+          dropdown: true,
+          items: [
+            { label: "Nhiệm Vụ Đã Giao", to: "/assigned-tasks" },
+            { label: "Nhiệm Vụ Chưa Giao", to: "/unassigned-tasks" },
+          ],
+        },
+        {
+          label: "Projects",
+          to: "/projects",
+          icon: <FaProjectDiagram />,
+        },
+      ],
+    },
+    member: {
+      title: "NHÂN VIÊN",
+      main: [
+        {
+          label: "Trang Chủ Member",
+          to: "/",
+          icon: <FaThLarge />,
+        },
+      ],
+      menu: [
+        {
+          label: "Nhiệm Vụ",
+          icon: <TbSubtask />,
+          to: "/task-member",
+        },
+        {
+          label: "Dự Án",
+          icon: <FaProjectDiagram />,
+          to: "/projects-member",
+        },
+      ],
+    },
   };
 
-  const toggleProjectDropdown = () => {
-    setIsProjectDropdownOpen(!isProjectDropdownOpen);
-  };
+  const currentMenu = menuItems[role] || menuItems.admin;
 
   return (
     <>
@@ -53,7 +155,7 @@ const Sidebar = () => {
         } sm:translate-x-0`}
       >
         <h1 className="text-lg sm:text-xl font-bold text-center mb-3">
-          QUẢN LÝ NHÂN SỰ
+          {currentMenu.title}
         </h1>
         <hr className="border-gray-400 mb-4 sm:mb-6" />
 
@@ -61,18 +163,15 @@ const Sidebar = () => {
           <p className="text-xs sm:text-sm text-gray-300 font-semibold mb-2">
             MAIN
           </p>
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
-                isActive ? "bg-white/20" : ""
-              }`
-            }
-            onClick={() => setIsOpen(false)}
-          >
-            <FaThLarge />
-            <span>Trang Chủ</span>
-          </NavLink>
+          {currentMenu.main.map((item, index) => (
+            <SidebarItem
+              key={index}
+              icon={item.icon}
+              label={item.label}
+              to={item.to}
+              onClick={() => setIsOpen(false)}
+            />
+          ))}
         </div>
 
         <div className="flex-1">
@@ -80,110 +179,64 @@ const Sidebar = () => {
             MENU
           </p>
           <div className="flex flex-col gap-1">
-            {/* Employee Dropdown */}
-            <div>
-              <div
-                className="flex items-center justify-between gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10"
-                onClick={toggleEmployeeDropdown}
-              >
-                <div className="flex items-center gap-3">
-                  <FaUser />
-                  <span>Quản Lý</span>
-                </div>
-                {isEmployeeDropdownOpen ? <FaAngleUp /> : <FaAngleDown />}
-              </div>
-              {isEmployeeDropdownOpen && (
-                <div className="ml-6 mt-1 flex flex-col gap-1">
-                  <NavLink
-                    to="/member"
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
-                        isActive ? "bg-white/20" : ""
-                      }`
-                    }
-                    onClick={() => setIsOpen(false)}
+            {currentMenu.menu.map((item, index) =>
+              item.dropdown ? (
+                <div key={index}>
+                  <div
+                    className="flex items-center justify-between gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10"
+                    onClick={() => {
+                      if (item.label === "Quản Lý") {
+                        setIsEmployeeDropdownOpen(!isEmployeeDropdownOpen);
+                      } else if (item.label === "Dự Án") {
+                        setIsProjectDropdownOpen(!isProjectDropdownOpen);
+                      } else if (item.label === "Nhiệm Vụ") {
+                        setIsTaskDropdownOpen(!isTaskDropdownOpen);
+                      }
+                    }}
                   >
-                    <span>Nhân Viên</span>
-                  </NavLink>
-                  <NavLink
-                    to="/leader"
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
-                        isActive ? "bg-white/20" : ""
-                      }`
-                    }
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span>Leader</span>
-                  </NavLink>
+                    <div className="flex items-center gap-3">
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                    {(item.label === "Quản Lý" && isEmployeeDropdownOpen) ||
+                    (item.label === "Dự Án" && isProjectDropdownOpen) ||
+                    (item.label === "Nhiệm Vụ" && isTaskDropdownOpen) ? (
+                      <FaAngleUp />
+                    ) : (
+                      <FaAngleDown />
+                    )}
+                  </div>
+                  {(item.label === "Quản Lý" && isEmployeeDropdownOpen) ||
+                  (item.label === "Dự Án" && isProjectDropdownOpen) ||
+                  (item.label === "Nhiệm Vụ" && isTaskDropdownOpen) ? (
+                    <div className="ml-6 mt-1 flex flex-col gap-1">
+                      {item.items.map((subItem, subIndex) => (
+                        <SidebarItem
+                          key={subIndex}
+                          label={subItem.label}
+                          to={subItem.to}
+                          onClick={() => setIsOpen(false)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-              )}
-            </div>
-
-            <SidebarItem
-              icon={<FaBuilding />}
-              label="Phòng Ban"
-              to="/departments"
-              onClick={() => setIsOpen(false)}
-            />
-
-            {/* Project Dropdown */}
-            <div>
-              <div
-                className="flex items-center justify-between gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10"
-                onClick={toggleProjectDropdown}
-              >
-                <div className="flex items-center gap-3">
-                  <FaProjectDiagram />
-                  <span>Dự Án</span>
-                </div>
-                {isProjectDropdownOpen ? <FaAngleUp /> : <FaAngleDown />}
-              </div>
-              {isProjectDropdownOpen && (
-                <div className="ml-6 mt-1 flex flex-col gap-1">
-                  <NavLink
-                    to="/project-assigned"
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
-                        isActive ? "bg-white/20" : ""
-                      }`
-                    }
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span>Dự Án Đã Gán</span>
-                  </NavLink>
-                  <NavLink
-                    to="/project-unassigned"
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 py-2 px-3 rounded cursor-pointer hover:bg-white/10 ${
-                        isActive ? "bg-white/20" : ""
-                      }`
-                    }
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span>Dự Án Chưa Gán</span>
-                  </NavLink>
-                </div>
-              )}
-            </div>
-
-            <SidebarItem
-              icon={<FaBriefcase />}
-              label="Công Việc"
-              to="/jobs"
-              onClick={() => setIsOpen(false)}
-            />
-            <SidebarItem
-              icon={<GiProgression />}
-              label="Tiến độ dự án"
-              to="/projectprogress"
-              onClick={() => setIsOpen(false)}
-            />
+              ) : (
+                <SidebarItem
+                  key={index}
+                  icon={item.icon}
+                  label={item.label}
+                  to={item.to}
+                  onClick={() => setIsOpen(false)}
+                />
+              )
+            )}
           </div>
         </div>
 
         <hr className="mt-4 sm:mt-6 border-gray-400" />
       </aside>
+
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 sm:hidden z-30"
@@ -204,7 +257,7 @@ const SidebarItem = ({ icon, label, to, onClick }) => (
     }
     onClick={onClick}
   >
-    <div className="text-base sm:text-lg">{icon}</div>
+    {icon && <div className="text-base sm:text-lg">{icon}</div>}
     <span>{label}</span>
   </NavLink>
 );

@@ -1,6 +1,6 @@
 import React from "react";
 
-const Home = () => {
+const HomeMember = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Trang Chủ</h2>
@@ -9,4 +9,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomeMember;

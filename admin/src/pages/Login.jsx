@@ -9,8 +9,12 @@ const Login = () => {
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn === "true") {
-      navigate("/");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (isLoggedIn === "true" && user) {
+      if (user.role === "company") navigate("/", { replace: true });
+      else if (user.role === "leader") navigate("/", { replace: true });
+      else if (user.role === "member")
+        navigate("/", { replace: true });
     }
   }, [navigate]);
 
@@ -27,52 +31,53 @@ const Login = () => {
       try {
         const response = await fetch("http://localhost:8001/api/user/login", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Đăng nhập thất bại");
-        }
+        if (!response.ok) throw new Error(data.message || "Đăng nhập thất bại");
 
         const token = data.token;
-        if (!token) {
-          throw new Error("Không nhận được token từ server.");
-        }
+        if (!token) throw new Error("Không nhận được token từ server.");
 
-        // ✅ Gọi tiếp /profile để lấy thông tin user
-        const profileRes = await fetch("http://localhost:8001/api/protected/profile", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        });
+        const profileRes = await fetch(
+          "http://localhost:8001/api/protected/profile",
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const profileData = await profileRes.json();
+        if (!profileRes.ok)
+          throw new Error(
+            profileData.message || "Lấy thông tin người dùng thất bại."
+          );
 
-        if (!profileRes.ok) {
-          throw new Error(profileData.message || "Lấy thông tin người dùng thất bại.");
+        const user = profileData.user;
+        if (
+          user.role !== "company" &&
+          user.role !== "leader" &&
+          user.role !== "member"
+        ) {
+          throw new Error("Bạn không có quyền truy cập vào hệ thống.");
         }
 
-        // Kiểm tra role của người dùng
-        if (profileData.user.role !== "company") {
-          // Thông báo lỗi nếu người dùng không có quyền
-          throw new Error("Bạn không có quyền truy cập vào trang quản trị.");
-        }
-
-        // ✅ Lưu token và user vào localStorage
+        // Lưu thông tin
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(profileData.user));
+        localStorage.setItem("user", JSON.stringify(user));
 
-        setError(null); // Xóa thông báo lỗi nếu đăng nhập thành công
-        navigate("/member", { replace: true });
+        setError(null);
+
+        // Điều hướng dựa theo role
+        if (user.role === "company") navigate("/", { replace: true });
+        else if (user.role === "leader") navigate("/", { replace: true });
+        else if (user.role === "member")
+          navigate("/", { replace: true });
       } catch (err) {
-        setError(err.message); // Hiển thị thông báo lỗi khi đăng nhập thất bại
+        setError(err.message);
       } finally {
         setSubmitting(false);
       }
@@ -85,7 +90,9 @@ const Login = () => {
         <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
           Đăng Nhập
         </h2>
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>} {/* Hiển thị lỗi nếu có */}
+        {error && (
+          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+        )}
         <form onSubmit={formik.handleSubmit} className="space-y-4">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
@@ -97,10 +104,11 @@ const Login = () => {
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-3 py-2 border ${formik.touched.email && formik.errors.email
-                ? "border-red-500"
-                : "border-gray-300"
-                } rounded`}
+              className={`w-full px-3 py-2 border ${
+                formik.touched.email && formik.errors.email
+                  ? "border-red-500"
+                  : "border-gray-300"
+              } rounded`}
               placeholder="example@gmail.com"
             />
             {formik.touched.email && formik.errors.email && (
@@ -118,10 +126,11 @@ const Login = () => {
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-3 py-2 border ${formik.touched.password && formik.errors.password
-                ? "border-red-500"
-                : "border-gray-300"
-                } rounded`}
+              className={`w-full px-3 py-2 border ${
+                formik.touched.password && formik.errors.password
+                  ? "border-red-500"
+                  : "border-gray-300"
+              } rounded`}
               placeholder="********"
             />
             {formik.touched.password && formik.errors.password && (
@@ -134,8 +143,9 @@ const Login = () => {
           <button
             type="submit"
             disabled={formik.isSubmitting}
-            className={`w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition ${formik.isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+            className={`w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition ${
+              formik.isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             {formik.isSubmitting ? "Đang đăng nhập..." : "Đăng Nhập"}
           </button>
