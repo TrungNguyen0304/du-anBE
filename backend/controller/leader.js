@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Team = require("../models/team");
 const Project = require("../models/project")
 const Task = require("../models/task")
-const { notifyTask, notifyTaskRemoval, notifyEvaluateLeader,notifyReportCompany } = require("../controller/notification");
+const { notifyTask, notifyTaskRemoval, notifyEvaluateLeader, notifyReportCompany } = require("../controller/notification");
 const Report = require("../models/report")
 const User = require("../models/user");
 const Feedback = require("../models/Feedback");
@@ -365,6 +365,10 @@ const assignTask = async (req, res) => {
       return res.status(400).json({ message: "Thiếu thông tin bắt buộc (memberId, deadline)." });
     }
 
+    const parsedDeadline = new Date(deadline);
+    if (isNaN(parsedDeadline.getTime())) {
+      return res.status(400).json({ message: "Giá trị deadline không hợp lệ" });
+    }
     // 1. Tìm task theo id
     const task = await Task.findById(id);
     if (!task) {
@@ -730,7 +734,7 @@ const evaluateMemberReport = async (req, res) => {
       score,
       from: 'Leader',
       to: 'Member'
-  });
+    });
 
     await feedback.save();
 
@@ -867,7 +871,7 @@ const createReportCompany = async (req, res) => {
 const showAllFeedback = async (req, res) => {
   try {
     const userId = req.user._id;
-    
+
     // Lấy các report thuộc team mà user là assignedLeader
     const reports = await Report.find()
       .populate({
