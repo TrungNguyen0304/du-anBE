@@ -50,6 +50,16 @@ const projectSchema = new mongoose.Schema({
     enum: [1, 2, 3],
     default: 2
   },
+   isCompleted: {
+    type: Number,
+    enum: [0, 1],
+    default: 0
+  },
+  isOverdueNotified: {
+    type: Number,
+    enum: [0, 1],
+    default: 0
+  }
 }, {
   timestamps: true 
 });

@@ -34,8 +34,8 @@ router.put('/assignTask/:id', authenticateJWT, authorize('leader'), assignTask);
 router.put('/revokeTask/:id/revoke', authenticateJWT, authorize('leader'), revokeTaskAssignment);
 // lấy ra task chưa giao
 router.get('/unassignedTask/', authenticateJWT,authorize('leader'), unassignedTask);
+// lay task đã giao
 router.get('/getAssignedTask/', authenticateJWT,authorize('leader'), getAssignedTask);
-
 //show ra report của member
 router.get('/viewReport/', authenticateJWT,authorize('leader'), showallReport);
 // lây ra report của từng member

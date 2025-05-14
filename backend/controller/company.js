@@ -850,8 +850,13 @@ const assignProject = async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Công việc không tồn tại." });
     }
-
-    // Tìm nhân viên
+    
+    const parsedDeadline = new Date(deadline);
+    if (isNaN(parsedDeadline.getTime())) {
+      return res.status(400).json({ message: "Giá trị deadline không hợp lệ" });
+    }
+    // Tì
+    // m nhân viên
     const team = await Team.findById(assignedTeam);
     if (!team) {
       return res.status(404).json({ message: "Nhân viên không hợp lệ." });
@@ -1263,7 +1268,7 @@ const evaluateLeaderReport = async (req, res) => {
 
     await feedback.save();
 
-  
+
     await notifyEvaluateCompany({
       userId: report.assignedLeader._id.toString(),
       feedback,
