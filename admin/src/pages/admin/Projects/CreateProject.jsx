@@ -26,7 +26,7 @@ const CreateProject = () => {
       );
 
       alert("Dự án đã được tạo!");
-      navigate("/projects");
+      navigate("/project-unassigned");
     } catch (error) {
       alert(`Tạo dự án thất bại: ${error.response?.data?.message || error.message}`);
     }
@@ -63,7 +63,7 @@ const CreateProject = () => {
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <div>
+        {/* <div>
           <label className="block text-gray-700">Trạng Thái</label>
           <input
             type="text"
@@ -71,7 +71,7 @@ const CreateProject = () => {
             value="Chờ xử lý"
             disabled
           />
-        </div>
+        </div> */}
         <div>
           <label htmlFor="priority" className="block text-gray-700">
             Mức Ưu Tiên
