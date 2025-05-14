@@ -323,7 +323,6 @@ const notifyTaskOverdue = async ({ userId, task }) => {
     console.error(`Error in notifyTaskOverdue for user ${userIdStr}:`, error.message);
   }
 };
-
 const notifyProjectOverdue = async ({ project }) => {
   const io = getIO();
   const title = "Dự án trễ hạn chót";
