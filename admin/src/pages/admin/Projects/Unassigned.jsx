@@ -220,7 +220,9 @@ const Unassigned = () => {
                   Gán dự án cho nhóm
                 </h3>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">Chọn nhóm:</label>
+                  <label className="block text-sm font-medium">
+                    Chọn nhóm:
+                  </label>
                   <select
                     className="w-full mt-1 p-2 border rounded"
                     value={assignedTeam}
