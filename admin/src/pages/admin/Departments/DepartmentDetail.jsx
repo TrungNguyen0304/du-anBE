@@ -126,7 +126,7 @@ const DepartmentDetail = () => {
 
   return (
     <div className="min-h-screen p-4">
-      <div className="max-w-7xl mx-auto bg-white shadow-xl rounded-2xl p-8 space-y-8">
+      <div className="w-full mx-auto bg-white shadow-xl rounded-2xl p-8 space-y-8">
         {/* Header */}
         <h1 className="text-3xl font-bold text-center text-blue-800">
           Chi Tiết Phòng Ban

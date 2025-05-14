@@ -1,4 +1,3 @@
-import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -23,9 +22,22 @@ import CreateDepartment from "./pages/admin/Departments/CreateDepartment";
 import UpdateDepartment from "./pages/admin/Departments/UpdateDepartment";
 import DepartmentDetail from "./pages/admin/Departments/DepartmentDetail";
 import Unassigned from "./pages/admin/Projects/Unassigned";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import Projects from "./pages/leader/projects/Projects";
+import HomeLeader from "./pages/leader/HomeLeader";
+import UnassignedTasks from "./pages/leader/Tasks/UnassignedTasks";
+import AssignedTasks from "./pages/leader/Tasks/AssignedTasks";
+import TeamTable from "./pages/leader/Teams/TeamTable";
+import HomeMember from "./pages/member/HomeMember";
+import TaskMember from "./pages/member/TaskMember";
+import ProjectsMember from "./pages/member/ProjectsMember";
+import CreateTeam from "./pages/leader/Teams/CreateTeam";
+import UpdateTeam from "./pages/leader/Teams/UpdateTeam";
+import TeamDetail from "./pages/leader/Teams/TeamDetail";
+import MemberDetailLeader from "./pages/leader/Teams/MemberDetailLeader";
+import CreateTask from "./pages/leader/Tasks/CreateTask";
+import UpdateTask from "./pages/leader/Tasks/UpdateTask";
+import TaskDetail from "./pages/leader/Tasks/TaskDetail";
 
-// Layout for Company
 const CompanyLayout = () => (
   <div className="flex min-h-screen flex-col sm:flex-row overflow-hidden">
     <Sidebar />
@@ -39,23 +51,18 @@ const CompanyLayout = () => (
           <Route path="/management-detail" element={<ManagementDetail />} />
           <Route path="/member-detail" element={<MemberDetail />} />
           <Route path="/leader-detail" element={<LeaderDetail />} />
-
-          {/* Phòng Ban */}
           <Route path="/departments" element={<Departments />} />
           <Route path="/create-department" element={<CreateDepartment />} />
           <Route path="/update-department/:id" element={<UpdateDepartment />} />
           <Route path="/department-detail" element={<DepartmentDetail />} />
-
           <Route path="/create-user" element={<CreateUser />} />
           <Route path="/create-leader" element={<CreateLeader />} />
           <Route path="/update-user" element={<UpdateUser />} />
-
           <Route path="/project-assigned" element={<ProjectAssigned />} />
           <Route path="/project-unassigned" element={<Unassigned />} />
           <Route path="/create-projects" element={<CreateProject />} />
           <Route path="/update-projects/:id" element={<UpdateProject />} />
           <Route path="/project-detail/:id" element={<ProjectDetail />} />
-
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/projectprogress" element={<ProjectProgress />} />
         </Routes>
@@ -64,22 +71,47 @@ const CompanyLayout = () => (
   </div>
 );
 
-// Layout for Leader
-// const LeaderLayout = () => (
-//   <div className="flex min-h-screen flex-col sm:flex-row">
-//     <Sidebar />
-//     <div className="flex-1 flex flex-col">
-//       <Navbar />
-//       <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-//         <Routes>
-//           <Route path="/" element={<Home />} />
-//           <Route path="/projects" element={<Projects />} />
-//           <Route path="/member" element={<Member />} />
-//         </Routes>
-//       </main>
-//     </div>
-//   </div>
-// );
+const LeaderLayout = () => (
+  <div className="flex min-h-screen flex-col sm:flex-row">
+    <Sidebar />
+    <div className="flex-1 flex flex-col">
+      <Navbar />
+      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+        <Routes>
+          <Route path="/" element={<HomeLeader />} />
+          <Route path="/teams-table" element={<TeamTable />} />
+          <Route path="/create-team" element={<CreateTeam />} />
+          <Route path="/team-detail" element={<TeamDetail />} />
+          <Route path="/update-team" element={<UpdateTeam />} />
+          <Route path="/member-detail" element={<MemberDetailLeader />} />
+          <Route path="/create-task" element={<CreateTask />} />
+          <Route path="/update-task" element={<UpdateTask />} />
+          <Route path="/task-detail" element={<TaskDetail />} />
+
+          <Route path="/assigned-tasks" element={<AssignedTasks />} />
+          <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
+          <Route path="/projects" element={<Projects />} />
+        </Routes>
+      </main>
+    </div>
+  </div>
+);
+
+const MemberLayout = () => (
+  <div className="flex min-h-screen flex-col sm:flex-row">
+    <Sidebar />
+    <div className="flex-1 flex flex-col">
+      <Navbar />
+      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+        <Routes>
+          <Route path="/" element={<HomeMember />} />
+          <Route path="/task-member" element={<TaskMember />} />
+          <Route path="/projects-member" element={<ProjectsMember />} />
+        </Routes>
+      </main>
+    </div>
+  </div>
+);
 
 const App = () => {
   const isAuthenticated = localStorage.getItem("isLoggedIn") === "true";
@@ -88,13 +120,10 @@ const App = () => {
 
   return (
     <Routes>
-      {/* Public route */}
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
       />
-
-      {/* Private routes */}
       <Route
         path="/*"
         element={
@@ -103,6 +132,8 @@ const App = () => {
               <CompanyLayout />
             ) : user?.role === "leader" ? (
               <LeaderLayout />
+            ) : user?.role === "member" ? (
+              <MemberLayout />
             ) : (
               <Navigate to="/login" replace />
             )

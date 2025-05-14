@@ -11,8 +11,7 @@ const ProjectDetail = () => {
   useEffect(() => {
     const loadProjectDetail = async () => {
       try {
-        const token = localStorage.getItem("token"); // hoặc từ context/store
-
+        const token = localStorage.getItem("token");
         const response = await fetch(
           `http://localhost:8001/api/company/viewTeamProject/${id}`,
           {
@@ -46,114 +45,134 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-10 text-gray-600">Đang tải dữ liệu...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg font-medium text-gray-600 animate-pulse">
+          Đang tải dữ liệu...
+        </div>
+      </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="text-center mt-10 text-red-600">Dự án không tồn tại.</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg font-medium text-red-600">
+          Dự án không tồn tại.
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Chi Tiết Dự Án</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">Tên Dự Án</h3>
-            <p className="text-gray-600">{project.name}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">Mô Tả</h3>
-            <p className="text-gray-600">{project.description}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">Trạng Thái</h3>
-            <p className="text-gray-600 capitalize">{project.status}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">Ưu Tiên</h3>
-            <p className="text-gray-600">{project.priority}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">Hạn Chót</h3>
-            <p className="text-gray-600">
-              {new Date(project.deadline).toLocaleString("vi-VN")}
-            </p>
-          </div>
+    <div className="min-h-screen p-4">
+      <div className="w-full mx-auto bg-white rounded-2xl shadow-md p-6 sm:p-10 space-y-10">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b pb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Chi Tiết Dự Án
+          </h2>
         </div>
 
-        {(project.assignedTeam?.assignedLeader?.name ||
-          (project.assignedTeam?.assignedMembers &&
-            project.assignedTeam.assignedMembers.length > 0) ||
-          project.assignedTeam?.name) && (
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">
-              Người Phụ Trách
-            </h3>
-
-            {project.assignedTeam?.assignedLeader?.name && (
-              <p className="text-gray-600">
-                <strong>Leader:</strong>{" "}
-                {project.assignedTeam.assignedLeader.name}
+        {/* Project Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* Left Column: Project Info */}
+          <div className="space-y-5 text-lg text-gray-700">
+            <div>
+              <h3 className="font-semibold text-gray-800">Tên Dự Án</h3>
+              <p className="mt-1">{project.name}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">Mô Tả</h3>
+              <p className="mt-1 whitespace-pre-wrap">{project.description}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">Trạng Thái</h3>
+              <p className="mt-1 capitalize">{project.status}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">Ưu Tiên</h3>
+              <p className="mt-1">{project.priority}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">Hạn Chót</h3>
+              <p className="mt-1">
+                {new Date(project.deadline).toLocaleString("vi-VN")}
               </p>
-            )}
+            </div>
+          </div>
 
-            {project.assignedTeam?.assignedMembers &&
-              project.assignedTeam.assignedMembers.length > 0 && (
-                <p className="text-gray-600">
-                  <strong>Nhân viên:</strong>{" "}
+          {/* Right Column: Team Info */}
+          {(project.assignedTeam?.assignedLeader?.name ||
+            project.assignedTeam?.assignedMembers?.length > 0 ||
+            project.assignedTeam?.name) && (
+            <div className="space-y-5 text-lg text-gray-700">
+              <h3 className="font-semibold text-gray-800 text-lg mb-2">
+                Nhóm Phụ Trách
+              </h3>
+              {project.assignedTeam?.assignedLeader?.name && (
+                <p>
+                  <span className="font-medium">Leader:</span>{" "}
+                  {project.assignedTeam.assignedLeader.name}
+                </p>
+              )}
+              {project.assignedTeam?.assignedMembers?.length > 0 && (
+                <p>
+                  <span className="font-medium">Nhân viên:</span>{" "}
                   {project.assignedTeam.assignedMembers
                     .map((member) => member.name)
                     .join(", ")}
                 </p>
               )}
-
-            {project.assignedTeam?.name && (
-              <p className="text-gray-600">
-                <strong>Phòng ban:</strong> {project.assignedTeam.name}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
-          Danh Sách Công Việc
-        </h3>
-        {project.tasks && project.tasks.length > 0 ? (
-          <div className="space-y-4">
-            {project.tasks.map((task) => (
-              <div
-                key={task._id}
-                className="border rounded-lg p-4 hover:shadow transition"
-              >
-                <h4 className="text-lg font-medium">{task.taskName}</h4>
-                <p className="text-gray-600">
-                  <strong>Trạng thái:</strong> {task.status}
+              {project.assignedTeam?.name && (
+                <p>
+                  <span className="font-medium">Phòng ban:</span>{" "}
+                  {project.assignedTeam.name}
                 </p>
-                <p className="text-gray-600">
-                  <strong>Người thực hiện:</strong>{" "}
-                  {task.assignee?.name || "Chưa phân công"}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">Chưa có công việc nào cả.</p>
-        )}
-      </div>
+              )}
+            </div>
+          )}
+        </div>
 
-      <div className="flex justify-end mt-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
-        >
-          Quay lại
-        </button>
+        {/* Tasks Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">
+            Danh Sách Công Việc
+          </h3>
+          {project.tasks?.length > 0 ? (
+            <div className="space-y-4">
+              {project.tasks.map((task) => (
+                <div
+                  key={task._id}
+                  className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white hover:shadow-md transition"
+                >
+                  <h4 className="font-medium text-gray-900">{task.taskName}</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    <span className="font-medium">Trạng thái:</span>{" "}
+                    {task.status}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    <span className="font-medium">Người thực hiện:</span>{" "}
+                    {task.assignee?.name || "Chưa phân công"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-base text-gray-500 italic">
+              Chưa có công việc nào được thêm.
+            </p>
+          )}
+        </div>
+
+        {/* Back Button */}
+        <div className="pt-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-5 py-2.5 bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-800 transition"
+          >
+            Quay lại
+          </button>
+        </div>
       </div>
     </div>
   );
