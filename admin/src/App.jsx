@@ -22,7 +22,6 @@ import CreateDepartment from "./pages/admin/Departments/CreateDepartment";
 import UpdateDepartment from "./pages/admin/Departments/UpdateDepartment";
 import DepartmentDetail from "./pages/admin/Departments/DepartmentDetail";
 import Unassigned from "./pages/admin/Projects/Unassigned";
-import Projects from "./pages/leader/projects/Projects";
 import HomeLeader from "./pages/leader/HomeLeader";
 import UnassignedTasks from "./pages/leader/Tasks/UnassignedTasks";
 import AssignedTasks from "./pages/leader/Tasks/AssignedTasks";
@@ -30,13 +29,14 @@ import TeamTable from "./pages/leader/Teams/TeamTable";
 import HomeMember from "./pages/member/HomeMember";
 import TaskMember from "./pages/member/TaskMember";
 import ProjectsMember from "./pages/member/ProjectsMember";
-import CreateTeam from "./pages/leader/Teams/CreateTeam";
-import UpdateTeam from "./pages/leader/Teams/UpdateTeam";
 import TeamDetail from "./pages/leader/Teams/TeamDetail";
 import MemberDetailLeader from "./pages/leader/Teams/MemberDetailLeader";
 import CreateTask from "./pages/leader/Tasks/CreateTask";
 import UpdateTask from "./pages/leader/Tasks/UpdateTask";
 import TaskDetail from "./pages/leader/Tasks/TaskDetail";
+import Projects from "./pages/leader/Projects/Projects";
+import ProjectDetailLeader from "./pages/leader/Projects/ProjectDetailLeader";
+import ReportProjects from "./pages/leader/Projects/ReportProjects";
 
 const CompanyLayout = () => (
   <div className="flex min-h-screen flex-col sm:flex-row overflow-hidden">
@@ -80,17 +80,19 @@ const LeaderLayout = () => (
         <Routes>
           <Route path="/" element={<HomeLeader />} />
           <Route path="/teams-table" element={<TeamTable />} />
-          <Route path="/create-team" element={<CreateTeam />} />
           <Route path="/team-detail" element={<TeamDetail />} />
-          <Route path="/update-team" element={<UpdateTeam />} />
           <Route path="/member-detail" element={<MemberDetailLeader />} />
+
+          <Route path="/assigned-tasks" element={<AssignedTasks />} />
           <Route path="/create-task" element={<CreateTask />} />
           <Route path="/update-task" element={<UpdateTask />} />
           <Route path="/task-detail" element={<TaskDetail />} />
 
-          <Route path="/assigned-tasks" element={<AssignedTasks />} />
           <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
+
           <Route path="/projects" element={<Projects />} />
+          <Route path="/project-detail" element={<ProjectDetailLeader />} />
+          <Route path="/project-report" element={<ReportProjects />} />
         </Routes>
       </main>
     </div>
