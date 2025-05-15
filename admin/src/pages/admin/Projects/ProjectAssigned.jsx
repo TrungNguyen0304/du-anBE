@@ -10,6 +10,10 @@ const ProjectAssigned = () => {
   const [showModal, setShowModal] = useState(false);
   const [actionType, setActionType] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [limit] = useState(3); // Matches API default limit
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,8 +26,9 @@ const ProjectAssigned = () => {
           return;
         }
 
-        const response = await axios.get(
-          "http://localhost:8001/api/company/getassigned",
+        const response = await axios.post(
+          "http://localhost:8001/api/company/paginationgetassigned",
+          { page: currentPage, limit },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -32,6 +37,8 @@ const ProjectAssigned = () => {
         );
 
         setProjects(response.data.projects || []);
+        setTotalPages(response.data.pages || 1);
+        setTotalProjects(response.data.total || 0);
       } catch (error) {
         console.error("Lỗi khi tải dự án:", error);
         setError("Không thể tải danh sách dự án.");
@@ -41,7 +48,7 @@ const ProjectAssigned = () => {
     };
 
     fetchProjects();
-  }, [navigate]);
+  }, [navigate, currentPage, limit]);
 
   const handleAdd = () => {
     navigate("/create-projects");
@@ -51,13 +58,13 @@ const ProjectAssigned = () => {
     navigate(`/update-projects/${id}`);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     setSelectedProject(id);
     setActionType("delete");
     setShowModal(true);
   };
 
-  const handleRevoke = async (id) => {
+  const handleRevoke = (id) => {
     setSelectedProject(id);
     setActionType("revoke");
     setShowModal(true);
@@ -75,15 +82,43 @@ const ProjectAssigned = () => {
             },
           }
         );
-        setProjects(projects.filter((p) => p._id !== selectedProject));
+        setProjects(projects.filter((p) => p.id !== selectedProject));
+        // Adjust pagination if necessary
+        if (projects.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          setTotalProjects(totalProjects - 1);
+          setTotalPages(Math.ceil((totalProjects - 1) / limit));
+        }
       } else if (actionType === "revoke") {
-        console.log("Thu hồi dự án với ID:", selectedProject);
-        // Thêm xử lý thu hồi tại đây nếu cần
+        const response = await axios.put(
+          `http://localhost:8001/api/company/revokeProject/${selectedProject}/revoke`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // Update the project in the state to reflect the revoked status
+        setProjects(
+          projects.map((p) =>
+            p.id === selectedProject
+              ? {
+                  ...p,
+                  assignedTeam: null,
+                  deadline: null,
+                  status: "revoke",
+                }
+              : p
+          )
+        );
       }
       setShowModal(false);
+      navigate("/project-unassigned");
     } catch (error) {
       console.error("Lỗi khi thực hiện hành động:", error);
-      setError("Không thể thực hiện hành động.");
+      setError(error.response?.data?.message || "Không thể thực hiện hành động.");
       setShowModal(false);
     }
   };
@@ -94,6 +129,13 @@ const ProjectAssigned = () => {
 
   const handleViewProjectDetail = (id) => {
     navigate(`/project-detail/${id}`);
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      setLoading(true);
+    }
   };
 
   return (
@@ -116,60 +158,107 @@ const ProjectAssigned = () => {
       ) : projects.length === 0 ? (
         <p className="text-gray-500">Chưa có dự án nào.</p>
       ) : (
-        <div className="space-y-4">
-          {projects.map((project) => (
-            <div
-              key={project._id}
-              className="border rounded-lg p-4 hover:shadow transition"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-semibold">{project.name}</h3>
-                  <p className="text-gray-600">
-                    <span className="font-semibold text-black">Mô tả:</span>{" "}
-                    {project.description}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Trạng thái:</strong> {project.status}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Ưu tiên:</strong> {project.priority}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleViewProjectDetail(project._id)}
-                    className="flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Xem
-                  </button>
-                  <button
-                    onClick={() => handleEdit(project._id)}
-                    className="flex items-center px-3 py-1 border border-yellow-400 text-yellow-700 rounded hover:bg-yellow-50"
-                  >
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() => handleDelete(project._id)}
-                    className="flex items-center px-3 py-1 border border-red-500 text-red-600 rounded hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Xóa
-                  </button>
-                  <button
-                    onClick={() => handleRevoke(project._id)}
-                    className="flex items-center px-3 py-1 border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-1" />
-                    Thu hồi
-                  </button>
+        <>
+          <div className="space-y-4">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                className="border rounded-lg p-4 hover:shadow transition"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-semibold">{project.name}</h3>
+                    <p className="text-gray-600">
+                      <span className="font-semibold text-black">Mô tả:</span>{" "}
+                      {project.description}
+                    </p>
+                    <p className="text-gray-600">
+                      <strong>Trạng thái:</strong> {project.status}
+                    </p>
+                    <p className="text-gray-600">
+                      <strong>Ưu tiên:</strong> {project.priority}
+                    </p>
+                    {project.assignedTeam && (
+                      <p className="text-gray-600">
+                        <strong>Đội ngũ:</strong> {project.assignedTeam.name}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleViewProjectDetail(project.id)}
+                      className="flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Xem
+                    </button>
+                    <button
+                      onClick={() => handleEdit(project.id)}
+                      className="flex items-center px-3 py-1 border border-yellow-400 text-yellow-700 rounded hover:bg-yellow-50"
+                    >
+                      <Pencil className="w-4 h-4 mr-1" />
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => handleDelete(project.id)}
+                      className="flex items-center px-3 py-1 border border-red-500 text-red-600 rounded hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Xóa
+                    </button>
+                    <button
+                      onClick={() => handleRevoke(project.id)}
+                      className="flex items-center px-3 py-1 border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
+                    >
+                      <RotateCcw className="w-4 h-4 mr-1" />
+                      Thu hồi
+                    </button>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 0 && (
+            <div className="flex justify-between items-center mt-6">
+              <p>
+                Hiển thị {projects.length} / {totalProjects} dự án
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
+                >
+                  Trước
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 border rounded ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
+                >
+                  Sau
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {showModal && (

@@ -716,6 +716,7 @@ const updateProject = async (req, res) => {
     if (status) {
       const allowedStatuses = [
         "pending",
+        "revoke",
         "in_progress",
         "completed",
         "cancelled",
@@ -954,7 +955,7 @@ const revokeProjectAssignment = async (req, res) => {
     // Reset project assignment
     project.assignedTeam = null;
     project.deadline = null;
-    project.status = "pending";
+    project.status = "revoke";
 
     await project.save();
 

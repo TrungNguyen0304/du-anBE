@@ -30,7 +30,7 @@ const UpdateProject = () => {
         setPriority(project.priority || 2);
       } catch (error) {
         alert("Không tìm thấy dự án hoặc lỗi xác thực.");
-        navigate("/projects");
+        navigate(-1); // Go back to the previous page instead of hardcoding "/projects"
       }
     };
 
@@ -55,14 +55,14 @@ const UpdateProject = () => {
       );
 
       alert("Dự án đã được cập nhật!");
-      navigate("/projects");
+      navigate(-1); // Go back to the previous page (project-assigned or project-unassigned)
     } catch (error) {
       alert("Lỗi khi cập nhật dự án hoặc xác thực thất bại.");
     }
   };
 
   const handleCancel = () => {
-    navigate(-1);
+    navigate(-1); // Go back to the previous page
   };
 
   return (
@@ -103,6 +103,7 @@ const UpdateProject = () => {
             onChange={(e) => setStatus(e.target.value)}
           >
             <option value="pending">Đang chờ</option>
+            <option value="revoke">Thu hồi</option>
             <option value="in_progress">Đang thực hiện</option>
             <option value="completed">Hoàn thành</option>
             <option value="cancelled">Đã hủy</option>
