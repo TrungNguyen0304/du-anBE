@@ -21,7 +21,7 @@ const createUser = async (req, res) => {
       name,
       email,
       password,
-      role,
+      role = 'member',
       gender,
       dateOfBirth,
       phoneNumber,
@@ -30,40 +30,39 @@ const createUser = async (req, res) => {
 
     const existingUser = await user.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email đã tồn tại." });
+      return res.status(400).json({ message: 'Email đã tồn tại.' });
     }
 
-    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newEmployee = new user({
+    const newUser = new user({
       name,
       email,
       password: hashedPassword,
-      role: role || "member",
+      role,
       gender,
       dateOfBirth,
       phoneNumber,
       address,
     });
 
-    await newEmployee.save();
+    await newUser.save();
 
     res.status(201).json({
-      message: "Tạo nhân viên thành công.",
+      message: 'Tạo nhân viên thành công.',
       user: {
-        id: newEmployee._id,
-        name: newEmployee.name,
-        email: newEmployee.email,
-        role: newEmployee.role,
-        gender: newEmployee.gender,
-        dateOfBirth: newEmployee.dateOfBirth,
-        phoneNumber: newEmployee.phoneNumber,
-        address: newEmployee.address,
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        gender: newUser.gender,
+        dateOfBirth: newUser.dateOfBirth,
+        phoneNumber: newUser.phoneNumber,
+        address: newUser.address,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server.", error: error.message });
+    res.status(500).json({ message: 'Lỗi server.', error: error.message });
   }
 };
 
@@ -142,20 +141,16 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Tìm user theo id
     const existingUser = await user.findById(id);
     if (!existingUser) {
-      return res.status(404).json({ message: "Nhân viên không tồn tại." });
+      return res.status(404).json({ message: 'Nhân viên không tồn tại.' });
     }
 
-    // Xóa nhân viên
     await user.findByIdAndDelete(id);
 
-    res.status(200).json({
-      message: "Xóa nhân viên thành công.",
-    });
+    res.status(200).json({ message: 'Xóa nhân viên thành công.' });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server.", error: error.message });
+    res.status(500).json({ message: 'Lỗi server.', error: error.message });
   }
 };
 
