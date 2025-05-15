@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
+import { requestNotificationPermission } from "../services/notificationService"; // 🔹 Nhớ sửa path nếu cần
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,10 +12,7 @@ const Login = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const user = JSON.parse(localStorage.getItem("user"));
     if (isLoggedIn === "true" && user) {
-      if (user.role === "company") navigate("/", { replace: true });
-      else if (user.role === "leader") navigate("/", { replace: true });
-      else if (user.role === "member")
-        navigate("/", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [navigate]);
 
@@ -29,6 +27,7 @@ const Login = () => {
     }),
     onSubmit: async (values, { setSubmitting }) => {
       try {
+        // Đăng nhập
         const response = await fetch("http://localhost:8001/api/user/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -41,41 +40,34 @@ const Login = () => {
         const token = data.token;
         if (!token) throw new Error("Không nhận được token từ server.");
 
-        const profileRes = await fetch(
-          "http://localhost:8001/api/protected/profile",
-          {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // Lấy thông tin user
+        const profileRes = await fetch("http://localhost:8001/api/protected/profile", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const profileData = await profileRes.json();
-        if (!profileRes.ok)
-          throw new Error(
-            profileData.message || "Lấy thông tin người dùng thất bại."
-          );
+        if (!profileRes.ok) {
+          throw new Error(profileData.message || "Lấy thông tin người dùng thất bại.");
+        }
 
         const user = profileData.user;
-        if (
-          user.role !== "company" &&
-          user.role !== "leader" &&
-          user.role !== "member"
-        ) {
+
+        if (!["company", "leader", "member"].includes(user.role)) {
           throw new Error("Bạn không có quyền truy cập vào hệ thống.");
         }
 
-        // Lưu thông tin
+        // 🔐 Lưu vào localStorage
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        setError(null);
+        // 🔔 Gửi FCM Token tự động
+        await requestNotificationPermission(user._id);
 
-        // Điều hướng dựa theo role
-        if (user.role === "company") navigate("/", { replace: true });
-        else if (user.role === "leader") navigate("/", { replace: true });
-        else if (user.role === "member")
-          navigate("/", { replace: true });
+        // ✅ Chuyển trang
+        navigate("/", { replace: true });
+        setError(null);
       } catch (err) {
         setError(err.message);
       } finally {
