@@ -17,6 +17,7 @@ const Login = () => {
       if (user.role === "company") navigate("/", { replace: true });
       else if (user.role === "leader") navigate("/", { replace: true });
       else if (user.role === "member") navigate("/", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [navigate]);
 
@@ -61,6 +62,8 @@ const Login = () => {
           throw new Error("Bạn không có quyền truy cập vào hệ thống.");
         }
         // Lưu thông tin vào localStorage
+
+        // 🔐 Lưu vào localStorage
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -68,9 +71,13 @@ const Login = () => {
         // 🔔 Gửi FCM Token tự động
         await requestNotificationPermission(user._id);
 
+
         if (user.role === "company") navigate("/", { replace: true });
         else if (user.role === "leader") navigate("/", { replace: true });
         else if (user.role === "member") navigate("/", { replace: true });
+        // ✅ Chuyển trang
+        navigate("/", { replace: true });
+        setError(null);
       } catch (err) {
         setError(err.message);
       } finally {
