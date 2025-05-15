@@ -70,6 +70,7 @@ const viewAssignedProject = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 // const viewAssignedProject = async (req, res) => {
 //   try {
 //     const userId = req.user._id;
@@ -112,8 +113,8 @@ const viewAssignedProject = async (req, res) => {
 //   }
 // };
 
-// thêm sửa xóa task
 
+// thêm sửa xóa task
 const createTask = async (req, res) => {
   try {
     const { name, description, status, projectId, priority, progress } = req.body;
@@ -173,6 +174,7 @@ const createTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -228,6 +230,7 @@ const updateTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -264,6 +267,7 @@ const deleteTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 const showAllTasks = async (req, res) => {
   try {
     const userId = req.user._id;
