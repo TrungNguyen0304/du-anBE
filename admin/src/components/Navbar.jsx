@@ -3,8 +3,9 @@ import imgUser from "../assets/images/lequythien.png";
 import { MdOutlineArrowDropDown } from "react-icons/md";
 import { TbLogout } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
+import NotificationPanel from "./NotificationPanel";
 
-const Navbar = () => {
+const Navbar = ({ userId }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -25,20 +26,18 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setIsDropdownOpen(false);
     navigate("/login", { replace: true });
   };
 
   return (
     <nav className="w-full bg-white shadow-md px-4 sm:px-6 py-3 flex items-center justify-end">
-      <div
-        className="flex items-center gap-2 sm:gap-4 relative"
-        ref={dropdownRef}
-      >
+      <div className="flex items-center gap-2 sm:gap-4 relative" ref={dropdownRef}>
+        {userId && <NotificationPanel userId={userId} />}
         <p className="text-gray-700 text-sm sm:text-base hidden sm:block">
           Xin chào! <span className="font-semibold">Lê Quý Thiện</span>
         </p>
-
         <div
           className="flex items-center gap-1 cursor-pointer"
           onClick={() => setIsDropdownOpen((prev) => !prev)}
@@ -50,7 +49,6 @@ const Navbar = () => {
           />
           <MdOutlineArrowDropDown className="text-xl sm:text-2xl text-gray-600" />
         </div>
-
         {isDropdownOpen && (
           <div className="absolute top-12 sm:top-14 right-0 bg-white border rounded shadow-md w-36 sm:w-40 z-50 animate-fade-in">
             <ul className="py-2">

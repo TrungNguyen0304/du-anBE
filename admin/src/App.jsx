@@ -1,3 +1,4 @@
+import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -38,80 +39,94 @@ import CreateTask from "./pages/leader/Tasks/CreateTask";
 import UpdateTask from "./pages/leader/Tasks/UpdateTask";
 import TaskDetail from "./pages/leader/Tasks/TaskDetail";
 
-const CompanyLayout = () => (
-  <div className="flex min-h-screen flex-col sm:flex-row overflow-hidden">
-    <Sidebar />
-    <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto min-w-0">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/member" element={<MemberPage />} />
-          <Route path="/leader" element={<Leader />} />
-          <Route path="/management-detail" element={<ManagementDetail />} />
-          <Route path="/member-detail" element={<MemberDetail />} />
-          <Route path="/leader-detail" element={<LeaderDetail />} />
-          <Route path="/departments" element={<Departments />} />
-          <Route path="/create-department" element={<CreateDepartment />} />
-          <Route path="/update-department/:id" element={<UpdateDepartment />} />
-          <Route path="/department-detail" element={<DepartmentDetail />} />
-          <Route path="/create-user" element={<CreateUser />} />
-          <Route path="/create-leader" element={<CreateLeader />} />
-          <Route path="/update-user" element={<UpdateUser />} />
-          <Route path="/project-assigned" element={<ProjectAssigned />} />
-          <Route path="/project-unassigned" element={<Unassigned />} />
-          <Route path="/create-projects" element={<CreateProject />} />
-          <Route path="/update-projects/:id" element={<UpdateProject />} />
-          <Route path="/project-detail/:id" element={<ProjectDetail />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/projectprogress" element={<ProjectProgress />} />
-        </Routes>
-      </main>
-    </div>
-  </div>
-);
+const CompanyLayout = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?._id;
 
-const LeaderLayout = () => (
-  <div className="flex min-h-screen flex-col sm:flex-row">
-    <Sidebar />
-    <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-        <Routes>
-          <Route path="/" element={<HomeLeader />} />
-          <Route path="/teams-table" element={<TeamTable />} />
-          <Route path="/create-team" element={<CreateTeam />} />
-          <Route path="/team-detail" element={<TeamDetail />} />
-          <Route path="/update-team" element={<UpdateTeam />} />
-          <Route path="/member-detail" element={<MemberDetailLeader />} />
-          <Route path="/create-task" element={<CreateTask />} />
-          <Route path="/update-task" element={<UpdateTask />} />
-          <Route path="/task-detail" element={<TaskDetail />} />
-
-          <Route path="/assigned-tasks" element={<AssignedTasks />} />
-          <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
-          <Route path="/projects" element={<Projects />} />
-        </Routes>
-      </main>
+  return (
+    <div className="flex min-h-screen flex-col sm:flex-row overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Navbar userId={userId} />
+        <main className="flex-1 p-4 bg-gray-100 overflow-y-auto min-w-0">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/member" element={<MemberPage />} />
+            <Route path="/leader" element={<Leader />} />
+            <Route path="/management-detail" element={<ManagementDetail />} />
+            <Route path="/member-detail" element={<MemberDetail />} />
+            <Route path="/leader-detail" element={<LeaderDetail />} />
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/create-department" element={<CreateDepartment />} />
+            <Route path="/update-department/:id" element={<UpdateDepartment />} />
+            <Route path="/department-detail" element={<DepartmentDetail />} />
+            <Route path="/create-user" element={<CreateUser />} />
+            <Route path="/create-leader" element={<CreateLeader />} />
+            <Route path="/update-user" element={<UpdateUser />} />
+            <Route path="/project-assigned" element={<ProjectAssigned />} />
+            <Route path="/project-unassigned" element={<Unassigned />} />
+            <Route path="/create-projects" element={<CreateProject />} />
+            <Route path="/update-projects/:id" element={<UpdateProject />} />
+            <Route path="/project-detail/:id" element={<ProjectDetail />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/projectprogress" element={<ProjectProgress />} />
+          </Routes>
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
-const MemberLayout = () => (
-  <div className="flex min-h-screen flex-col sm:flex-row">
-    <Sidebar />
-    <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-        <Routes>
-          <Route path="/" element={<HomeMember />} />
-          <Route path="/task-member" element={<TaskMember />} />
-          <Route path="/projects-member" element={<ProjectsMember />} />
-        </Routes>
-      </main>
+const LeaderLayout = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?._id;
+
+  return (
+    <div className="flex min-h-screen flex-col sm:flex-row">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Navbar userId={userId} />
+        <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<HomeLeader />} />
+            <Route path="/teams-table" element={<TeamTable />} />
+            <Route path="/create-team" element={<CreateTeam />} />
+            <Route path="/team-detail" element={<TeamDetail />} />
+            <Route path="/update-team" element={<UpdateTeam />} />
+            <Route path="/member-detail" element={<MemberDetailLeader />} />
+            <Route path="/create-task" element={<CreateTask />} />
+            <Route path="/update-task" element={<UpdateTask />} />
+            <Route path="/task-detail" element={<TaskDetail />} />
+            <Route path="/assigned-tasks" element={<AssignedTasks />} />
+            <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
+            <Route path="/projects" element={<Projects />} />
+          </Routes>
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const MemberLayout = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?._id;
+
+  return (
+    <div className="flex min-h-screen flex-col sm:flex-row">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Navbar userId={userId} />
+        <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<HomeMember />} />
+            <Route path="/task-member" element={<TaskMember />} />
+            <Route path="/projects-member" element={<ProjectsMember />} />
+          </Routes>
+        </main>
+      </div>
+    </div>
+  );
+};
 
 const App = () => {
   const isAuthenticated = localStorage.getItem("isLoggedIn") === "true";
