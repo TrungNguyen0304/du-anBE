@@ -42,8 +42,8 @@ const projectSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["draft", "in_progress", "completed", "cancelled","pending"],
-    default: "draft"
+    enum: ["revoke", "in_progress", "completed", "cancelled","pending"],
+    default: "pending"
   },
   priority: {
     type: Number,

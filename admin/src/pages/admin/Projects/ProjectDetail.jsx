@@ -93,44 +93,47 @@ const ProjectDetail = () => {
               <h3 className="font-semibold text-gray-800">Ưu Tiên</h3>
               <p className="mt-1">{project.priority}</p>
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-800">Hạn Chót</h3>
-              <p className="mt-1">
-                {new Date(project.deadline).toLocaleString("vi-VN")}
-              </p>
-            </div>
+            {/* Chỉ hiển thị Hạn Chót nếu deadline tồn tại và hợp lệ */}
+            {project.deadline && !isNaN(new Date(project.deadline).getTime()) && (
+              <div>
+                <h3 className="font-semibold text-gray-800">Hạn Chót</h3>
+                <p className="mt-1">
+                  {new Date(project.deadline).toLocaleString("vi-VN")}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Team Info */}
           {(project.assignedTeam?.assignedLeader?.name ||
             project.assignedTeam?.assignedMembers?.length > 0 ||
             project.assignedTeam?.name) && (
-            <div className="space-y-5 text-lg text-gray-700">
-              <h3 className="font-semibold text-gray-800 text-lg mb-2">
-                Nhóm Phụ Trách
-              </h3>
-              {project.assignedTeam?.assignedLeader?.name && (
-                <p>
-                  <span className="font-medium">Leader:</span>{" "}
-                  {project.assignedTeam.assignedLeader.name}
-                </p>
-              )}
-              {project.assignedTeam?.assignedMembers?.length > 0 && (
-                <p>
-                  <span className="font-medium">Nhân viên:</span>{" "}
-                  {project.assignedTeam.assignedMembers
-                    .map((member) => member.name)
-                    .join(", ")}
-                </p>
-              )}
-              {project.assignedTeam?.name && (
-                <p>
-                  <span className="font-medium">Phòng ban:</span>{" "}
-                  {project.assignedTeam.name}
-                </p>
-              )}
-            </div>
-          )}
+              <div className="space-y-5 text-lg text-gray-700">
+                <h3 className="font-semibold text-gray-800 text-lg mb-2">
+                  Nhóm Phụ Trách
+                </h3>
+                {project.assignedTeam?.assignedLeader?.name && (
+                  <p>
+                    <span className="font-medium">Leader:</span>{" "}
+                    {project.assignedTeam.assignedLeader.name}
+                  </p>
+                )}
+                {project.assignedTeam?.assignedMembers?.length > 0 && (
+                  <p>
+                    <span className="font-medium">Nhân viên:</span>{" "}
+                    {project.assignedTeam.assignedMembers
+                      .map((member) => member.name)
+                      .join(", ")}
+                  </p>
+                )}
+                {project.assignedTeam?.name && (
+                  <p>
+                    <span className="font-medium">Phòng ban:</span>{" "}
+                    {project.assignedTeam.name}
+                  </p>
+                )}
+              </div>
+            )}
         </div>
 
         {/* Tasks Section */}
