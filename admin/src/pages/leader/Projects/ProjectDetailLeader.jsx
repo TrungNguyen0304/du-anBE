@@ -157,7 +157,23 @@ const ProjectDetailLeader = () => {
                   <td className="px-4 py-2 border">{task.name}</td>
                   <td className="px-4 py-2 border">{task.description}</td>
                   <td className="px-4 py-2 border capitalize">{task.status}</td>
-                  <td className="px-4 py-2 border">{task.progress}%</td>
+                  <td className="px-4 py-2 border">
+                    <div className="w-full bg-gray-200 rounded-full h-4">
+                      <div
+                        className="h-4 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${task.progress}%`,
+                          backgroundColor:
+                            task.progress < 50
+                              ? "#f87171" // đỏ
+                              : task.progress < 80
+                              ? "#facc15" // vàng
+                              : "#4ade80", // xanh lá
+                        }}
+                      ></div>
+                    </div>
+                    <div className="text-xs mt-1">{task.progress}%</div>
+                  </td>
                   <td className="px-4 py-2 border">{task.priority}</td>
                   <td className="px-4 py-2 border">{task.deadline}</td>
                   <td className="px-4 py-2 border">{task.assignedMember}</td>
