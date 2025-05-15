@@ -23,7 +23,6 @@ import CreateDepartment from "./pages/admin/Departments/CreateDepartment";
 import UpdateDepartment from "./pages/admin/Departments/UpdateDepartment";
 import DepartmentDetail from "./pages/admin/Departments/DepartmentDetail";
 import Unassigned from "./pages/admin/Projects/Unassigned";
-import Projects from "./pages/leader/projects/Projects";
 import HomeLeader from "./pages/leader/HomeLeader";
 import UnassignedTasks from "./pages/leader/Tasks/UnassignedTasks";
 import AssignedTasks from "./pages/leader/Tasks/AssignedTasks";
@@ -31,13 +30,14 @@ import TeamTable from "./pages/leader/Teams/TeamTable";
 import HomeMember from "./pages/member/HomeMember";
 import TaskMember from "./pages/member/TaskMember";
 import ProjectsMember from "./pages/member/ProjectsMember";
-import CreateTeam from "./pages/leader/Teams/CreateTeam";
-import UpdateTeam from "./pages/leader/Teams/UpdateTeam";
 import TeamDetail from "./pages/leader/Teams/TeamDetail";
 import MemberDetailLeader from "./pages/leader/Teams/MemberDetailLeader";
 import CreateTask from "./pages/leader/Tasks/CreateTask";
 import UpdateTask from "./pages/leader/Tasks/UpdateTask";
 import TaskDetail from "./pages/leader/Tasks/TaskDetail";
+import Projects from "./pages/leader/Projects/Projects";
+import ProjectDetailLeader from "./pages/leader/Projects/ProjectDetailLeader";
+import ReportProjects from "./pages/leader/Projects/ReportProjects";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -58,6 +58,11 @@ const CompanyLayout = () => {
             <Route path="/leader-detail" element={<LeaderDetail />} />
             <Route path="/departments" element={<Departments />} />
             <Route path="/create-department" element={<CreateDepartment />} />
+
+            <Route
+              path="/update-department/:id"
+              element={<UpdateDepartment />}
+            />
             <Route path="/update-department/:id" element={<UpdateDepartment />} />
             <Route path="/department-detail" element={<DepartmentDetail />} />
             <Route path="/create-user" element={<CreateUser />} />
@@ -80,6 +85,30 @@ const CompanyLayout = () => {
 const LeaderLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?._id;
+
+
+  return (
+    <div className="flex min-h-screen flex-col sm:flex-row">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Navbar userId={userId} />
+        <main className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<HomeLeader />} />
+          <Route path="/teams-table" element={<TeamTable />} />
+          <Route path="/team-detail" element={<TeamDetail />} />
+          <Route path="/member-detail" element={<MemberDetailLeader />} />
+
+          <Route path="/assigned-tasks" element={<AssignedTasks />} />
+          <Route path="/create-task" element={<CreateTask />} />
+          <Route path="/update-task/:id" element={<UpdateTask />} />
+          <Route path="/task-detail" element={<TaskDetail />} />
+
+          <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
+
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/project-detail/:id" element={<ProjectDetailLeader />} />
+          <Route path="/project-report/:id" element={<ReportProjects />} />
 
   return (
     <div className="flex min-h-screen flex-col sm:flex-row">
@@ -107,10 +136,15 @@ const LeaderLayout = () => {
   );
 };
 
+
 const MemberLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?._id;
 
+
+const MemberLayout = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?._id;
   return (
     <div className="flex min-h-screen flex-col sm:flex-row">
       <Sidebar />
