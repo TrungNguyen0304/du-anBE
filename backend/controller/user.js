@@ -33,17 +33,21 @@ const login = (req, res, next) => {
   })(req, res, next);
 };
 
-// lưu fcm token 
 const saveFcmToken = async (req, res) => {
-  const { userId, fcmToken } = req.body;
-  if (!userId || !fcmToken) return res.status(400).json({ message: "Thiếu userId hoặc fcmToken." });
-  try {
-    const user = await User.findByIdAndUpdate(userId, { fcmToken }, { new: true });
-    if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng." });
+  const { fcmToken } = req.body;
+  const userId = req.user._id;
 
-    res.json({ message: " Đã lưu FCM token." });
-  } catch (err) {
-    res.status(500).json({ message: "Lỗi server.", error: err.message });
+  if (!fcmToken) {
+    return res.status(400).json({ message: "Thiếu FCM token." });
+  }
+
+  try {
+    await User.findByIdAndUpdate(userId, { fcmToken });
+    res.status(200).json({ message: "Lưu FCM token thành công." });
+  } catch (error) {
+    console.error("Lỗi lưu FCM token:", error);
+    res.status(500).json({ message: "Lỗi server khi lưu FCM token." });
   }
 };
+
 module.exports = { login, saveFcmToken };

@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { MdOutlineArrowDropDown } from "react-icons/md";
 import { TbLogout } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
+import NotificationPanel from "./NotificationPanel";
 
-const Navbar = () => {
+const Navbar = ({ userId }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -51,7 +52,6 @@ const Navbar = () => {
           </p>
           <MdOutlineArrowDropDown className="text-xl sm:text-2xl text-gray-600" />
         </div>
-
         {isDropdownOpen && (
           <div className="absolute top-12 right-0 bg-white border rounded shadow-md w-36 sm:w-40 z-50 animate-fade-in">
             <ul>
