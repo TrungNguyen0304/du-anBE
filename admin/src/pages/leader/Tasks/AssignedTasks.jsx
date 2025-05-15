@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Eye,
-  RotateCcw,
-  Trash2,
-  Pencil,
-  FileText,
-} from "lucide-react";
+import { ArrowLeft, Eye, RotateCcw, Trash2, Pencil } from "lucide-react";
 import axios from "axios";
 
 const AssignedTasks = () => {
@@ -51,7 +44,6 @@ const AssignedTasks = () => {
         }
       } catch (error) {
         console.error("Lỗi khi tải nhiệm vụ:", error);
-        alert("Không thể tải danh sách nhiệm vụ.");
       } finally {
         setLoading(false);
       }
@@ -96,7 +88,7 @@ const AssignedTasks = () => {
   const handleRevoke = async (id) => {
     try {
       await axios.put(
-        `http://localhost:8001/api/leader/revokeTask/${id}`,
+        `http://localhost:8001/api/leader/revokeTask/${id}/revoke`, // endpoint đúng
         {},
         {
           headers: {

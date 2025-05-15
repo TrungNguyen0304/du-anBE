@@ -85,14 +85,14 @@ const LeaderLayout = () => (
 
           <Route path="/assigned-tasks" element={<AssignedTasks />} />
           <Route path="/create-task" element={<CreateTask />} />
-          <Route path="/update-task" element={<UpdateTask />} />
+          <Route path="/update-task/:id" element={<UpdateTask />} />
           <Route path="/task-detail" element={<TaskDetail />} />
 
           <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
 
           <Route path="/projects" element={<Projects />} />
-          <Route path="/project-detail" element={<ProjectDetailLeader />} />
-          <Route path="/project-report" element={<ReportProjects />} />
+          <Route path="/project-detail/:id" element={<ProjectDetailLeader />} />
+          <Route path="/project-report/:id" element={<ReportProjects />} />
         </Routes>
       </main>
     </div>
