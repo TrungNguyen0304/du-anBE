@@ -124,7 +124,7 @@ const Projects = () => {
                     </td>
                     <td className="px-4 py-2 border flex justify-center gap-2">
                       <NavLink
-                        to="/project-detail"
+                        to={`/project-detail/${project.id}`}
                         state={{ project, index: globalIndex }}
                         className="inline-flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 text-gray-800"
                       >
