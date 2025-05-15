@@ -2,16 +2,21 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { requestNotificationPermission } from "../services/notificationService"; // 🔹 Nhớ sửa path nếu cần
 
 const Login = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const user = JSON.parse(localStorage.getItem("user"));
     if (isLoggedIn === "true" && user) {
+      if (user.role === "company") navigate("/", { replace: true });
+      else if (user.role === "leader") navigate("/", { replace: true });
+      else if (user.role === "member") navigate("/", { replace: true });
       navigate("/", { replace: true });
     }
   }, [navigate]);
@@ -56,6 +61,7 @@ const Login = () => {
         if (!["company", "leader", "member"].includes(user.role)) {
           throw new Error("Bạn không có quyền truy cập vào hệ thống.");
         }
+        // Lưu thông tin vào localStorage
 
         // 🔐 Lưu vào localStorage
         localStorage.setItem("isLoggedIn", "true");
@@ -65,6 +71,10 @@ const Login = () => {
         // 🔔 Gửi FCM Token tự động
         await requestNotificationPermission(user._id);
 
+
+        if (user.role === "company") navigate("/", { replace: true });
+        else if (user.role === "leader") navigate("/", { replace: true });
+        else if (user.role === "member") navigate("/", { replace: true });
         // ✅ Chuyển trang
         navigate("/", { replace: true });
         setError(null);
@@ -108,23 +118,34 @@ const Login = () => {
             )}
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block mb-1 text-sm font-medium text-gray-700">
               Mật khẩu
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-3 py-2 border ${
+              className={`w-full px-3 h-10 border ${
                 formik.touched.password && formik.errors.password
                   ? "border-red-500"
                   : "border-gray-300"
               } rounded`}
-              placeholder="********"
+              placeholder="Nhập mật khẩu"
+              autoComplete="current-password"
             />
+            <div
+              className="absolute right-3 top-2/3 transform -translate-y-1/2 cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <FaEyeSlash className="text-gray-500" />
+              ) : (
+                <FaEye className="text-gray-500" />
+              )}
+            </div>
             {formik.touched.password && formik.errors.password && (
               <p className="text-red-500 text-sm mt-1">
                 {formik.errors.password}
