@@ -42,6 +42,13 @@ const Navbar = ({ userId }) => {
         className="flex items-center gap-2 sm:gap-4 relative"
         ref={dropdownRef}
       >
+    <nav className="w-full bg-white shadow-md px-4 sm:px-6 py-3 flex items-center justify-end">
+      <div className="flex items-center gap-2 sm:gap-4 relative" ref={dropdownRef}>
+        {userId && <NotificationPanel userId={userId} />}
+        <p className="text-gray-700 text-sm sm:text-base hidden sm:block">
+          Xin chào! <span className="font-semibold">Lê Quý Thiện</span>
+        </p>
+
         <div
           className="flex items-center gap-1 cursor-pointer"
           onClick={() => setIsDropdownOpen((prev) => !prev)}
