@@ -1,5 +1,13 @@
 const admin = require("firebase-admin");
-const serviceAccount = require("../backend-api-5a7e6-firebase-adminsdk-fbsvc-30391d59ba.json");
+
+let serviceAccount;
+
+try {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} catch (error) {
+  console.error("Lỗi khi parse biến FIREBASE_SERVICE_ACCOUNT:", error.message);
+  process.exit(1); // Dừng server nếu có lỗi
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -7,7 +15,7 @@ admin.initializeApp({
 
 const sendNotification = async (token, title, body) => {
   const message = {
-    token, 
+    token,
     notification: {
       title,
       body
