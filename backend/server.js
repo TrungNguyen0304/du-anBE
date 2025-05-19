@@ -23,7 +23,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",           
-  "https://du-an-be-svrj.vercel.app",
+  "https://du-an-be-zcax.vercel.app",
 ];
 
 // Cấu hình Socket.IO với CORS đúng origin
