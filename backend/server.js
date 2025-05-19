@@ -29,21 +29,21 @@ const io = new Server(server, {
 
 // Setup CORS middlewar
 const allowedOrigins = [
-  "https://quanlynhansu-seven.vercel.app",
   "http://localhost:5173",
+  "https://quanlynhansu-seven.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      if (!origin) return callback(null, true); // Cho phép request không có origin (như từ Postman)
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
         return callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,
+    credentials: true, // nếu bạn có sử dụng cookies hoặc token trong header
   })
 );
 
