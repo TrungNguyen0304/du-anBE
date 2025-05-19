@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 import { Eye, Pencil, Trash2 } from "lucide-react";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const UserTable = ({
   title,
@@ -13,6 +14,7 @@ const UserTable = ({
   const [users, setUsers] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleting, setIsDeleting] = useState(false);
   const PAGE_SIZE = 10;
 
   useEffect(() => {
@@ -20,7 +22,6 @@ const UserTable = ({
   }, []);
 
   useEffect(() => {
-    // Reset to page 1 if current page > total pages after users change
     const totalPages = Math.ceil(users.length / PAGE_SIZE);
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -35,7 +36,6 @@ const UserTable = ({
       const res = await axios.get(fetchUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Nếu API trả về mảng user thẳng
       setUsers(res.data.leaders || res.data.members || res.data.users || res.data || []);
     } catch (err) {
       console.error("Lỗi khi lấy danh sách người dùng:", err);
@@ -44,6 +44,7 @@ const UserTable = ({
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem("token");
+    setIsDeleting(true);
     try {
       await axios.delete(`${deleteUrl}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -58,6 +59,8 @@ const UserTable = ({
       setDeleteTarget(null);
     } catch (err) {
       console.error("Lỗi khi xóa người dùng:", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -242,6 +245,16 @@ const UserTable = ({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Loading Spinner */}
+      {isDeleting && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <AiOutlineLoading3Quarters className="animate-spin text-5xl text-blue-600" />
+          <p className="text-lg font-medium text-white ml-4">
+            Đang xóa người dùng...
+          </p>
         </div>
       )}
     </div>

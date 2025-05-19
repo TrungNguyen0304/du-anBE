@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const CreateLeader = () => {
   const [formData, setFormData] = useState({
@@ -11,8 +12,10 @@ const CreateLeader = () => {
     dateOfBirth: "",
     address: "",
     phoneNumber: "",
-    role: "leader", // Mặc định là leader
+    role: "leader",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -24,16 +27,14 @@ const CreateLeader = () => {
   };
 
   const handleAddLeader = async () => {
-    if (!formData.name || !formData.email || !formData.password) {
-      alert("Vui lòng nhập đầy đủ các thông tin bắt buộc!");
-      return;
-    }
+    if (!formData.name || !formData.email || !formData.password) return;
 
     const token = localStorage.getItem("token");
+    setIsLoading(true);
 
     try {
       await axios.post(
-        "http://localhost:8001/api/company/createUser",
+        "https://du-anbe.onrender.com/api/company/createUser",
         {
           name: formData.name,
           email: formData.email,
@@ -47,7 +48,7 @@ const CreateLeader = () => {
           dateOfBirth: formData.dateOfBirth,
           address: formData.address,
           phoneNumber: formData.phoneNumber,
-          role: formData.role, // luôn là "leader"
+          role: formData.role,
         },
         {
           headers: {
@@ -56,13 +57,26 @@ const CreateLeader = () => {
         }
       );
 
-      alert("Thêm leader thành công!");
-      navigate("/member");
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate("/leader");
+      }, 1000);
     } catch (err) {
+      setIsLoading(false);
       console.error("Lỗi khi thêm leader:", err);
-      alert("Đã xảy ra lỗi khi thêm leader!");
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+        <div className="p-6 bg-white rounded-lg shadow-lg text-center flex flex-col items-center">
+          <AiOutlineLoading3Quarters className="animate-spin text-blue-600 text-4xl mb-4" />
+          <p className="text-lg font-medium">Đang thêm leader...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full mx-auto">
@@ -155,7 +169,6 @@ const CreateLeader = () => {
             placeholder="Số Điện Thoại"
           />
 
-          {/* Không cho chọn role, chỉ hiển thị */}
           <div>
             <input
               type="text"
@@ -168,7 +181,7 @@ const CreateLeader = () => {
 
           <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end gap-4 mt-4">
             <button
-              onClick={() => navigate("/member")}
+              onClick={() => navigate("/leader")}
               className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
             >
               Hủy

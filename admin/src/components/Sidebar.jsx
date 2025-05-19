@@ -12,7 +12,6 @@ import {
   FaAngleUp,
 } from "react-icons/fa";
 import { GiProgression } from "react-icons/gi";
-import { RiTeamFill } from "react-icons/ri";
 import { TbSubtask } from "react-icons/tb";
 
 const Sidebar = () => {

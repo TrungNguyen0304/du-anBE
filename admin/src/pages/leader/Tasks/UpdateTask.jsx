@@ -22,7 +22,7 @@ const UpdateTask = () => {
     const fetchTask = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8001/api/leader/getTaskById/${id}`,
+          `https://du-anbe.onrender.com/api/leader/getTaskById/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -72,7 +72,7 @@ const UpdateTask = () => {
 
     try {
       await axios.put(
-        `http://localhost:8001/api/leader/updateTask/${id}`,
+        `https://du-anbe.onrender.com/api/leader/updateTask/${id}`,
         formData,
         {
           headers: {
@@ -93,7 +93,7 @@ const UpdateTask = () => {
   if (loading) return <p className="p-4">Đang tải thông tin nhiệm vụ...</p>;
 
   return (
-    <div className="max-w-3xl mx-auto bg-white p-6 rounded shadow mt-6">
+    <div className="w-full mx-auto bg-white p-6 rounded-2xl shadow">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center text-blue-600 hover:underline mb-4"

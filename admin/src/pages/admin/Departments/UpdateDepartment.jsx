@@ -21,13 +21,13 @@ const UpdateDepartment = () => {
     const fetchAll = async () => {
       try {
         const [teamRes, leadersRes, membersRes] = await Promise.all([
-          axios.get(`http://localhost:8001/api/company/viewTeam/${id}`, {
+          axios.get(`https://du-anbe.onrender.com/api/company/viewTeam/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:8001/api/company/showallLeaders", {
+          axios.get("https://du-anbe.onrender.com/api/company/showallLeaders", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:8001/api/company/showallMember", {
+          axios.get("https://du-anbe.onrender.com/api/company/showallMember", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -38,14 +38,18 @@ const UpdateDepartment = () => {
         setName(team.name || "");
         setDescription(team.description || "");
         setAssignedLeader(team.assignedLeader?._id || "");
-        setAssignedMembers(team.assignedMembers?.map((m) => m._id.toString()) || []);
+        setAssignedMembers(
+          team.assignedMembers?.map((m) => m._id.toString()) || []
+        );
 
         setLeaders(leadersRes.data.leaders || []);
         setMembers(membersRes.data.members || []);
         setError("");
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu:", err);
-        setError("Không thể tải dữ liệu phòng ban. Vui lòng thử lại hoặc kiểm tra server.");
+        setError(
+          "Không thể tải dữ liệu phòng ban. Vui lòng thử lại hoặc kiểm tra server."
+        );
       }
     };
 
@@ -67,7 +71,7 @@ const UpdateDepartment = () => {
       };
 
       await axios.put(
-        `http://localhost:8001/api/company/updateTeam/${id}`,
+        `https://du-anbe.onrender.com/api/company/updateTeam/${id}`,
         payload,
         {
           headers: {
@@ -76,7 +80,6 @@ const UpdateDepartment = () => {
         }
       );
 
-      alert("Cập nhật thành công!");
       navigate("/departments");
     } catch (err) {
       console.error(err.response?.data || err.message);
@@ -87,7 +90,9 @@ const UpdateDepartment = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Chỉnh Sửa Phòng Ban</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          Chỉnh Sửa Phòng Ban
+        </h2>
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -99,7 +104,8 @@ const UpdateDepartment = () => {
         {assignedLeader && (
           <div className="mb-2 text-gray-700">
             <strong>Trưởng phòng hiện tại:</strong>{" "}
-            {leaders.find((l) => l._id === assignedLeader)?.name || "Không xác định"}
+            {leaders.find((l) => l._id === assignedLeader)?.name ||
+              "Không xác định"}
           </div>
         )}
 

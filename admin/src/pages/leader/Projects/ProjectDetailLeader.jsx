@@ -22,7 +22,7 @@ const ProjectDetailLeader = () => {
     const fetchProjectAndTasks = async () => {
       try {
         const projectResponse = await axios.get(
-          `http://localhost:8001/api/leader/showallProject`,
+          `https://du-anbe.onrender.com/api/leader/showallProject`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -47,7 +47,7 @@ const ProjectDetailLeader = () => {
         });
 
         const tasksResponse = await axios.get(
-          `http://localhost:8001/api/leader/showallTask/${projectId}`,
+          `https://du-anbe.onrender.com/api/leader/showallTask/${projectId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
