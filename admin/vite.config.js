@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -9,14 +8,7 @@ export default defineConfig({
     port: 5173, // optional
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
   },
-  base: '/', // Hoặc './' nếu bạn host ở subpath (như GitHub Pages)
-})
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
+  base: "/", // Hoặc './' nếu bạn host ở subpath (như GitHub Pages)
 });
-

@@ -65,11 +65,6 @@ const Sidebar = () => {
           ],
         },
         {
-          label: "Công Việc",
-          to: "/jobs",
-          icon: <FaBriefcase />,
-        },
-        {
           label: "Tiến độ dự án",
           to: "/projectprogress",
           icon: <GiProgression />,
