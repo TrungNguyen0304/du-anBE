@@ -6,7 +6,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const http = require("http");
 const { setupSocket } = require("./socket/socketHandler.js");
-const {startScheduleCheck} = require("./socket/socketSchedule.js")
+const { startScheduleCheck } = require("./socket/socketSchedule.js");
 
 const authRoute = require("./route/authRoute.js");
 const userRoute = require("./route/userRoute.js");
@@ -18,19 +18,28 @@ const leaderRoute = require("./route/leaderRoute.js");
 dotenv.config();
 const app = express();
 
-const server = http.createServer(app); // Tạo server để dùng với socket
+const server = http.createServer(app);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",           
+  "https://du-an-be-svrj.vercel.app",
+];
+
+// Cấu hình Socket.IO với CORS đúng origin
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // socket cũng cần config đúng origin
+    origin: allowedOrigins,
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   },
 });
 
-// Setup CORS middlewar
+// Cấu hình CORS middleware cho API HTTP
 app.use(
   cors({
-     origin: ['http://localhost:5173', 'https://du-an-be-svrj.vercel.app']
+    origin: allowedOrigins,
+    credentials: true,
   })
 );
 
