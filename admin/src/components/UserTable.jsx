@@ -20,7 +20,7 @@ const UserTable = ({
   }, []);
 
   useEffect(() => {
-    // Reset to page 1 if the current page exceeds total pages after users change
+    // Reset to page 1 if current page > total pages after users change
     const totalPages = Math.ceil(users.length / PAGE_SIZE);
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -35,7 +35,8 @@ const UserTable = ({
       const res = await axios.get(fetchUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(res.data.leaders || res.data.members || res.data.users || []);
+      // Nếu API trả về mảng user thẳng
+      setUsers(res.data.leaders || res.data.members || res.data.users || res.data || []);
     } catch (err) {
       console.error("Lỗi khi lấy danh sách người dùng:", err);
     }
@@ -47,9 +48,9 @@ const UserTable = ({
       await axios.delete(`${deleteUrl}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const newUsers = users.filter((user) => user.id !== id);
+      const newUsers = users.filter((user) => user._id !== id);
       setUsers(newUsers);
-      // If the current page is empty after deletion, go to the previous page
+
       const totalPages = Math.ceil(newUsers.length / PAGE_SIZE);
       if (currentPage > totalPages && totalPages > 0) {
         setCurrentPage(totalPages);
@@ -61,10 +62,10 @@ const UserTable = ({
   };
 
   const handlePageChange = (page) => {
+    if (page < 1 || page > Math.ceil(users.length / PAGE_SIZE)) return;
     setCurrentPage(page);
   };
 
-  // Calculate paginated users
   const totalPages = Math.ceil(users.length / PAGE_SIZE);
   const paginatedUsers = users.slice(
     (currentPage - 1) * PAGE_SIZE,
@@ -88,20 +89,12 @@ const UserTable = ({
           <thead className="bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white">
             <tr>
               <th className="w-[5%] px-4 py-2 border text-center">ID</th>
-              <th className="w-[20%] px-4 py-2 border text-center">
-                Họ và Tên
-              </th>
-              <th className="w-[12%] px-4 py-2 border text-center">
-                Ngày sinh
-              </th>
-              <th className="w-[10%] px-4 py-2 border text-center">
-                Giới tính
-              </th>
+              <th className="w-[20%] px-4 py-2 border text-center">Họ và Tên</th>
+              <th className="w-[12%] px-4 py-2 border text-center">Ngày sinh</th>
+              <th className="w-[10%] px-4 py-2 border text-center">Giới tính</th>
               <th className="w-[18%] px-4 py-2 border text-center">Email</th>
               <th className="w-[10%] px-4 py-2 border text-center">Vai Trò</th>
-              <th className="w-[25%] px-4 py-2 border text-center">
-                Chức Năng
-              </th>
+              <th className="w-[25%] px-4 py-2 border text-center">Chức Năng</th>
             </tr>
           </thead>
           <tbody>
@@ -129,16 +122,14 @@ const UserTable = ({
 
                 return (
                   <tr
-                    key={user.id || index}
+                    key={user._id || index}
                     className="even:bg-gray-100 text-center"
                   >
                     <td className="px-4 py-2 border">{globalIndex}</td>
                     <td className="px-4 py-2 border">{user.name || ""}</td>
                     <td className="px-4 py-2 border">{formattedDate}</td>
                     <td className="px-4 py-2 border">{gender}</td>
-                    <td className="px-4 py-2 border truncate">
-                      {user.email || ""}
-                    </td>
+                    <td className="px-4 py-2 border truncate">{user.email || ""}</td>
                     <td className="px-4 py-2 border">{user.role || ""}</td>
                     <td className="px-4 py-2 border">
                       <div className="flex justify-center gap-2 flex-wrap">
@@ -244,7 +235,7 @@ const UserTable = ({
                 Hủy
               </button>
               <button
-                onClick={() => handleDelete(deleteTarget.id)}
+                onClick={() => handleDelete(deleteTarget._id)}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
               >
                 Xác nhận
