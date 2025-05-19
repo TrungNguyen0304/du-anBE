@@ -4,7 +4,7 @@ const MemberDetail = () => {
   return (
     <ManagementDetail
       title="Thông Tin Nhân Viên"
-      fetchUrl="http://localhost:8001/api/company/viewMember"
+      fetchUrl="https://du-anbe.onrender.com/api/company/viewMember"
     />
   );
 };

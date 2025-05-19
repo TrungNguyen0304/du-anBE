@@ -18,7 +18,7 @@ const AssignedTasks = () => {
     const fetchAssignedTasks = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8001/api/leader/getAssignedTask",
+          "https://du-anbe.onrender.com/api/leader/getAssignedTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -73,7 +73,7 @@ const AssignedTasks = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8001/api/leader/deleteTask/${id}`, {
+      await axios.delete(`https://du-anbe.onrender.com/api/leader/deleteTask/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -88,7 +88,7 @@ const AssignedTasks = () => {
   const handleRevoke = async (id) => {
     try {
       await axios.put(
-        `http://localhost:8001/api/leader/revokeTask/${id}/revoke`, // endpoint đúng
+        `https://du-anbe.onrender.com/api/leader/revokeTask/${id}/revoke`, // endpoint đúng
         {},
         {
           headers: {

@@ -34,7 +34,7 @@ const CreateLeader = () => {
 
     try {
       await axios.post(
-        "http://localhost:8001/api/company/createUser",
+        "https://du-anbe.onrender.com/api/company/createUser",
         {
           name: formData.name,
           email: formData.email,

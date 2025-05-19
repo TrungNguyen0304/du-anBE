@@ -34,7 +34,6 @@ const CreateUser = () => {
       !formData.password ||
       !formData.role
     ) {
-      alert("Vui lòng nhập đầy đủ các thông tin bắt buộc!");
       return;
     }
 
@@ -43,7 +42,7 @@ const CreateUser = () => {
     try {
       setIsLoading(true);
       await axios.post(
-        "http://localhost:8001/api/company/createUser",
+        "https://du-anbe.onrender.com/api/company/createUser",
         {
           name: formData.name,
           email: formData.email,

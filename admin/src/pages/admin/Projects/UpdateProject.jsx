@@ -16,7 +16,7 @@ const UpdateProject = () => {
     const fetchProject = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8001/api/company/viewTeamProject/${id}`,
+          `https://du-anbe.onrender.com/api/company/viewTeamProject/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -40,7 +40,7 @@ const UpdateProject = () => {
   const handleUpdate = async () => {
     try {
       await axios.put(
-        `http://localhost:8001/api/company/updateProject/${id}`,
+        `https://du-anbe.onrender.com/api/company/updateProject/${id}`,
         {
           name,
           description,
