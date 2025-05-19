@@ -69,58 +69,37 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      email,
-      password,
-      role,
-      gender,
-      dateOfBirth,
-      phoneNumber,
-      address,
-    } = req.body;
+    const updates = req.body;
 
     const existingUser = await user.findById(id);
     if (!existingUser) {
-      return res.status(404).json({ message: "Nhân viên không tồn tại" });
+      return res.status(404).json({ message: 'Nhân viên không tồn tại.' });
     }
 
-    if (email && email !== existingUser.email) {
-      const emailTaken = await user.findOne({ email });
+    if (updates.email && updates.email !== existingUser.email) {
+      const emailTaken = await user.findOne({ email: updates.email });
       if (emailTaken && emailTaken._id.toString() !== id) {
-        return res
-          .status(400)
-          .json({ message: "Email đã được sử dụng bởi người dùng khác." });
+        return res.status(400).json({ message: 'Email đã được sử dụng bởi người dùng khác.' });
       }
-      existingUser.email = email;
-    }
-    if (name) {
-      existingUser.name = name;
     }
 
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      existingUser.password = hashedPassword;
+    // Mã hóa mật khẩu nếu có cập nhật
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
     }
-    if (role) {
-      existingUser.role = role;
-    }
-    if (gender) {
-      existingUser.gender = gender;
-    }
-    if (dateOfBirth) {
-      existingUser.dateOfBirth = dateOfBirth;
-    }
-    if (phoneNumber) {
-      existingUser.phoneNumber = phoneNumber;
-    }
-    if (address) {
-      existingUser.address = address;
-    }
+
+    // Cập nhật các trường hợp lệ
+    const updatableFields = ['name', 'email', 'password', 'role', 'gender', 'dateOfBirth', 'phoneNumber', 'address'];
+    updatableFields.forEach(field => {
+      if (updates[field] !== undefined) {
+        existingUser[field] = updates[field];
+      }
+    });
 
     await existingUser.save();
+
     res.status(200).json({
-      message: "Cập nhật nhân viên thành công.",
+      message: 'Cập nhật nhân viên thành công.',
       user: {
         id: existingUser._id,
         name: existingUser.name,
@@ -133,7 +112,7 @@ const updateUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server.", error: error.message });
+    res.status(500).json({ message: 'Lỗi server.', error: error.message });
   }
 };
 
