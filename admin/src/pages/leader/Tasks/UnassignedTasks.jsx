@@ -91,7 +91,7 @@ const UnassignedTasks = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md min-h-screen">
+    <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => navigate(-1)}
