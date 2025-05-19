@@ -14,7 +14,7 @@ const Projects = () => {
     const fetchProjects = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8001/api/leader/showallProject",
+          "https://du-anbe.onrender.com/api/leader/showallProject",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

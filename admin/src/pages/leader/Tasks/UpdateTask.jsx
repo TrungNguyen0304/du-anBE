@@ -22,7 +22,7 @@ const UpdateTask = () => {
     const fetchTask = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8001/api/leader/getTaskById/${id}`,
+          `https://du-anbe.onrender.com/api/leader/getTaskById/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -72,7 +72,7 @@ const UpdateTask = () => {
 
     try {
       await axios.put(
-        `http://localhost:8001/api/leader/updateTask/${id}`,
+        `https://du-anbe.onrender.com/api/leader/updateTask/${id}`,
         formData,
         {
           headers: {

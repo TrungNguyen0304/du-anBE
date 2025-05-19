@@ -31,7 +31,7 @@ const Unassigned = () => {
         }
 
         const response = await axios.post(
-          "http://localhost:8001/api/company/paginationunassigned",
+          "https://du-anbe.onrender.com/api/company/paginationunassigned",
           { limit, page: currentPage },
           {
             headers: {
@@ -55,7 +55,7 @@ const Unassigned = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:8001/api/company/showallTeam",
+          "https://du-anbe.onrender.com/api/company/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ const Unassigned = () => {
 
       if (actionType === "delete") {
         await axios.delete(
-          `http://localhost:8001/api/company/deleteProject/${selectedProject}`,
+          `https://du-anbe.onrender.com/api/company/deleteProject/${selectedProject}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -120,7 +120,7 @@ const Unassigned = () => {
         }
 
         await axios.put(
-          `http://localhost:8001/api/company/assignProject/${selectedProject}`,
+          `https://du-anbe.onrender.com/api/company/assignProject/${selectedProject}`,
           { assignedTeam, deadline },
           {
             headers: {
