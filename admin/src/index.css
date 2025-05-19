@@ -16,3 +16,14 @@
     transform: translateY(0);
   }
 }
+
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader {
+  animation: spin 1s linear infinite;
+}

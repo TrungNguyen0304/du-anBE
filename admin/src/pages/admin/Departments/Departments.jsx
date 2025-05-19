@@ -62,10 +62,8 @@ const handleEdit = (id) => {
       setDepartments((prev) =>
         prev.filter((dept) => dept._id !== selectedDepartmentId)
       );
-      alert("Đã xóa phòng ban thành công.");
     } catch (error) {
       console.error("Lỗi khi xóa phòng ban:", error);
-      alert("Không thể xóa phòng ban. Vui lòng thử lại.");
     } finally {
       setIsConfirmModalOpen(false);
       setSelectedDepartmentId(null);
