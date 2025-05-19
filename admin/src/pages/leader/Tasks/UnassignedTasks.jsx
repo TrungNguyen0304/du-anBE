@@ -18,7 +18,7 @@ const UnassignedTasks = () => {
     const fetchAssignedTasks = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8001/api/leader/unassignedTask",
+          "https://du-anbe.onrender.com/api/leader/unassignedTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -91,7 +91,7 @@ const UnassignedTasks = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md min-h-screen">
+    <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => navigate(-1)}

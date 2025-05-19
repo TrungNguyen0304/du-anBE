@@ -27,7 +27,7 @@ const ProjectAssigned = () => {
         }
 
         const response = await axios.post(
-          "http://localhost:8001/api/company/paginationgetassigned",
+          "https://du-anbe.onrender.com/api/company/paginationgetassigned",
           { page: currentPage, limit },
           {
             headers: {
@@ -75,7 +75,7 @@ const ProjectAssigned = () => {
       const token = localStorage.getItem("token");
       if (actionType === "delete") {
         await axios.delete(
-          `http://localhost:8001/api/company/deleteProject/${selectedProject}`,
+          `https://du-anbe.onrender.com/api/company/deleteProject/${selectedProject}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -92,7 +92,7 @@ const ProjectAssigned = () => {
         }
       } else if (actionType === "revoke") {
         const response = await axios.put(
-          `http://localhost:8001/api/company/revokeProject/${selectedProject}/revoke`,
+          `https://du-anbe.onrender.com/api/company/revokeProject/${selectedProject}/revoke`,
           {},
           {
             headers: {

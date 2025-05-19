@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaSpinner } from "react-icons/fa";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const CreateUser = () => {
   const [formData, setFormData] = useState({
@@ -11,8 +13,10 @@ const CreateUser = () => {
     dateOfBirth: "",
     address: "",
     phoneNumber: "",
-    role: "",
+    role: "member",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -30,15 +34,15 @@ const CreateUser = () => {
       !formData.password ||
       !formData.role
     ) {
-      alert("Vui lòng nhập đầy đủ các thông tin bắt buộc!");
       return;
     }
 
     const token = localStorage.getItem("token");
 
     try {
+      setIsLoading(true);
       await axios.post(
-        "http://localhost:8001/api/company/createUser",
+        "https://du-anbe.onrender.com/api/company/createUser",
         {
           name: formData.name,
           email: formData.email,
@@ -61,7 +65,6 @@ const CreateUser = () => {
         }
       );
 
-      alert("Thêm nhân viên thành công!");
       setFormData({
         name: "",
         email: "",
@@ -70,14 +73,26 @@ const CreateUser = () => {
         dateOfBirth: "",
         address: "",
         phoneNumber: "",
-        role: "",
+        role: "member",
       });
       navigate("/member");
     } catch (err) {
       console.error("Lỗi khi thêm nhân viên:", err);
-      alert("Đã xảy ra lỗi khi thêm nhân viên!");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+        <div className="p-6 bg-white rounded-lg shadow-lg text-center flex flex-col items-center">
+          <AiOutlineLoading3Quarters className="animate-spin text-blue-600 text-4xl mb-4" />
+          <p className="text-lg font-medium">Đang thêm member...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md w-full mx-auto">
@@ -183,30 +198,40 @@ const CreateUser = () => {
           </div>
 
           <div>
-            <select
+            <input
+              type="text"
               name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              className="border px-2 py-1 rounded w-full"
-            >
-              <option value="">Chức Vụ</option>
-              <option value="leader">Leader</option>
-              <option value="member">Nhân viên</option>
-            </select>
+              value="Member"
+              disabled
+              className="border px-2 py-1 rounded w-full bg-gray-100 text-gray-500 cursor-not-allowed"
+            />
           </div>
 
           <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end gap-4 mt-4">
             <button
               onClick={() => navigate("/member")}
               className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
+              disabled={isLoading}
             >
               Hủy
             </button>
+
             <button
               onClick={handleAddEmployee}
-              className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
+              disabled={isLoading}
+              className={`px-4 py-2 rounded text-white flex items-center gap-2 ${
+                isLoading
+                  ? "bg-green-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              Thêm
+              {isLoading ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <>
+                  <span>Thêm</span>
+                </>
+              )}
             </button>
           </div>
         </div>
