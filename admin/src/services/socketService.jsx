@@ -1,6 +1,5 @@
 // src/services/socketService.js
 import io from "socket.io-client";
-
 const socket = io("https://du-anbe.onrender.com", {
   auth: {
     token: localStorage.getItem("jwtToken"), // Nếu dùng JWT
