@@ -90,17 +90,11 @@ const Projects = () => {
           <thead className="bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white">
             <tr>
               <th className="w-[5%] px-4 py-2 border text-center">STT</th>
-              <th className="w-[25%] px-4 py-2 border text-center">
-                Tên Dự Án
-              </th>
+              <th className="w-[25%] px-4 py-2 border text-center">Tên Dự Án</th>
               <th className="w-[25%] px-4 py-2 border text-center">Mô Tả</th>
               <th className="w-[15%] px-4 py-2 border text-center">Deadline</th>
-              <th className="w-[10%] px-4 py-2 border text-center">
-                Trạng Thái
-              </th>
-              <th className="w-[20%] px-4 py-2 border text-center">
-                Hành Động
-              </th>
+              <th className="w-[10%] px-4 py-2 border text-center">Trạng Thái</th>
+              <th className="w-[20%] px-4 py-2 border text-center">Hành Động</th>
             </tr>
           </thead>
           <tbody>
@@ -114,15 +108,22 @@ const Projects = () => {
               paginatedProjects.map((project, index) => {
                 const globalIndex = (currentPage - 1) * PAGE_SIZE + index + 1;
                 return (
-                  <tr key={project.id} className="even:bg-gray-100 text-center">
-                    <td className="px-4 py-2 border">{globalIndex}</td>
+                  <tr key={project.id} className="even:bg-gray-100">
+                    <td className="px-4 py-2 border text-center">{globalIndex}</td>
                     <td className="px-4 py-2 border">{project.name}</td>
-                    <td className="px-4 py-2 border">{project.description}</td>
-                    <td className="px-4 py-2 border">{project.deadline}</td>
-                    <td className="px-4 py-2 border capitalize">
+                    <td
+                      className="px-4 py-2 border"
+                      title={project.description}
+                    >
+                      {project.description.length > 60
+                        ? `${project.description.slice(0, 60)}...`
+                        : project.description}
+                    </td>
+                    <td className="px-4 py-2 border text-center">{project.deadline}</td>
+                    <td className="px-4 py-2 border capitalize text-center">
                       {project.status}
                     </td>
-                    <td className="px-4 py-2 border flex justify-center gap-2">
+                    <td className="px-4 py-2 flex justify-center gap-2">
                       <NavLink
                         to={`/project-detail/${project.id}`}
                         state={{ project, index: globalIndex }}
