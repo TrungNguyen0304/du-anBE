@@ -29,7 +29,6 @@ const Departments = () => {
         }
       } catch (error) {
         console.error("Lỗi khi gọi API:", error);
-        alert("Lỗi xác thực. Vui lòng đăng nhập lại.");
       } finally {
         setLoading(false);
       }
@@ -157,9 +156,9 @@ const handleEdit = (id) => {
                 departments.map((dept, index) => (
                   <tr
                     key={dept._id || `dept-${index}`}
-                    className="hover:bg-gray-50 text-center even:bg-gray-100"
+                    className="hover:bg-gray-50 even:bg-gray-100"
                   >
-                    <td className="px-4 py-2 border">{index + 1}</td>
+                    <td className="px-4 py-2 border text-center">{index + 1}</td>
                     <td className="px-4 py-2 border">{dept.name || "N/A"}</td>
                     <td className="px-4 py-2 border">
                       {dept.description || "N/A"}
