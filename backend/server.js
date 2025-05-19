@@ -30,7 +30,7 @@ const io = new Server(server, {
 // Setup CORS middlewar
 app.use(
   cors({
-     origin: ['http://localhost:5173', 'https://quanlynhansu-five.vercel.app']
+     origin: ['http://localhost:5173', 'https://du-an-be-svrj.vercel.app']
   })
 );
 
