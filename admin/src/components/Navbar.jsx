@@ -42,36 +42,36 @@ const Navbar = ({ userId }) => {
         className="flex items-center gap-2 sm:gap-4 relative"
         ref={dropdownRef}
       >
-    <nav className="w-full bg-white shadow-md px-4 sm:px-6 py-3 flex items-center justify-end">
-      <div className="flex items-center gap-2 sm:gap-4 relative" ref={dropdownRef}>
-        {userId && <NotificationPanel userId={userId} />}
-        <p className="text-gray-700 text-sm sm:text-base hidden sm:block">
-          Xin chào! <span className="font-semibold">Lê Quý Thiện</span>
-        </p>
-
         <div
-          className="flex items-center gap-1 cursor-pointer"
-          onClick={() => setIsDropdownOpen((prev) => !prev)}
+          className="flex items-center gap-2 sm:gap-4 relative"
+          ref={dropdownRef}
         >
-          <p className="text-gray-700 text-sm sm:text-base">
-            Xin chào!{" "}
-            <span className="font-semibold capitalize">{userRole}</span>
-          </p>
-          <MdOutlineArrowDropDown className="text-xl sm:text-2xl text-gray-600" />
-        </div>
-        {isDropdownOpen && (
-          <div className="absolute top-12 right-0 bg-white border rounded shadow-md w-36 sm:w-40 z-50 animate-fade-in">
-            <ul>
-              <li
-                onClick={handleLogout}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500 text-sm sm:text-base"
-              >
-                <TbLogout className="mr-2" />
-                Đăng xuất
-              </li>
-            </ul>
+          {userId && <NotificationPanel userId={userId} />}
+
+          <div
+            className="flex items-center gap-1 cursor-pointer"
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+          >
+            <p className="text-gray-700 text-sm sm:text-base">
+              Xin chào!{" "}
+              <span className="font-semibold capitalize">{userRole}</span>
+            </p>
+            <MdOutlineArrowDropDown className="text-xl sm:text-2xl text-gray-600" />
           </div>
-        )}
+          {isDropdownOpen && (
+            <div className="absolute top-12 right-0 bg-white border rounded shadow-md w-36 sm:w-40 z-50 animate-fade-in">
+              <ul>
+                <li
+                  onClick={handleLogout}
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500 text-sm sm:text-base"
+                >
+                  <TbLogout className="mr-2" />
+                  Đăng xuất
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );
