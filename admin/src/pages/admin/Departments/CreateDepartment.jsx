@@ -16,7 +16,7 @@ const CreateDepartment = () => {
   const itemsPerPage = 6;
   const navigate = useNavigate();
 
-  // Fetch leaders and members
+  // Fetch leaders and members with id and name
   useEffect(() => {
     const fetchLeaders = async () => {
       try {
@@ -28,6 +28,7 @@ const CreateDepartment = () => {
             },
           }
         );
+        // Save both id and name for leaders
         setLeadersList(
           res.data.leaders.map((l) => ({ id: l._id, name: l.name }))
         );
@@ -46,6 +47,7 @@ const CreateDepartment = () => {
             },
           }
         );
+        // Save both id and name for members
         setMembersList(
           res.data.members.map((m) => ({ id: m._id, name: m.name }))
         );
@@ -64,8 +66,8 @@ const CreateDepartment = () => {
     const newDepartment = {
       name,
       description,
-      assignedLeader: leader,
-      assignedMembers: employees,
+      assignedLeader: leader, // ID of the leader
+      assignedMembers: employees, // Array of employee IDs
     };
 
     try {
@@ -83,7 +85,10 @@ const CreateDepartment = () => {
       alert("Phòng ban đã được tạo!");
       navigate("/departments");
     } catch (err) {
-      console.error("Lỗi khi tạo phòng ban:", err.response?.data || err.message);
+      console.error(
+        "Lỗi khi tạo phòng ban:",
+        err.response?.data || err.message
+      );
       alert("Tạo phòng ban thất bại!");
     }
   };
@@ -209,7 +214,7 @@ const CreateDepartment = () => {
                 <ul className="list-disc list-inside text-gray-800">
                   {employees.map((empId) => {
                     const emp = membersList.find((m) => m.id === empId);
-                    return <li key={empId}>{emp?.name || "Không rõ"}</li>;
+                    return <li key={empId}>{emp.name}</li>;
                   })}
                 </ul>
               </div>

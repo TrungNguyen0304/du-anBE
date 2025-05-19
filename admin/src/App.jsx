@@ -28,7 +28,6 @@ import UnassignedTasks from "./pages/leader/Tasks/UnassignedTasks";
 import AssignedTasks from "./pages/leader/Tasks/AssignedTasks";
 import TeamTable from "./pages/leader/Teams/TeamTable";
 import HomeMember from "./pages/member/HomeMember";
-import TaskMember from "./pages/member/TaskMember";
 import ProjectsMember from "./pages/member/ProjectsMember";
 import TeamDetail from "./pages/leader/Teams/TeamDetail";
 import MemberDetailLeader from "./pages/leader/Teams/MemberDetailLeader";
@@ -37,6 +36,7 @@ import UpdateTask from "./pages/leader/Tasks/UpdateTask";
 import TaskDetail from "./pages/leader/Tasks/TaskDetail";
 import ProjectDetailLeader from "./pages/leader/Projects/ProjectDetailLeader";
 import ReportProjects from "./pages/leader/Projects/ReportProjects";
+import TaskMember from "./pages/member/Task/TaskMember";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
