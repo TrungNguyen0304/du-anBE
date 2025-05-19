@@ -30,7 +30,7 @@ const CreateDepartment = () => {
         );
         // Save both id and name for leaders
         setLeadersList(
-          res.data.leaders.map((l) => ({ id: l.id, name: l.name }))
+          res.data.leaders.map((l) => ({ id: l._id, name: l.name }))
         );
       } catch (err) {
         console.error("Lỗi khi tải leaders:", err);
@@ -49,7 +49,7 @@ const CreateDepartment = () => {
         );
         // Save both id and name for members
         setMembersList(
-          res.data.members.map((m) => ({ id: m.id, name: m.name }))
+          res.data.members.map((m) => ({ id: m._id, name: m.name }))
         );
       } catch (err) {
         console.error("Lỗi khi tải members:", err);
