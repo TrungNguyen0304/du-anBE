@@ -22,7 +22,7 @@ import CreateDepartment from "./pages/admin/Departments/CreateDepartment";
 import UpdateDepartment from "./pages/admin/Departments/UpdateDepartment";
 import DepartmentDetail from "./pages/admin/Departments/DepartmentDetail";
 import Unassigned from "./pages/admin/Projects/Unassigned";
-import Projects from "./pages/leader/projects/Projects";
+import Projects from "./pages/leader/Projects/Projects";
 import HomeLeader from "./pages/leader/HomeLeader";
 import UnassignedTasks from "./pages/leader/Tasks/UnassignedTasks";
 import AssignedTasks from "./pages/leader/Tasks/AssignedTasks";
