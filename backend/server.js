@@ -21,7 +21,7 @@ const app = express();
 const server = http.createServer(app); // Tạo server để dùng với socket
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://quanlynhansu-seven.vercel.app"], // socket cũng cần config đúng origin
+    origin: ["https://quanlynhansu-seven.vercel.app", "http://localhost:5173"], // socket cũng cần config đúng origin
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   },
@@ -29,14 +29,13 @@ const io = new Server(server, {
 
 // Setup CORS middlewar
 const allowedOrigins = [
-  "http://localhost:5173",
   "https://quanlynhansu-seven.vercel.app",
+  "http://localhost:5173",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Cho phép Postman, curl hoặc các tool không có origin
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -44,7 +43,7 @@ app.use(
         return callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // Nếu frontend dùng cookie hoặc header auth
+    credentials: true,
   })
 );
 
