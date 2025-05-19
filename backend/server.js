@@ -6,7 +6,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const http = require("http");
 const { setupSocket } = require("./socket/socketHandler.js");
-const { startScheduleCheck } = require("./socket/socketSchedule.js");
+const {startScheduleCheck} = require("./socket/socketSchedule.js")
 
 const authRoute = require("./route/authRoute.js");
 const userRoute = require("./route/userRoute.js");
@@ -21,29 +21,16 @@ const app = express();
 const server = http.createServer(app); // Tạo server để dùng với socket
 const io = new Server(server, {
   cors: {
-    origin: ["https://quanlynhansu-seven.vercel.app", "http://localhost:5173"], // socket cũng cần config đúng origin
+    origin: "http://localhost:5173", // socket cũng cần config đúng origin
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   },
 });
 
 // Setup CORS middlewar
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://quanlynhansu-seven.vercel.app",
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // Cho phép request không có origin (như từ Postman)
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true, // nếu bạn có sử dụng cookies hoặc token trong header
+    origin: "http://localhost:5173",
   })
 );
 
