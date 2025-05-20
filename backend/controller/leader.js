@@ -70,6 +70,23 @@ const viewAssignedProject = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
+const viewTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await Task.findById(id);
+    if (!task) {
+      return res.status(404).json({ message: "task không tồn tại" })
+    }
+    res.status(200).json({
+      message: `thong tin task ${task.name}`,
+      task,
+    })
+
+  } catch (error) {
+
+  }
+}
 // const viewAssignedProject = async (req, res) => {
 //   try {
 //     const userId = req.user._id;
@@ -305,23 +322,6 @@ const showAllTasks = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
-
-const viewTask = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const task = await Task.findById(id);
-    if (!task) {
-      return res.status(404).json({ message: "task không tồn tại" })
-    }
-    res.status(200).json({
-      message: `thong tin task ${task.name}`,
-      task,
-    })
-
-  } catch (error) {
-
-  }
-}
 
 const paginationTask = async (req, res) => {
   try {
