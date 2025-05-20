@@ -40,6 +40,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
+    origin: ["http://localhost:5173", "https://du-an-be-svrj.vercel.app"],
   })
 );
 
