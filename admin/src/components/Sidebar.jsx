@@ -5,7 +5,6 @@ import {
   FaUser,
   FaBuilding,
   FaProjectDiagram,
-  FaBriefcase,
   FaBars,
   FaTimes,
   FaAngleDown,
@@ -13,6 +12,7 @@ import {
 } from "react-icons/fa";
 import { GiProgression } from "react-icons/gi";
 import { TbSubtask } from "react-icons/tb";
+import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -99,6 +99,12 @@ const Sidebar = () => {
           label: "Projects",
           to: "/projects",
           icon: <FaProjectDiagram />,
+        },
+
+        {
+          label: "Trò chuyện",
+          to: "/chat",
+          icon: <IoChatbubbleEllipsesOutline />,
         },
       ],
     },
