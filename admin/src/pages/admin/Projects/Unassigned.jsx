@@ -120,7 +120,7 @@ const Unassigned = () => {
         }
 
         await axios.put(
-          `https://du-anbe.onrender.com/api/company/assignProject/${selectedProject}`,
+          `http://localhost:8001/api/company/assignProject/${selectedProject}`,
           { assignedTeam, deadline },
           {
             headers: {
