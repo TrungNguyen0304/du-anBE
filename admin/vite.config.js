@@ -10,5 +10,5 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
-  base: "/", // Hoặc './' nếu bạn host ở subpath (như GitHub Pages)
+  base: "/",
 });

@@ -90,6 +90,10 @@ const UnassignedTasks = () => {
     navigate(`/assign-task/${id}`);
   };
 
+  const handleCreateTask = () => {
+    navigate("/create-task");
+  };
+
   return (
     <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -100,7 +104,16 @@ const UnassignedTasks = () => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Quay lại
         </button>
-        <h2 className="text-2xl font-bold">Nhiệm Vụ Chưa Giao</h2>
+        <div className="flex items-center space-x-4">
+          <h2 className="text-2xl font-bold">Nhiệm Vụ Chưa Giao</h2>
+          <button
+            onClick={handleCreateTask}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            <MdAddTask className="w-5 h-5 mr-2" />
+            Thêm dự án
+          </button>
+        </div>
       </div>
 
       {loading ? (
