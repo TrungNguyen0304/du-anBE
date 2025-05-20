@@ -542,48 +542,6 @@ const revokeTaskAssignment = async (req, res) => {
 };
 
 
-
-// lấy ra những task chk giao 
-const unassignedTask = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { sortBy = "createdAt", order = "desc" } = req.query;
-
-    // 1. Tìm tất cả các team mà user là leader
-    const teams = await Team.find({ assignedLeader: userId });
-    if (!teams || teams.length === 0) {
-      return res.status(403).json({ message: "Bạn không là leader của bất kỳ team nào." });
-    }
-
-    const teamIds = teams.map(team => team._id);
-
-    // 2. Lấy project thuộc các team đó
-    const projects = await Project.find({ assignedTeam: { $in: teamIds } });
-    const projectIds = projects.map(p => p._id);
-
-    if (projectIds.length === 0) {
-      return res.status(200).json({ message: "Không có project nào thuộc team của bạn.", tasks: [] });
-    }
-
-    // 3. Lấy các task chưa được gán (assignedMember = null)
-    const sortOption = {};
-    sortOption[sortBy] = order === "asc" ? 1 : -1;
-
-    const tasks = await Task.find({
-      projectId: { $in: projectIds },
-      assignedMember: null
-    }).sort(sortOption);
-
-    res.status(200).json({
-      message: "Lấy danh sách task chưa được gán thành công.",
-      tasks
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error: error.message });
-  }
-};
-
-
 // lấy ra những task đã giao cho member
 const getAssignedTask = async (req, res) => {
   try {

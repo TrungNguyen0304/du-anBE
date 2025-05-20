@@ -36,6 +36,7 @@ import TaskDetail from "./pages/leader/Tasks/TaskDetail";
 import ProjectDetailLeader from "./pages/leader/Projects/ProjectDetailLeader";
 import ReportProjects from "./pages/leader/Projects/ReportProjects";
 import TaskMember from "./pages/member/Task/TaskMember";
+import Chat from "./pages/Chat/Chat";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -106,6 +107,8 @@ const LeaderLayout = () => {
               element={<ProjectDetailLeader />}
             />
             <Route path="/project-report/:id" element={<ReportProjects />} />
+
+            <Route path="/chat" element={<Chat />} />
           </Routes>
         </main>
       </div>
