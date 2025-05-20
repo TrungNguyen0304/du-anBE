@@ -28,6 +28,13 @@ const createUser = async (req, res) => {
       address,
     } = req.body;
 
+    if (!name || !email || !password || !role || !gender || !dateOfBirth || !phoneNumber || !address) {
+      return res.status(400).json({
+        message:
+          "thiếu trường bắt buộc"
+      })
+    }
+
     const existingUser = await user.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email đã tồn tại.' });
@@ -834,12 +841,22 @@ const assignProject = async (req, res) => {
     if (isNaN(parsedDeadline.getTime())) {
       return res.status(400).json({ message: "Giá trị deadline không hợp lệ" });
     }
-    // Tì
-    // m nhân viên
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Đặt về đầu ngày hôm nay
+
+    if (parsedDeadline < now) {
+      return res.status(400).json({
+        message: "Deadline không được nằm trong quá khứ.",
+      });
+    }
+
+    // Tìm nhân viên
     const team = await Team.findById(assignedTeam);
     if (!team) {
       return res.status(404).json({ message: "Nhân viên không hợp lệ." });
     }
+
     const assignedLeader = team.assignedLeader;
     if (!assignedLeader) {
       return res
