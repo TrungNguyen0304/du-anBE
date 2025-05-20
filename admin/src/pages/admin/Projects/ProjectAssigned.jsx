@@ -13,7 +13,7 @@ const ProjectAssigned = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProjects, setTotalProjects] = useState(0);
-  const [limit] = useState(3); // Matches API default limit
+  const [limit] = useState(3);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,13 +50,9 @@ const ProjectAssigned = () => {
     fetchProjects();
   }, [navigate, currentPage, limit]);
 
-  const handleAdd = () => {
-    navigate("/create-projects");
-  };
+  const handleAdd = () => navigate("/create-projects");
 
-  const handleEdit = (id) => {
-    navigate(`/update-projects/${id}`);
-  };
+  const handleEdit = (id) => navigate(`/update-projects/${id}`);
 
   const handleDelete = (id) => {
     setSelectedProject(id);
@@ -76,14 +72,9 @@ const ProjectAssigned = () => {
       if (actionType === "delete") {
         await axios.delete(
           `https://du-anbe.onrender.com/api/company/deleteProject/${selectedProject}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setProjects(projects.filter((p) => p.id !== selectedProject));
-        // Adjust pagination if necessary
         if (projects.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         } else {
@@ -91,25 +82,15 @@ const ProjectAssigned = () => {
           setTotalPages(Math.ceil((totalProjects - 1) / limit));
         }
       } else if (actionType === "revoke") {
-        const response = await axios.put(
+        await axios.put(
           `http://localhost:8001/api/company/revokeProject/${selectedProject}/revoke`,
           {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        // Update the project in the state to reflect the revoked status
         setProjects(
           projects.map((p) =>
             p.id === selectedProject
-              ? {
-                  ...p,
-                  assignedTeam: null,
-                  deadline: null,
-                  status: "revoke",
-                }
+              ? { ...p, assignedTeam: null, deadline: null, status: "revoke" }
               : p
           )
         );
@@ -123,13 +104,9 @@ const ProjectAssigned = () => {
     }
   };
 
-  const cancelAction = () => {
-    setShowModal(false);
-  };
+  const cancelAction = () => setShowModal(false);
 
-  const handleViewProjectDetail = (id) => {
-    navigate(`/project-detail/${id}`);
-  };
+  const handleViewProjectDetail = (id) => navigate(`/project-detail/${id}`);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -140,11 +117,11 @@ const ProjectAssigned = () => {
 
   return (
     <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold">Quản Lý Dự Án</h2>
         <button
           onClick={handleAdd}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         >
           <Plus className="w-4 h-4 mr-2" />
           Thêm Dự Án
@@ -165,12 +142,11 @@ const ProjectAssigned = () => {
                 key={project.id}
                 className="border rounded-lg p-4 hover:shadow transition"
               >
-                <div className="flex justify-between items-start">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                  <div className="flex-1">
                     <h3 className="text-xl font-semibold">{project.name}</h3>
                     <p className="text-gray-600">
-                      <span className="font-semibold text-black">Mô tả:</span>{" "}
-                      {project.description}
+                      <span className="font-semibold text-black">Mô tả:</span> {project.description}
                     </p>
                     <p className="text-gray-600">
                       <strong>Trạng thái:</strong> {project.status}
@@ -184,7 +160,7 @@ const ProjectAssigned = () => {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2 justify-start sm:justify-end">
                     <button
                       onClick={() => handleViewProjectDetail(project.id)}
                       className="flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
@@ -219,13 +195,13 @@ const ProjectAssigned = () => {
             ))}
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 0 && (
-            <div className="flex justify-between items-center mt-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
               <p>
                 Hiển thị {projects.length} / {totalProjects} dự án
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -233,21 +209,19 @@ const ProjectAssigned = () => {
                 >
                   Trước
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 border rounded ${
-                        currentPage === page
-                          ? "bg-blue-600 text-white"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  )
-                )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 border rounded ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -261,9 +235,10 @@ const ProjectAssigned = () => {
         </>
       )}
 
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md">
             <h3 className="text-xl font-semibold mb-4">
               {actionType === "delete"
                 ? "Xác nhận xóa dự án"

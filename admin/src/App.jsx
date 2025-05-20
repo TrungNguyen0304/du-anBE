@@ -2,7 +2,6 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/admin/Home";
-import Jobs from "./pages/admin/Jobs";
 import ProjectProgress from "./pages/admin/ProjectProgress";
 import Login from "./pages/Login";
 import CreateUser from "./pages/admin/Users/CreateUser";
@@ -70,7 +69,6 @@ const CompanyLayout = () => {
             <Route path="/create-projects" element={<CreateProject />} />
             <Route path="/update-projects/:id" element={<UpdateProject />} />
             <Route path="/project-detail/:id" element={<ProjectDetail />} />
-            <Route path="/jobs" element={<Jobs />} />
             <Route path="/projectprogress" element={<ProjectProgress />} />
           </Routes>
         </main>
