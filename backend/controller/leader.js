@@ -304,6 +304,7 @@ const showAllTasks = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 const paginationTask = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -358,6 +359,7 @@ const paginationTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 // gan task cho member
 const assignTask = async (req, res) => {
   try {
@@ -430,6 +432,7 @@ const assignTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 // thu hoi task 
 const revokeTaskAssignment = async (req, res) => {
   try {
@@ -478,6 +481,7 @@ const revokeTaskAssignment = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 // lấy ra những task chk giao 
 const unassignedTask = async (req, res) => {
   try {
@@ -517,6 +521,7 @@ const unassignedTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 // lấy ra những task đã giao cho member
 const getAssignedTask = async (req, res) => {
   try {
@@ -558,6 +563,7 @@ const getAssignedTask = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
 // lấy ra tất cả những report member
 // const showallRepor = async (req, res) => {
 //   try {
@@ -602,6 +608,7 @@ const getAssignedTask = async (req, res) => {
 //     res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
 //   }
 // };
+
 const showallReport = async (req, res) => {
   try {
     const leaderId = req.user._id;
@@ -653,6 +660,7 @@ const showallReport = async (req, res) => {
     res.status(500).json({ message: "Đã xảy ra lỗi khi lấy báo cáo.", error: error.message });
   }
 };
+
 // lây ra report của từng member
 const showAllReportMember = async (req, res) => {
   try {
@@ -695,6 +703,7 @@ const showAllReportMember = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lấy báo cáo.", error: error.message });
   }
 };
+
 const evaluateMemberReport = async (req, res) => {
   try {
     const { id } = req.params; // id của report
@@ -761,6 +770,7 @@ const evaluateMemberReport = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server.', error: error.message });
   }
 };
+
 const createReportCompany = async (req, res) => {
   try {
     const { projectId, content, taskProgress, difficulties, feedback } = req.body;
@@ -870,7 +880,7 @@ const createReportCompany = async (req, res) => {
     });
   }
 };
-// 
+
 // xem tất cả đánh giá 
 const showAllFeedback = async (req, res) => {
   try {
@@ -928,6 +938,7 @@ const showAllFeedback = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   getMyTeam,
   viewAssignedProject,

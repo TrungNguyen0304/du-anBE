@@ -6,7 +6,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const http = require("http");
 const { setupSocket } = require("./socket/socketHandler.js");
-const {startScheduleCheck} = require("./socket/socketSchedule.js")
+const { startScheduleCheck } = require("./socket/socketSchedule.js");
 
 const authRoute = require("./route/authRoute.js");
 const userRoute = require("./route/userRoute.js");
@@ -30,7 +30,7 @@ const io = new Server(server, {
 // Setup CORS middlewar
 app.use(
   cors({
-     origin: ['http://localhost:5173', 'https://du-an-be-svrj.vercel.app']
+    origin: ["http://localhost:5173", "https://du-an-be-svrj.vercel.app"],
   })
 );
 
