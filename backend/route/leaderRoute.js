@@ -14,7 +14,8 @@ const { getMyTeam,
     showAllReportMember,
     evaluateMemberReport,
     createReportCompany,
-    showAllFeedback
+    showAllFeedback,
+    viewTask
 } = require('../controller/leader.js');
 const authenticateJWT = require('../middleware/auth.js');
 const authorize = require('../middleware/authorize.js');
@@ -46,5 +47,7 @@ router.post('/evaluateMemberReport/:id', authenticateJWT, authorize('leader'), e
 router.post('/createReportCompany/',authenticateJWT, authorize('leader'), createReportCompany);
 // xem tat ca danh gia
 router.get('/showAllFeedback/',authenticateJWT,authorize('leader'),showAllFeedback)
+// view taskid
+router.get(`/viewTask/:id`,authenticateJWT, authorize('leader'), viewTask)
 
 module.exports = router;
