@@ -147,7 +147,7 @@ const UpdateUser = () => {
                 checked={formData.gender === "Nam"}
                 onChange={handleInputChange}
                 className="mr-1"
-              />{" "}
+              />
               Nam
             </label>
             <label>
@@ -158,7 +158,7 @@ const UpdateUser = () => {
                 checked={formData.gender === "Nữ"}
                 onChange={handleInputChange}
                 className="mr-1"
-              />{" "}
+              />
               Nữ
             </label>
           </div>
@@ -200,16 +200,22 @@ const UpdateUser = () => {
               onChange={handleInputChange}
               className="border px-2 py-1 rounded w-full"
               required
+              disabled={formData.role === "leader" || formData.role === "member"}
             >
               <option value="">Chức Vụ</option>
               <option value="leader">Leader</option>
               <option value="member">Nhân viên</option>
             </select>
+            {(formData.role === "leader" || formData.role === "member") && (
+              <p className="text-sm text-gray-500 mt-1 px-2">
+                Chức vụ hiện tại không thể thay đổi.
+              </p>
+            )}
           </div>
 
           <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-end gap-4 mt-4">
             <button
-              onClick={() => navigate("/member")}
+              onClick={() => navigate(-1)}
               className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
             >
               Hủy
