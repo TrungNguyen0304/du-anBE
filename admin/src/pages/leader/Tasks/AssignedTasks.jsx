@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, RotateCcw, Trash2, Pencil } from "lucide-react";
+import { MdAddTask } from "react-icons/md"; // Import MdAddTask icon
 import axios from "axios";
 
 const AssignedTasks = () => {
@@ -73,11 +74,14 @@ const AssignedTasks = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://du-anbe.onrender.com/api/leader/deleteTask/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await axios.delete(
+        `https://du-anbe.onrender.com/api/leader/deleteTask/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
     } catch (error) {
@@ -88,7 +92,7 @@ const AssignedTasks = () => {
   const handleRevoke = async (id) => {
     try {
       await axios.put(
-        `https://du-anbe.onrender.com/api/leader/revokeTask/${id}/revoke`, // endpoint đúng
+        `https://du-anbe.onrender.com/api/leader/revokeTask/${id}/revoke`,
         {},
         {
           headers: {
@@ -114,6 +118,10 @@ const AssignedTasks = () => {
 
   const handleEdit = (id) => {
     navigate(`/update-task/${id}`);
+  };
+
+  const handleCreateTask = () => {
+    navigate("/create-task");
   };
 
   const openConfirmModal = (actionType, taskId) => {
@@ -148,7 +156,16 @@ const AssignedTasks = () => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Quay lại
         </button>
-        <h2 className="text-2xl font-bold">Nhiệm Vụ Đã Giao</h2>
+        <div className="flex items-center space-x-4">
+          <h2 className="text-2xl font-bold">Nhiệm Vụ Đã Giao</h2>
+          <button
+            onClick={handleCreateTask}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            <MdAddTask className="w-5 h-5 mr-2" />
+            Thêm dự án
+          </button>
+        </div>
       </div>
 
       {loading ? (
