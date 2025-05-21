@@ -36,6 +36,8 @@ import TaskDetail from "./pages/leader/Tasks/TaskDetail";
 import ProjectDetailLeader from "./pages/leader/Projects/ProjectDetailLeader";
 import ReportProjects from "./pages/leader/Projects/ReportProjects";
 import TaskMember from "./pages/member/Task/TaskMember";
+import Chat from "./pages/Chat/Chat";
+import JoinRequestsPage from "./pages/Chat/JoinRequestsPage";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -106,6 +108,9 @@ const LeaderLayout = () => {
               element={<ProjectDetailLeader />}
             />
             <Route path="/project-report/:id" element={<ReportProjects />} />
+
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/requests" element={<JoinRequestsPage />} />
           </Routes>
         </main>
       </div>
