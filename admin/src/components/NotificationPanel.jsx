@@ -7,10 +7,16 @@ import {
   ListItem,
   ListItemText,
   Typography,
+  ListItemSecondaryAction,
+  IconButton as MIconButton,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import DeleteIcon from "@mui/icons-material/Delete";
+import DoneIcon from "@mui/icons-material/Done";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+
 import {
   initializeSocket,
   onNotification,
@@ -26,32 +32,91 @@ const NotificationPanel = ({ userId }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const token = localStorage.getItem("token");
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get(`/api/notifications/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (Array.isArray(res.data)) {
+        setNotifications(res.data);
+        setUnreadCount(res.data.filter((n) => !n.isRead).length);
+      } else {
+        console.error("Unexpected response format:", res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      await axios.patch(`/api/notifications/${id}/read`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+      );
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    }
+  };
+
+  const deleteNotification = async (id) => {
+    try {
+      await axios.delete(`/api/notifications/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
+  };
+
   useEffect(() => {
     if (!userId) return;
 
-    // Khởi tạo Socket.IO
     initializeSocket(userId);
 
-    // Lắng nghe thông báo từ Socket.IO
     onNotification((data) => {
-      setNotifications((prev) => [{ ...data, timestamp: new Date() }, ...prev]);
+      const newNotif = {
+        ...data,
+        timestamp: new Date(),
+        isRead: false,
+        _id: data._id || `${Date.now()}-${Math.random()}`,
+      };
+      setNotifications((prev) => [newNotif, ...prev]);
       setUnreadCount((prev) => prev + 1);
       toast.info(`${data.message || data.name} - ${data.type}`, {
         position: "top-right",
       });
     });
 
-    // Yêu cầu quyền thông báo và lưu FCM token
     requestNotificationPermission(userId);
+
     onMessageListener().then((payload) => {
       const { title, body } = payload.notification;
-      setNotifications((prev) => [
-        { title, message: body, timestamp: new Date() },
-        ...prev,
-      ]);
+      const newNotif = {
+        title,
+        message: body,
+        timestamp: new Date(),
+        isRead: false,
+        _id: `${Date.now()}-${Math.random()}`,
+      };
+      setNotifications((prev) => [newNotif, ...prev]);
       setUnreadCount((prev) => prev + 1);
       toast.info(`${title}: ${body}`, { position: "top-right" });
     });
+
+    fetchNotifications();
 
     return () => disconnectSocket();
   }, [userId]);
@@ -81,14 +146,14 @@ const NotificationPanel = ({ userId }) => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <List sx={{ width: 300, maxHeight: 400, overflow: "auto" }}>
-          {notifications.length === 0 ? (
+        <List sx={{ width: 350, maxHeight: 400, overflow: "auto" }}>
+          {Array.isArray(notifications) && notifications.length === 0 ? (
             <ListItem>
               <ListItemText primary="No notifications" />
             </ListItem>
           ) : (
             notifications.map((notif, index) => (
-              <ListItem key={index}>
+              <ListItem key={notif._id || index} divider>
                 <ListItemText
                   primary={notif.title || notif.name}
                   secondary={
@@ -101,6 +166,16 @@ const NotificationPanel = ({ userId }) => {
                   }
                   secondaryTypographyProps={{ component: "div" }}
                 />
+                <ListItemSecondaryAction>
+                  {!notif.isRead && (
+                    <MIconButton edge="end" onClick={() => markAsRead(notif._id)}>
+                      <DoneIcon fontSize="small" color="primary" />
+                    </MIconButton>
+                  )}
+                  <MIconButton edge="end" onClick={() => deleteNotification(notif._id)}>
+                    <DeleteIcon fontSize="small" color="error" />
+                  </MIconButton>
+                </ListItemSecondaryAction>
               </ListItem>
             ))
           )}
