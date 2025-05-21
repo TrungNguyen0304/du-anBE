@@ -7,10 +7,13 @@ import {
   Send,
   Trash2,
   ChevronDown,
+  Video,
 } from "lucide-react";
 import ChatHomeOut from "./ChatHomeOut";
+import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
+  const navigate = useNavigate();
   const currentUser = "Lê Quý Thiện (Leader)";
   const chatEndRef = useRef(null);
   const addMemberRef = useRef(null);
@@ -32,13 +35,13 @@ const Chat = () => {
     { sender: "Lê Quý Thiện (Leader)", text: "Chào mọi người!" },
   ]);
 
-  const [inputText, setInputText] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMembers, setShowMembers] = useState(true);
   const [addingMember, setAddingMember] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(null);
   const [hasLeftGroup, setHasLeftGroup] = useState(false);
+  const [inputText, setInputText] = useState("");
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
@@ -69,10 +72,6 @@ const Chat = () => {
     setNewMemberName("");
     setAddingMember(false);
   };
-
-  const [joinRequests, setJoinRequests] = useState([
-    { name: "Nguyễn Văn M", approved: false },
-  ]);
 
   const handleRemoveMember = (index) => {
     const removedMember = room.members[index];
@@ -139,12 +138,21 @@ const Chat = () => {
             {room.members.length} thành viên
           </p>
         </div>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-full hover:bg-gray-200"
-        >
-          <MoreVertical size={20} />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/chat/video-call")}
+            className="p-2 rounded-full hover:bg-gray-200"
+            title="Bắt đầu cuộc gọi video"
+          >
+            <Video size={20} />
+          </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-full hover:bg-gray-200"
+          >
+            <MoreVertical size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
@@ -217,13 +225,6 @@ const Chat = () => {
               </div>
             )}
 
-            <button
-              onClick={() => navigate("/chat/requests")}
-              className="flex items-center gap-2 text-base bg-white border rounded hover:bg-gray-100 px-3 py-2 w-full"
-            >
-              <Users size={16} /> Yêu cầu tham gia
-            </button>
-
             {/* Add member */}
             <div ref={addMemberRef}>
               <button
@@ -255,69 +256,65 @@ const Chat = () => {
             {/* Leave group */}
             <button
               onClick={handleLeaveGroup}
-              className="mt-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center justify-center gap-2"
+              className="mt-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
             >
-              <Trash2 size={16} /> Rời nhóm
+              Rời nhóm
             </button>
           </div>
         </div>
       )}
 
-      {/* Message Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar">
-        {messages.map((msg, index) =>
-          msg.system ? (
-            <div key={index} className="flex justify-center my-2">
-              <span className="text-xs italic text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                {msg.text}
-              </span>
-            </div>
-          ) : (
+      {/* Chat messages */}
+      <div className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-gray-50">
+        {messages.map((msg, i) => {
+          const isCurrentUser = msg.sender === currentUser;
+          return (
             <div
-              key={index}
-              className={`flex flex-col ${
-                msg.sender === currentUser ? "items-end" : "items-start"
+              key={i}
+              className={`mb-3 flex flex-col ${
+                isCurrentUser ? "items-end" : "items-start"
               }`}
             >
-              <span
-                className={`text-sm mb-1 font-semibold ${
-                  msg.sender === currentUser
-                    ? "text-green-700"
-                    : "text-blue-700"
-                }`}
-              >
-                {msg.sender}
-              </span>
               <div
-                className={`px-4 py-2 rounded-xl shadow-md max-w-[80%] text-base ${
-                  msg.sender === currentUser
-                    ? "bg-green-100 text-gray-800"
-                    : "bg-white text-gray-800 border"
+                className={`px-4 py-2 rounded-lg max-w-[70%] break-words whitespace-pre-line ${
+                  msg.system
+                    ? "bg-gray-300 text-gray-700 italic"
+                    : isCurrentUser
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-900 border"
                 }`}
               >
-                {msg.text}
+                {!msg.system && (
+                  <div className="text-xs font-semibold mb-1">{msg.sender}</div>
+                )}
+                <div>{msg.text}</div>
               </div>
             </div>
-          )
-        )}
+          );
+        })}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="flex items-center gap-2 px-4 py-3 border-t bg-white rounded-b-xl">
-        <input
-          type="text"
+      {/* Input */}
+      <div className="border-t p-4 bg-white flex gap-3 items-center">
+        <textarea
+          rows={1}
           placeholder="Nhập tin nhắn..."
+          className="flex-1 resize-none border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-          className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+          onKeyDown={(e) =>
+            e.key === "Enter" &&
+            !e.shiftKey &&
+            (e.preventDefault(), handleSendMessage())
+          }
         />
         <button
           onClick={handleSendMessage}
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 flex items-center justify-center"
+          className="p-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+          aria-label="Gửi tin nhắn"
         >
-          <Send size={18} />
+          <Send size={20} />
         </button>
       </div>
     </div>
