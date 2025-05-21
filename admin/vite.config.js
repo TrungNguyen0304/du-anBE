@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -5,10 +6,17 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173, // optional
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
-    outDir: "dist",
+    outDir: 'dist',
   },
-  base: "/", // Hoặc './' nếu bạn host ở subpath (như GitHub Pages)
-});
+  base: '/',
+})

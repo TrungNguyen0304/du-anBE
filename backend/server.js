@@ -14,6 +14,7 @@ const protectedRoute = require("./route/protectedRoute.js");
 const companyRoute = require("./route/companyRoute.js");
 const memberRoute = require("./route/memberRoute.js");
 const leaderRoute = require("./route/leaderRoute.js");
+const notificationRoute = require("./route/notificationRoute.js")
 
 dotenv.config();
 const app = express();
@@ -53,6 +54,7 @@ app.use("/api/protected", protectedRoute);
 app.use("/api/company", companyRoute);
 app.use("/api/member", memberRoute);
 app.use("/api/leader", leaderRoute);
+app.use("/api/notifications", notificationRoute);
 
 // SOCKET setup
 setupSocket(io);

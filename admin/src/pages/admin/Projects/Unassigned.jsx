@@ -31,7 +31,7 @@ const Unassigned = () => {
         }
 
         const response = await axios.post(
-          "https://du-anbe.onrender.com/api/company/paginationunassigned",
+          "http://localhost:8001/api/company/paginationunassigned",
           { limit, page: currentPage },
           {
             headers: {
@@ -55,7 +55,7 @@ const Unassigned = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/company/showallTeam",
+          "http://localhost:8001/api/company/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ const Unassigned = () => {
 
       if (actionType === "delete") {
         await axios.delete(
-          `https://du-anbe.onrender.com/api/company/deleteProject/${selectedProject}`,
+          `http://localhost:8001/api/company/deleteProject/${selectedProject}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -118,7 +118,6 @@ const Unassigned = () => {
           alert("Vui lòng chọn team và deadline.");
           return;
         }
-
         await axios.put(
           `http://localhost:8001/api/company/assignProject/${selectedProject}`,
           { assignedTeam, deadline },
@@ -327,7 +326,7 @@ const Unassigned = () => {
                   >
                     <option value="">-- Chọn team --</option>
                     {teams.map((team) => (
-                      <option key={team.id} value={team.id}>
+                      <option key={team._id} value={team._id}>
                         {team.name}
                       </option>
                     ))}

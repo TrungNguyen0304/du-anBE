@@ -83,7 +83,7 @@ const ProjectAssigned = () => {
         }
       } else if (actionType === "revoke") {
         await axios.put(
-          `https://du-anbe.onrender.com/api/company/revokeProject/${selectedProject}/revoke`,
+          `http://localhost:8001/api/company/revokeProject/${selectedProject}/revoke`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
