@@ -9,67 +9,87 @@ const TeamDetail = () => {
 
   if (!team) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-6">
-          <p className="text-red-600 text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8 text-center">
+          <p className="text-red-600 text-lg font-semibold">
             Không tìm thấy thông tin nhóm.
           </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Quay lại
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="w-full mx-auto bg-white rounded-xl shadow-lg p-6 space-y-6 transition-all duration-300">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen p-6">
+      <div className="w-full mx-auto bg-white rounded-3xl shadow-lg p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+            className="flex items-center text-blue-600 hover:text-blue-800 transition"
+            aria-label="Back"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-6 h-6 mr-2" />
             Quay lại
           </button>
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Thông Tin Chi Tiết
-          </h2>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">
+            Thông Tin Chi Tiết Nhóm
+          </h1>
+          <div /> {/* để cân bằng flex */}
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">Tên Nhóm:</span>
-            <span className="w-2/3 text-gray-900">{team.name}</span>
+        {/* Thông tin nhóm */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+          <div className="bg-gray-100 rounded-lg p-6 shadow-sm flex flex-col justify-center">
+            <p className="text-sm font-semibold text-gray-500 uppercase mb-1">
+              Tên Nhóm
+            </p>
+            <p className="text-lg font-medium text-gray-900 truncate">
+              {team.name}
+            </p>
           </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">
-              Trưởng Nhóm:
-            </span>
-            <span className="w-2/3 text-gray-900">{team.leader}</span>
+          <div className="bg-gray-100 rounded-lg p-6 shadow-sm flex flex-col justify-center">
+            <p className="text-sm font-semibold text-gray-500 uppercase mb-1">
+              Trưởng Nhóm
+            </p>
+            <p className="text-lg font-medium text-gray-900 truncate">
+              {team.leader}
+            </p>
           </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">
-              Số Thành Viên:
-            </span>
-            <span className="w-2/3 text-gray-900">{team.memberCount}</span>
+          <div className="bg-gray-100 rounded-lg p-6 shadow-sm flex flex-col justify-center">
+            <p className="text-sm font-semibold text-gray-500 uppercase mb-1">
+              Số Thành Viên
+            </p>
+            <p className="text-lg font-medium text-gray-900">
+              {team.memberCount}
+            </p>
           </div>
         </div>
 
-        <div className="mt-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">
+        {/* Danh sách thành viên */}
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Danh Sách Thành Viên
-          </h3>
+          </h2>
+
           {team.members && team.members.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-[600px] w-full table-fixed border border-gray-300 text-sm">
-                <thead className="bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+              <table className="w-full table-auto border-collapse">
+                <thead className="bg-gradient-to-r from-[#00A9FF] to-[#0077FF] text-white">
                   <tr>
-                    <th className="w-[10%] px-4 py-2 border text-center">
+                    <th className="px-6 py-3 text-center font-semibold uppercase text-sm">
                       STT
                     </th>
-                    <th className="w-[70%] px-4 py-2 border text-center">
+                    <th className="px-6 py-3 text-center font-semibold uppercase text-sm">
                       Tên Thành Viên
                     </th>
-                    <th className="w-[20%] px-4 py-2 border text-center">
+                    <th className="px-6 py-3 text-center font-semibold uppercase text-sm">
                       Hành Động
                     </th>
                   </tr>
@@ -78,17 +98,21 @@ const TeamDetail = () => {
                   {team.members.map((member, idx) => (
                     <tr
                       key={member.id}
-                      className="even:bg-gray-100 text-center"
+                      className="border-t border-gray-200 hover:bg-blue-50 transition"
                     >
-                      <td className="px-4 py-2 border">{idx + 1}</td>
-                      <td className="px-4 py-2 border">{member.name}</td>
-                      <td className="px-4 py-2 border">
+                      <td className="px-6 py-3 text-gray-700 text-center">
+                        {idx + 1}
+                      </td>
+                      <td className="px-6 py-3 font-medium text-gray-900 text-center">
+                        {member.name}
+                      </td>
+                      <td className="px-6 py-3 text-center">
                         <NavLink
                           to="/member-detail"
                           state={{ member, team, index }}
-                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 text-gray-800"
+                          className="inline-flex items-center gap-2 px-4 py-2 border border-blue-500 rounded text-blue-600 hover:bg-blue-100 transition"
                         >
-                          <Eye className="w-4 h-4 mr-1" />
+                          <Eye className="w-5 h-5" />
                           Xem chi tiết
                         </NavLink>
                       </td>
@@ -98,11 +122,11 @@ const TeamDetail = () => {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p className="text-gray-500 italic">
               Không có thành viên nào trong nhóm.
             </p>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

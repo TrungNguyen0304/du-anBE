@@ -9,9 +9,9 @@ const MemberDetailLeader = () => {
 
   if (!member || !team) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-6">
-          <p className="text-red-600 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#f6f7fb] p-4">
+        <div className="max-w-lg w-full bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <p className="text-center text-red-600 font-medium">
             Không tìm thấy thông tin thành viên hoặc nhóm.
           </p>
         </div>
@@ -21,41 +21,48 @@ const MemberDetailLeader = () => {
 
   return (
     <div className="min-h-screen p-4">
-      <div className="w-full mx-auto bg-white rounded-xl shadow-lg p-6 space-y-6 transition-all duration-300">
+      <div className="w-full mx-auto bg-white border border-gray-200 rounded-2xl shadow-md p-6 space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
           </button>
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Chi Tiết Thành Viên: {member.name}
+          <h2 className="text-xl font-semibold text-gray-800">
+            Chi Tiết Thành Viên
           </h2>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">Tên:</span>
-            <span className="w-2/3 text-gray-900">{member.name}</span>
+        {/* Member Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-[#f0f4ff] rounded-xl p-4 border border-blue-100">
+            <p className="text-sm text-gray-500 font-medium">Tên</p>
+            <p className="text-base font-semibold text-gray-800">
+              {member.name}
+            </p>
           </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">
-              ID Thành Viên:
-            </span>
-            <span className="w-2/3 text-gray-900">{member.id}</span>
+
+          <div className="bg-[#f0f4ff] rounded-xl p-4 border border-blue-100">
+            <p className="text-sm text-gray-500 font-medium">ID Thành Viên</p>
+            <p className="text-base font-semibold text-gray-800">
+              {member.id}
+            </p>
           </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">Nhóm:</span>
-            <span className="w-2/3 text-gray-900">
+
+          <div className="bg-[#f0f4ff] rounded-xl p-4 border border-blue-100 col-span-full">
+            <p className="text-sm text-gray-500 font-medium">Nhóm</p>
+            <p className="text-base font-semibold text-gray-800">
               {team.name} (ID: {index})
-            </span>
+            </p>
           </div>
         </div>
 
-        <div className="mt-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">
+        {/* Projects */}
+        <div className="bg-white border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
             Danh Sách Dự Án
           </h3>
           <p className="text-sm text-gray-500">

@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, Trash2, Pencil } from "lucide-react";
 import { MdAddTask } from "react-icons/md";
 import axios from "axios";
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 5;
 
 const UnassignedTasks = () => {
   const navigate = useNavigate();
@@ -13,9 +13,11 @@ const UnassignedTasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
-    const fetchAssignedTasks = async () => {
+    const fetchTasks = async () => {
       try {
         const response = await axios.get(
           "https://du-anbe.onrender.com/api/leader/unassignedTask",
@@ -25,32 +27,25 @@ const UnassignedTasks = () => {
             },
           }
         );
-
-        if (Array.isArray(response.data.tasks)) {
-          const formatted = response.data.tasks.map((task, index) => ({
-            id: task._id || `task-${index}`,
-            name: task.name || "N/A",
-            description: task.description || "N/A",
-            assignedMember: task.assignedMember || null,
-            deadline: task.deadline
-              ? new Date(task.deadline).toLocaleDateString("vi-VN")
-              : "N/A",
-            status: task.status || "N/A",
-            priority: task.priority || 0,
-          }));
-          setTasks(formatted);
-        } else {
-          setTasks([]);
-        }
+        const formatted = response.data.tasks?.map((task, i) => ({
+          id: task._id,
+          name: task.name || "N/A",
+          description: task.description || "N/A",
+          status: task.status || "Chưa rõ",
+          priority: task.priority ?? 0,
+          deadline: task.deadline
+            ? new Date(task.deadline).toLocaleDateString("vi-VN")
+            : "Chưa đặt",
+        }));
+        setTasks(formatted || []);
       } catch (error) {
-        console.error("Lỗi khi tải nhiệm vụ:", error);
         alert("Không thể tải danh sách nhiệm vụ.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAssignedTasks();
+    fetchTasks();
   }, []);
 
   const totalPages = Math.ceil(tasks.length / PAGE_SIZE);
@@ -59,169 +54,212 @@ const UnassignedTasks = () => {
     currentPage * PAGE_SIZE
   );
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handleDelete = (id) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-    setIsModalOpen(false);
-  };
-
-  const openDeleteModal = (id) => {
-    setSelectedTaskId(id);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedTaskId(null);
-    setIsModalOpen(false);
-  };
-
-  const handleView = (id) => {
-    navigate(`/task-detail/${id}`);
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/update-task/${id}`);
-  };
-
-  const handleAssign = (id) => {
-    navigate(`/assign-task/${id}`);
-  };
-
-  const handleCreateTask = () => {
-    navigate("/create-task");
+  const handleDelete = async (id) => {
+    setIsDeleting(true);
+    try {
+      await axios.delete(
+        `https://du-anbe.onrender.com/api/leader/deleteTask/${id}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setTasks((prev) => prev.filter((task) => task.id !== id));
+      setIsModalOpen(false);
+    } catch (error) {
+      setDeleteError("Không thể xóa nhiệm vụ.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:underline"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Quay lại
-        </button>
-        <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold">Nhiệm Vụ Chưa Giao</h2>
+    <div className="p-4">
+      <div className="w-full mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <h2 className="text-3xl font-bold text-gray-800 flex-1">
+            Danh sách nhiệm vụ chưa giao
+          </h2>
           <button
-            onClick={handleCreateTask}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => navigate("/create-task")}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 flex items-center shadow transition"
           >
-            <MdAddTask className="w-5 h-5 mr-2" />
-            Thêm dự án
+            <MdAddTask className="mr-2 text-xl" />
+            Thêm nhiệm vụ
           </button>
         </div>
-      </div>
 
-      {loading ? (
-        <p className="text-gray-500">Đang tải dữ liệu...</p>
-      ) : paginatedTasks.length === 0 ? (
-        <p className="text-gray-500">Không có nhiệm vụ nào chưa giao.</p>
-      ) : (
-        <div className="space-y-4">
-          {paginatedTasks.map((task, index) => (
-            <div
-              key={task.id}
-              className="border rounded-lg p-4 hover:shadow transition"
-            >
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                <div className="mb-2 sm:mb-0">
-                  <div className="text-sm text-gray-500">
-                    #{(currentPage - 1) * PAGE_SIZE + index + 1}
-                  </div>
-                  <h3 className="text-lg font-semibold">
-                    <strong>Nhiệm vụ:</strong> {task.name}
-                  </h3>
-                  <p className="text-gray-600">
-                    <strong>Mô tả:</strong> {task.description}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Trạng thái:</strong> {task.status}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Độ ưu tiên:</strong> {task.priority}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <button
-                    onClick={() => handleView(task.id)}
-                    className="flex items-center px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 text-sm"
+        {/* Table */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-x-auto">
+          <table className="min-w-full table-auto">
+            <thead className="bg-blue-100 text-blue-700 text-base">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">#</th>
+                <th className="px-4 py-3 text-left font-semibold">Tên</th>
+                <th className="px-4 py-3 text-left font-semibold">Mô tả</th>
+                <th className="px-4 py-3 text-left font-semibold">
+                  Trạng thái
+                </th>
+                <th className="px-4 py-3 text-left font-semibold">Ưu tiên</th>
+                <th className="px-4 py-3 text-left font-semibold">Deadline</th>
+                <th className="px-4 py-3 text-center font-semibold">
+                  Hành động
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="text-center py-8 text-lg text-gray-500"
                   >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Xem
-                  </button>
-                  <button
-                    onClick={() => handleEdit(task.id)}
-                    className="flex items-center px-3 py-1 border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50 text-sm"
+                    Đang tải dữ liệu...
+                  </td>
+                </tr>
+              ) : paginatedTasks.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="text-center py-8 text-gray-400 text-lg"
                   >
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(task.id)}
-                    className="flex items-center px-3 py-1 border border-red-500 text-red-600 rounded hover:bg-red-50 text-sm"
+                    Không có nhiệm vụ chưa giao.
+                  </td>
+                </tr>
+              ) : (
+                paginatedTasks.map((task, idx) => (
+                  <tr
+                    key={task.id}
+                    className="border-t hover:bg-blue-50 transition"
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Xóa
-                  </button>
-                  <button
-                    onClick={() => handleAssign(task.id)}
-                    className="flex items-center px-3 py-1 border border-green-500 text-green-600 rounded hover:bg-green-50 text-sm"
-                  >
-                    <MdAddTask className="w-4 h-4 mr-1" />
-                    Giao nhiệm vụ
-                  </button>
-                </div>
+                    <td className="px-4 py-3">
+                      {(currentPage - 1) * PAGE_SIZE + idx + 1}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{task.name}</td>
+                    <td className="px-4 py-3">{task.description}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold ${
+                          task.status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {task.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold ${
+                          task.priority === 3
+                            ? "bg-red-100 text-red-700"
+                            : task.priority === 2
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {task.priority === 3
+                          ? "Cao"
+                          : task.priority === 2
+                          ? "Trung bình"
+                          : "Thấp"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">{task.deadline}</td>
+                    <td className="px-4 py-3 flex justify-center gap-2">
+                      <button
+                        onClick={() => navigate(`/task-detail/${task.id}`)}
+                        title="Xem chi tiết"
+                        className="p-2 rounded hover:bg-blue-100 group"
+                      >
+                        <Eye className="w-5 h-5 text-blue-500" />
+                      </button>
+                      <button
+                        onClick={() => navigate(`/update-task/${task.id}`)}
+                        title="Sửa"
+                        className="p-2 rounded hover:bg-yellow-100 group"
+                      >
+                        <Pencil className="w-5 h-5 text-yellow-500" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedTaskId(task.id);
+                          setIsModalOpen(true);
+                        }}
+                        title="Xóa"
+                        className="p-2 rounded hover:bg-red-100 group"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-500" />
+                      </button>
+                      <button
+                        onClick={() => navigate(`/assign-task/${task.id}`)}
+                        title="Giao nhiệm vụ"
+                        className="p-2 rounded hover:bg-green-100 group"
+                      >
+                        <MdAddTask className="w-5 h-5 text-green-600" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center gap-2">
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentPage(idx + 1)}
+                className={`px-4 py-2 rounded-lg border font-medium ${
+                  currentPage === idx + 1
+                    ? "bg-blue-600 text-white border-blue-600 shadow"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
+                }`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-96 max-w-full">
+              <h3 className="text-xl font-semibold text-center mb-4 text-gray-800">
+                Xác nhận xóa nhiệm vụ
+              </h3>
+              {deleteError && (
+                <p className="text-sm text-red-500 mb-3 text-center">
+                  {deleteError}
+                </p>
+              )}
+              <p className="text-center text-gray-600 mb-6">
+                Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể
+                hoàn tác.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-700 font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={() => handleDelete(selectedTaskId)}
+                  disabled={isDeleting}
+                  className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                >
+                  {isDeleting ? "Đang xóa..." : "Xác nhận"}
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="flex justify-end mt-6 space-x-2 flex-wrap">
-          {Array.from({ length: totalPages }).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => handlePageChange(idx + 1)}
-              className={`px-3 py-1 mb-2 border rounded ${
-                currentPage === idx + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              }`}
-            >
-              {idx + 1}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-            <h3 className="text-lg font-semibold mb-4 text-center">
-              Xác nhận xóa nhiệm vụ?
-            </h3>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeModal}
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => handleDelete(selectedTaskId)}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Xác nhận
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
