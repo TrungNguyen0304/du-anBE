@@ -393,6 +393,14 @@ const assignTask = async (req, res) => {
     if (isNaN(parsedDeadline.getTime())) {
       return res.status(400).json({ message: "Giá trị deadline không hợp lệ" });
     }
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Đặt về đầu ngày hôm nay
+
+    if (parsedDeadline < now) {
+      return res.status(400).json({
+        message: "Deadline không được nằm trong quá khứ.",
+      });
+    }
     // 1. Tìm task theo id
     const task = await Task.findById(id);
     if (!task) {
@@ -414,6 +422,11 @@ const assignTask = async (req, res) => {
     const team = await Team.findById(project.assignedTeam);
     if (!team) {
       return res.status(404).json({ message: "Team không hợp lệ." });
+    }
+
+    // Nếu task đang ở trạng thái pending hoặc draft, thì chuyển sang in_progress
+    if (["pending", "draft"].includes(task.status)) {
+      task.status = "in_progress";
     }
 
     // 5. Kiểm tra thành viên có trong team chính thức không
@@ -540,7 +553,6 @@ const revokeTaskAssignment = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
-
 
 // lấy ra những task đã giao cho member
 const getAssignedTask = async (req, res) => {
