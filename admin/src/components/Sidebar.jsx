@@ -128,6 +128,11 @@ const Sidebar = () => {
           icon: <FaProjectDiagram />,
           to: "/projects-member",
         },
+        {
+          label: "Trò chuyện",
+          to: "/chat",
+          icon: <IoChatbubbleEllipsesOutline />,
+        },
       ],
     },
   };
