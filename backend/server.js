@@ -6,6 +6,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const http = require("http");
 const { setupSocket } = require("./socket/socketHandler.js");
+const { setupSocketManager } = require("./socket/socketManager.js");
 const { startScheduleCheck } = require("./socket/socketSchedule.js");
 
 const authRoute = require("./route/authRoute.js");
@@ -15,6 +16,7 @@ const companyRoute = require("./route/companyRoute.js");
 const memberRoute = require("./route/memberRoute.js");
 const leaderRoute = require("./route/leaderRoute.js");
 const notificationRoute = require("./route/notificationRoute.js")
+const groupRoute = require("./route/groupRoute.js")
 
 dotenv.config();
 const app = express();
@@ -55,9 +57,11 @@ app.use("/api/company", companyRoute);
 app.use("/api/member", memberRoute);
 app.use("/api/leader", leaderRoute);
 app.use("/api/notifications", notificationRoute);
+app.use("/api/group", groupRoute);
 
 // SOCKET setup
 setupSocket(io);
+setupSocketManager(io);
 startScheduleCheck();
 
 const PORT = process.env.PORT || 8001;
