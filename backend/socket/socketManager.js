@@ -13,6 +13,8 @@ function setupSocketManager(io) {
             onlineUsers.set(userId, socket.id);
             socket.join(userId);
             console.log(`Người dùng ${userId} đang trực tuyến - tham gia phòng ${userId}`);
+            // Broadcast user-online event to all clients
+            io.emit("user-online", userId);
         });
 
         // Tham gia nhóm
@@ -26,17 +28,18 @@ function setupSocketManager(io) {
 
             // Gửi thông báo tham gia nhóm
             const joinMessage = {
-                senderId: "system",
+                senderId: "System",
+                senderName: "System",
                 groupId,
                 message: `Người dùng ${userId} đã tham gia nhóm`,
                 timestamp: new Date().toISOString(),
+                system: true,
             };
             io.to(groupId).emit("group-message", joinMessage);
         });
 
         // Gửi tin nhắn nhóm
         socket.on("group-message", ({ userId, groupId, message }) => {
-            // Kiểm tra đã được thực hiện trong controller, nên bỏ kiểm tra dư thừa
             const msgPayload = {
                 senderId: userId,
                 groupId,
@@ -44,11 +47,8 @@ function setupSocketManager(io) {
                 timestamp: new Date().toISOString(),
             };
 
-            // Gửi cho các thành viên khác
-            socket.to(groupId).emit("group-message", msgPayload);
-            // Gửi lại cho người gửi (hiển thị ngay trên UI)
-            socket.emit("group-message", msgPayload);
-
+            // Gửi cho các thành viên khác và người gửi
+            io.to(groupId).emit("group-message", msgPayload);
             console.log(`Tin nhắn từ ${userId} đến nhóm ${groupId}: ${message}`);
         });
 
@@ -64,10 +64,12 @@ function setupSocketManager(io) {
                 groupMembers.get(groupId).delete(userId);
                 socket.leave(groupId);
                 const leaveMsg = {
-                    senderId: "system",
+                    senderId: "System",
+                    senderName: "System",
                     groupId,
                     message: `Người dùng ${userId} đã rời nhóm`,
                     timestamp: new Date().toISOString(),
+                    system: true,
                 };
                 io.to(groupId).emit("group-message", leaveMsg);
 
@@ -92,10 +94,12 @@ function setupSocketManager(io) {
                         if (members.has(userId)) {
                             members.delete(userId);
                             const disconnectMsg = {
-                                senderId: "system",
+                                senderId: "System",
+                                senderName: "System",
                                 groupId,
-                                message: `Người dùng ${userId} đã ngắt kết nối`,
+                                message: `Người dùng ${userId} đã rời nhóm`,
                                 timestamp: new Date().toISOString(),
+                                system: true,
                             };
                             io.to(groupId).emit("group-message", disconnectMsg);
 
@@ -106,6 +110,8 @@ function setupSocketManager(io) {
                     }
 
                     console.log(`Người dùng ${userId} đã ngắt kết nối`);
+                    // Broadcast user-offline event to all clients
+                    io.emit("user-offline", userId);
                     break;
                 }
             }
@@ -132,10 +138,12 @@ function getGroupMembers(groupId) {
 function notifyNewMember(groupId, userId, userName, isLeaving = false) {
     const io = getIO();
     io.to(groupId).emit("group-message", {
-        senderId: "system",
+        senderId: "System",
+        senderName: "System",
         groupId,
-        message: `Người dùng ${userName || userId} đã ${isLeaving ? 'rời' : 'được thêm vào'} nhóm`,
+        message: `Người dùng ${userId} đã ${isLeaving ? 'rời' : 'tham gia'} nhóm`,
         timestamp: new Date().toISOString(),
+        system: true,
     });
 }
 
