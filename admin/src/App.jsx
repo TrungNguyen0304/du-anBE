@@ -38,6 +38,10 @@ import ReportProjects from "./pages/leader/Projects/ReportProjects";
 import TaskMember from "./pages/member/Task/TaskMember";
 import Chat from "./pages/Chat/Chat";
 import JoinRequestsPage from "./pages/Chat/JoinRequestsPage";
+import VideoCallPage from "./pages/Chat/VideoCallPage";
+import ChatMember from "./pages/member/ChatMember/ChatMember";
+import JoinRequestsPageMember from "./pages/member/ChatMember/JoinRequestsPageMember";
+import VideoCallPageMember from "./pages/member/ChatMember/VideoCallPageMember";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -111,6 +115,7 @@ const LeaderLayout = () => {
 
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/requests" element={<JoinRequestsPage />} />
+            <Route path="/chat/video-call" element={<VideoCallPage />} />
           </Routes>
         </main>
       </div>
@@ -132,6 +137,10 @@ const MemberLayout = () => {
             <Route path="/" element={<HomeMember />} />
             <Route path="/task-member" element={<TaskMember />} />
             <Route path="/projects-member" element={<ProjectsMember />} />
+
+            <Route path="/chat" element={<ChatMember />} />
+            <Route path="/chat/requests" element={<JoinRequestsPageMember />} />
+            <Route path="/chat/video-call" element={<VideoCallPageMember />} />
           </Routes>
         </main>
       </div>
