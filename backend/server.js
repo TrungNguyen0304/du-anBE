@@ -6,7 +6,6 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const http = require("http");
 const { setupSocket } = require("./socket/socketHandler.js");
-const { setupSocketManager } = require("./socket/socketManager.js");
 const { startScheduleCheck } = require("./socket/socketSchedule.js");
 
 const authRoute = require("./route/authRoute.js");
@@ -61,7 +60,6 @@ app.use("/api/group", groupRoute);
 
 // SOCKET setup
 setupSocket(io);
-setupSocketManager(io);
 startScheduleCheck();
 
 const PORT = process.env.PORT || 8001;

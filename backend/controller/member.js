@@ -12,8 +12,8 @@ const getMyTeam = async (req, res) => {
 
     // Tìm tất cả nhóm mà userId có trong assignedMembers
     const teams = await Team.find({ assignedMembers: userId })
-      .populate('assignedLeader', 'name')
-      .populate('assignedMembers', 'name');
+      .populate('assignedLeader', 'name _id')
+      .populate('assignedMembers', 'name _id');
 
     if (teams.length === 0) {
       return res.status(404).json({ message: "Bạn không tham gia vào nhóm nào." });
@@ -26,7 +26,10 @@ const getMyTeam = async (req, res) => {
         id: team._id,
         name: team.name,
         assignedLeader: team.assignedLeader ? team.assignedLeader.name : null,
-        assignedMembers: team.assignedMembers.map(member => member.name)
+        assignedMembers: team.assignedMembers.map((member) => ({
+          _id: member._id,
+          name: member.name,
+        }))
       }))
     });
   } catch (error) {
@@ -126,7 +129,7 @@ const getMyTasks = async (req, res) => {
 //     });
 
 //     await report.save();
-    
+
 //     // Cập nhật task.progress nếu cần
 //     if (typeof taskProgress === 'number' && taskProgress >= 0 && taskProgress <= 100) {
 //       task.progress = taskProgress;
@@ -277,7 +280,7 @@ const createReport = async (req, res) => {
     // Xử lý giá trị taskProgress nếu nó có dấu %
     let progress = taskProgress;
     if (typeof taskProgress === "string" && taskProgress.includes("%")) {
-      progress = taskProgress.replace("%", ""); 
+      progress = taskProgress.replace("%", "");
       progress = parseInt(progress, 10);
     }
 
