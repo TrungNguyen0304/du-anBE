@@ -69,6 +69,11 @@ const Sidebar = () => {
           to: "/projectprogress",
           icon: <GiProgression />,
         },
+        {
+          label: "Trò chuyện",
+          to: "/chat",
+          icon: <IoChatbubbleEllipsesOutline />,
+        },
       ],
     },
     leader: {
@@ -122,11 +127,6 @@ const Sidebar = () => {
           label: "Nhiệm Vụ",
           icon: <TbSubtask />,
           to: "/task-member",
-        },
-        {
-          label: "Dự Án",
-          icon: <FaProjectDiagram />,
-          to: "/projects-member",
         },
         {
           label: "Trò chuyện",
