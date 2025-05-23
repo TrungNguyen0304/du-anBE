@@ -36,12 +36,15 @@ import TaskDetail from "./pages/leader/Tasks/TaskDetail";
 import ProjectDetailLeader from "./pages/leader/Projects/ProjectDetailLeader";
 import ReportProjects from "./pages/leader/Projects/ReportProjects";
 import TaskMember from "./pages/member/Task/TaskMember";
-import Chat from "./pages/Chat/Chat";
-import JoinRequestsPage from "./pages/Chat/JoinRequestsPage";
-import VideoCallPage from "./pages/Chat/VideoCallPage";
 import ChatMember from "./pages/member/ChatMember/ChatMember";
 import JoinRequestsPageMember from "./pages/member/ChatMember/JoinRequestsPageMember";
 import VideoCallPageMember from "./pages/member/ChatMember/VideoCallPageMember";
+import ChatLeader from "./pages/leader/ChatLeader/ChatLeader";
+import JoinRequestsPageLeader from "./pages/leader/ChatLeader/JoinRequestsPageLeader";
+import VideoCallPageLeader from "./pages/leader/ChatLeader/VideoCallPageLeader";
+import Chat from "./pages/admin/Chat/Chat";
+import JoinRequestsPage from "./pages/admin/Chat/JoinRequestsPage";
+import VideoCallPage from "./pages/admin/Chat/VideoCallPage";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -76,6 +79,10 @@ const CompanyLayout = () => {
             <Route path="/update-projects/:id" element={<UpdateProject />} />
             <Route path="/project-detail/:id" element={<ProjectDetail />} />
             <Route path="/projectprogress" element={<ProjectProgress />} />
+
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/requests" element={<JoinRequestsPage />} />
+            <Route path="/chat/video-call" element={<VideoCallPage />} />
           </Routes>
         </main>
       </div>
@@ -113,9 +120,9 @@ const LeaderLayout = () => {
             />
             <Route path="/project-report/:id" element={<ReportProjects />} />
 
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/chat/requests" element={<JoinRequestsPage />} />
-            <Route path="/chat/video-call" element={<VideoCallPage />} />
+            <Route path="/chat" element={<ChatLeader />} />
+            <Route path="/chat/requests" element={<JoinRequestsPageLeader />} />
+            <Route path="/chat/video-call" element={<VideoCallPageLeader />} />
           </Routes>
         </main>
       </div>
