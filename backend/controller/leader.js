@@ -10,26 +10,29 @@ const getMyTeam = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user._id);
 
-    // Tìm tất cả nhóm mà userId có trong assignedLeader
+    // Tìm các team mà người dùng là leader
     const teams = await Team.find({ assignedLeader: userId })
-      .populate('assignedLeader', ' name')
-      .populate('assignedMembers', 'name');
-
+      .populate("assignedLeader", "name")
+      .populate("assignedMembers", "name _id"); 
     if (teams.length === 0) {
       return res.status(404).json({ message: "Bạn không tham gia vào nhóm nào." });
     }
 
-    // Trả về thông tin các nhóm mà người dùng tham gia
+    // Định dạng phản hồi
     res.status(200).json({
       message: "Lấy thông tin nhóm thành công.",
-      teams: teams.map(team => ({
+      teams: teams.map((team) => ({
         id: team._id,
         name: team.name,
         assignedLeader: team.assignedLeader ? team.assignedLeader.name : null,
-        assignedMembers: team.assignedMembers.map(member => member.name)
-      }))
+        assignedMembers: team.assignedMembers.map((member) => ({
+          _id: member._id, // Bao gồm _id thực tế của người dùng
+          name: member.name,
+        })),
+      })),
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };

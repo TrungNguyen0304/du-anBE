@@ -1,10 +1,9 @@
-// const authenticateJWT = require("../middleware/auth");
+
 let ioInstance;
 const onlineUsers = new Map();
 
 function setupSocket(io) {
   ioInstance = io;
-  // io.use(authenticateJWT);
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
@@ -13,16 +12,7 @@ function setupSocket(io) {
       socket.join(userId);
       console.log(` User ${userId} online - joined room ${userId}`);
     });
-    // socket.on("user-online", (userId) => {
-    //   if (!onlineUsers.has(userId)) {
-    //     onlineUsers.set(userId, new Set());
-    //   }
 
-    //   onlineUsers.get(userId).add(socket.id);
-    //   socket.join(userId);
-
-    //   console.log(`User ${userId} online - joined room ${userId}`);
-    // });
 
     socket.on("disconnect", () => {
       for (const [userId, socketId] of onlineUsers.entries()) {
