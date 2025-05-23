@@ -7,16 +7,15 @@ import {
   ListItem,
   ListItemText,
   Typography,
+  Menu,
+  MenuItem,
   ListItemSecondaryAction,
-  IconButton as MIconButton,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import DeleteIcon from "@mui/icons-material/Delete";
-import DoneIcon from "@mui/icons-material/Done";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-
 import {
   initializeSocket,
   onNotification,
@@ -26,9 +25,12 @@ import {
   onMessageListener,
   requestNotificationPermission,
 } from "../services/notificationService";
+import { MdBookmarkAdded, MdDeleteForever } from "react-icons/md";
 
 const NotificationPanel = ({ userId }) => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [selectedNotifId, setSelectedNotifId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -55,14 +57,19 @@ const NotificationPanel = ({ userId }) => {
 
   const markAsRead = async (id) => {
     try {
-      await axios.patch(`/api/notifications/${id}/read`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.patch(
+        `/api/notifications/${id}/read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       );
+      setUnreadCount((prev) => prev - 1);
     } catch (error) {
       console.error("Failed to mark as read:", error);
     }
@@ -76,6 +83,9 @@ const NotificationPanel = ({ userId }) => {
         },
       });
       setNotifications((prev) => prev.filter((n) => n._id !== id));
+      setUnreadCount((prev) =>
+        prev - notifications.find((n) => n._id === id).isRead ? prev : prev - 1
+      );
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }
@@ -130,6 +140,23 @@ const NotificationPanel = ({ userId }) => {
     setAnchorEl(null);
   };
 
+  const handleMenuOpen = (event, notifId) => {
+    setMenuAnchorEl(event.currentTarget);
+    setSelectedNotifId(notifId);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setSelectedNotifId(null);
+  };
+
+  const handleNotifClick = (notifId) => {
+    const notif = notifications.find((n) => n._id === notifId);
+    if (!notif.isRead) {
+      markAsRead(notifId);
+    }
+  };
+
   const open = Boolean(anchorEl);
 
   return (
@@ -149,17 +176,41 @@ const NotificationPanel = ({ userId }) => {
         <List sx={{ width: 350, maxHeight: 400, overflow: "auto" }}>
           {Array.isArray(notifications) && notifications.length === 0 ? (
             <ListItem>
-              <ListItemText primary="No notifications" />
+              <ListItemText primary="Không có thông báo!" />
             </ListItem>
           ) : (
             notifications.map((notif, index) => (
-              <ListItem key={notif._id || index} divider>
+              <ListItem
+                key={notif._id || index}
+                divider
+                onClick={() => handleNotifClick(notif._id)}
+                sx={{
+                  cursor: "pointer",
+                  backgroundColor: notif.isRead
+                    ? "inherit"
+                    : "rgba(0, 0, 0, 0.04)",
+                }}
+              >
                 <ListItemText
                   primary={notif.title || notif.name}
+                  primaryTypographyProps={{
+                    fontWeight: notif.isRead ? "normal" : "bold",
+                    color: notif.isRead ? "text.secondary" : "text.primary",
+                  }}
                   secondary={
                     <>
-                      <Typography variant="body2">{notif.message}</Typography>
-                      <Typography variant="caption">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: notif.isRead ? "normal" : "bold",
+                          color: notif.isRead
+                            ? "text.secondary"
+                            : "text.primary",
+                        }}
+                      >
+                        {notif.message}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
                         {new Date(notif.timestamp).toLocaleString()}
                       </Typography>
                     </>
@@ -167,20 +218,43 @@ const NotificationPanel = ({ userId }) => {
                   secondaryTypographyProps={{ component: "div" }}
                 />
                 <ListItemSecondaryAction>
-                  {!notif.isRead && (
-                    <MIconButton edge="end" onClick={() => markAsRead(notif._id)}>
-                      <DoneIcon fontSize="small" color="primary" />
-                    </MIconButton>
-                  )}
-                  <MIconButton edge="end" onClick={() => deleteNotification(notif._id)}>
-                    <DeleteIcon fontSize="small" color="error" />
-                  </MIconButton>
+                  <IconButton
+                    edge="end"
+                    onClick={(e) => handleMenuOpen(e, notif._id)}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
                 </ListItemSecondaryAction>
               </ListItem>
             ))
           )}
         </List>
       </Popover>
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem
+          onClick={() => {
+            markAsRead(selectedNotifId);
+            handleMenuClose();
+          }}
+          disabled={
+            notifications.find((n) => n._id === selectedNotifId)?.isRead
+          }
+        >
+          <MdBookmarkAdded className="text-lg mr-2" /> Đánh dấu là đã đọc
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            deleteNotification(selectedNotifId);
+            handleMenuClose();
+          }}
+        >
+          <MdDeleteForever className="text-lg mr-2" /> Xóa thông báo
+        </MenuItem>
+      </Menu>
       <ToastContainer
         position="top-right"
         autoClose={5000}
