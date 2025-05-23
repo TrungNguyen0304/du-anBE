@@ -3,7 +3,7 @@ const Group = require("../models/group");
 const Message = require("../models/message");
 const User = require("../models/user");
 const Team = require("../models/team");
-const { getIO, notifyNewMember } = require("../socket/socketManager");
+const { getIO, notifyNewMember } = require("../socket/socketHandler");
 const sanitizeHtml = require("sanitize-html");
 
 const createGroup = async (req, res) => {
@@ -136,7 +136,6 @@ const addMember = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi thêm thành viên", error: error.message });
     }
 };
-
 
 const sendGroupMessage = async (req, res) => {
     try {
