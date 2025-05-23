@@ -15,8 +15,16 @@ import io from "socket.io-client";
 const API_URL = "http://localhost:8001/api/group";
 const TEAM_API_URL = "http://localhost:8001/api/leader/showallTeam";
 const SOCKET_URL = "http://localhost:8001";
+const Chat = () => {
+
+  Video,
+} from "lucide-react";
+import ChatHomeOut from "./ChatHomeOut";
+import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
+  const navigate = useNavigate();
+  const currentUser = "Lê Quý Thiện (Leader)";
   const chatEndRef = useRef(null);
   const addMemberRef = useRef(null);
   const createGroupRef = useRef(null);
@@ -26,6 +34,7 @@ const Chat = () => {
     name: "Guest",
   };
   const socket = useMemo(() => io(SOCKET_URL, { autoConnect: false }), []);
+
 
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -43,6 +52,7 @@ const Chat = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupMembers, setNewGroupMembers] = useState([]);
+  const [inputText, setInputText] = useState("");
 
   // Connect socket and emit user-online
   useEffect(() => {
@@ -129,7 +139,6 @@ const Chat = () => {
     };
 
     fetchMessages();
-
     return () => {
       if (selectedGroup?._id) {
         socket.emit("leave-group", { userId: currentUser._id, groupId: selectedGroup._id });
@@ -205,6 +214,25 @@ const Chat = () => {
     if (selectedGroup?._id) {
       socket.emit("typing", { userId: currentUser._id, groupId: selectedGroup._id });
     }
+
+  const handleRemoveMember = (index) => {
+    const removedMember = room.members[index];
+    setRoom((prev) => ({
+      ...prev,
+      members: prev.members.filter((_, i) => i !== index),
+    }));
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "System",
+        text: `${
+          currentUser === "Lê Quý Thiện (Leader)" ? "Bạn" : currentUser
+        } đã xóa ${removedMember} khỏi nhóm.`,
+        system: true,
+      },
+    ]);
+    setSelectedMemberIndex(null);
+
   };
 
   // Send message
@@ -397,6 +425,30 @@ const Chat = () => {
               >
                 <X size={20} />
               </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/chat/video-call")}
+            className="p-2 rounded-full hover:bg-gray-200"
+            title="Bắt đầu cuộc gọi video"
+          >
+            <Video size={20} />
+          </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-full hover:bg-gray-200"
+          >
+            <MoreVertical size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      {sidebarOpen && (
+        <div className="absolute top-0 right-0 h-full w-72 bg-gray-50 border-l shadow-xl z-10 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-4 border-b bg-white">
+            <div>
+              <h1 className="font-bold text-gray-700 text-lg">{currentUser}</h1>
+              <p className="text-xs text-gray-500">Bạn đang online</p>
             </div>
             <input
               type="text"
@@ -475,6 +527,45 @@ const Chat = () => {
               <div>
                 <h1 className="font-bold text-gray-800 text-lg">{currentUser.name}</h1>
               </div>
+            {showMembers && (
+              <div className="bg-white p-3 rounded border space-y-2 max-h-60 overflow-y-auto flex-1 custom-scrollbar">
+                {room.members.map((member, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center text-sm text-gray-700"
+                  >
+                    <span>{member}</span>
+                    {member !== currentUser && (
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setSelectedMemberIndex((prev) =>
+                              prev === index ? null : index
+                            )
+                          }
+                          className="hover:bg-gray-200 rounded p-1"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {selectedMemberIndex === index && (
+                          <div className="absolute right-0 top-6 bg-white border rounded shadow z-10">
+                            <button
+                              onClick={() => handleRemoveMember(index)}
+                              className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full"
+                            >
+                              <Trash2 size={14} /> Xóa
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add member */}
+            <div ref={addMemberRef}>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="hover:bg-indigo-200 rounded p-2 transition-all duration-200"
@@ -536,7 +627,6 @@ const Chat = () => {
                   ))}
                 </div>
               )}
-
               <div ref={addMemberRef}>
                 <button
                   onClick={() => setAddingMember(!addingMember)}
@@ -645,6 +735,69 @@ const Chat = () => {
             <Send size={20} />
           </button>
         </div>
+            {/* Leave group */}
+            <button
+              onClick={handleLeaveGroup}
+              className="mt-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Rời nhóm
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Chat messages */}
+      <div className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-gray-50">
+        {messages.map((msg, i) => {
+          const isCurrentUser = msg.sender === currentUser;
+          return (
+            <div
+              key={i}
+              className={`mb-3 flex flex-col ${
+                isCurrentUser ? "items-end" : "items-start"
+              }`}
+            >
+              <div
+                className={`px-4 py-2 rounded-lg max-w-[70%] break-words whitespace-pre-line ${
+                  msg.system
+                    ? "bg-gray-300 text-gray-700 italic"
+                    : isCurrentUser
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-900 border"
+                }`}
+              >
+                {!msg.system && (
+                  <div className="text-xs font-semibold mb-1">{msg.sender}</div>
+                )}
+                <div>{msg.text}</div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="border-t p-4 bg-white flex gap-3 items-center">
+        <textarea
+          rows={1}
+          placeholder="Nhập tin nhắn..."
+          className="flex-1 resize-none border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) =>
+            e.key === "Enter" &&
+            !e.shiftKey &&
+            (e.preventDefault(), handleSendMessage())
+          }
+        />
+        <button
+          onClick={handleSendMessage}
+          className="p-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+          aria-label="Gửi tin nhắn"
+        >
+          <Send size={20} />
+        </button>
       </div>
     </div>
   );
