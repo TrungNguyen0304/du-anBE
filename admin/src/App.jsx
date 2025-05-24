@@ -45,6 +45,8 @@ import VideoCallPageLeader from "./pages/leader/ChatLeader/VideoCallPageLeader";
 import Chat from "./pages/admin/Chat/Chat";
 import JoinRequestsPage from "./pages/admin/Chat/JoinRequestsPage";
 import VideoCallPage from "./pages/admin/Chat/VideoCallPage";
+import TeamMember from "./pages/member/Task/TeamMember";
+import FeedbackMember from "./pages/member/Task/FeedbackMember";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -109,7 +111,7 @@ const LeaderLayout = () => {
             <Route path="/assigned-tasks" element={<AssignedTasks />} />
             <Route path="/create-task" element={<CreateTask />} />
             <Route path="/update-task/:id" element={<UpdateTask />} />
-            <Route path="/task-detail" element={<TaskDetail />} />
+            <Route path="/task-detail/:id" element={<TaskDetail />} />
 
             <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
 
@@ -143,6 +145,9 @@ const MemberLayout = () => {
           <Routes>
             <Route path="/" element={<HomeMember />} />
             <Route path="/task-member" element={<TaskMember />} />
+            <Route path="/team-member" element={<TeamMember />} />
+            <Route path="/feedback-member" element={<FeedbackMember />} />
+
             <Route path="/projects-member" element={<ProjectsMember />} />
 
             <Route path="/chat" element={<ChatMember />} />
