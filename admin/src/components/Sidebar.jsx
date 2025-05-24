@@ -72,6 +72,11 @@ const Sidebar = () => {
           icon: <GiProgression />,
         },
         {
+          label: "Đánh Giá",
+          icon: <VscFeedback />,
+          to: "/feedback-admin",
+        },
+        {
           label: "Trò chuyện",
           to: "/chat",
           icon: <IoChatbubbleEllipsesOutline />,
