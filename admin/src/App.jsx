@@ -148,8 +148,6 @@ const MemberLayout = () => {
             <Route path="/team-member" element={<TeamMember />} />
             <Route path="/feedback-member" element={<FeedbackMember />} />
 
-            <Route path="/projects-member" element={<ProjectsMember />} />
-
             <Route path="/chat" element={<ChatMember />} />
             <Route path="/chat/requests" element={<JoinRequestsPageMember />} />
             <Route path="/chat/video-call" element={<VideoCallPageMember />} />
