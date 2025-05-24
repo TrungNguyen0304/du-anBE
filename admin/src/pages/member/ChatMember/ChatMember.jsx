@@ -196,7 +196,6 @@ const ChatMember = () => {
           system: true,
         };
         setMessages((prev) => [...prev, systemMessage]);
-        // Only update group data without refetching messages
         const fetchGroupData = async () => {
           try {
             const token = localStorage.getItem("token");
@@ -315,7 +314,6 @@ const ChatMember = () => {
       });
       setNewMemberId("");
       setAddingMember(false);
-      // Notify via socket (already handled by backend)
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi thêm thành viên");
     }
@@ -338,7 +336,6 @@ const ChatMember = () => {
         members: prev.members.filter((_, i) => i !== index),
       }));
       setSelectedMemberIndex(null);
-      // Notify via socket (already handled by backend)
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi xóa thành viên");
     }
