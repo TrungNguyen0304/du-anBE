@@ -1,147 +1,143 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
-
-// Static teams for team name lookup
-const staticTeams = [
-  { id: 1, name: "Development Team" },
-  { id: 2, name: "Marketing Team" },
-  { id: 3, name: "Design Team" },
-  { id: 4, name: "Sales Team" },
-  { id: 5, name: "HR Team" },
-  { id: 6, name: "Support Team" },
-  { id: 7, name: "QA Team" },
-  { id: 8, name: "DevOps Team" },
-  { id: 9, name: "Finance Team" },
-  { id: 10, name: "Product Team" },
-  { id: 11, name: "Research Team" },
-];
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Pencil } from "lucide-react";
+import axios from "axios";
 
 const TaskDetail = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { task } = location.state || {};
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [task, setTask] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleDelete = () => {
-    setDeleteTarget(null);
-    navigate(-1); // Navigate back after deletion
+  useEffect(() => {
+    const fetchTaskDetail = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8001/api/leader/viewTask/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setTask(res.data.task);
+      } catch (err) {
+        setError("Không thể tải thông tin nhiệm vụ.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTaskDetail();
+  }, [id]);
+
+  const getPriorityText = (priority) => {
+    switch (priority) {
+      case 0:
+        return "Thấp";
+      case 1:
+        return "Trung bình";
+      case 2:
+        return "Cao";
+      default:
+        return "Không rõ";
+    }
   };
 
-  if (!task) {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-lg">Đang tải dữ liệu...</div>;
+  }
+
+  if (error || !task) {
     return (
-      <div className="min-h-screen p-4">
-        <div className="w-full mx-auto bg-white rounded-xl shadow-lg p-6">
-          <p className="text-red-600 text-center">
-            Không tìm thấy thông tin nhiệm vụ.
-          </p>
-        </div>
+      <div className="p-8 text-center text-red-500">
+        {error || "Không tìm thấy nhiệm vụ."}
       </div>
     );
   }
 
-  const getTeamName = (teamId) => {
-    const team = staticTeams.find((t) => t.id === teamId);
-    return team ? team.name : "N/A";
-  };
-
   return (
-    <div className="min-h-screen p-4">
-      <div className="w-full mx-auto bg-white rounded-xl shadow-lg p-6 space-y-6 transition-all duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="w-full mx-auto p-4">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-gray-600 hover:text-black"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <h1 className="text-3xl font-bold text-gray-800">Chi tiết nhiệm vụ</h1>
+      </div>
+
+      {/* Content Box */}
+      <div className="bg-slate-50 border border-gray-200 rounded-2xl shadow p-6 space-y-6">
+        <DetailRow label="Tên nhiệm vụ" value={task.name} />
+        <DetailRow label="Mô tả" value={task.description || "Không có mô tả"} />
+        <DetailRow
+          label="Trạng thái"
+          value={task.status === "pending" ? "⏳ Đang chờ xử lý" : task.status}
+        />
+        <DetailRow label="Tiến độ" value={`${task.progress || 0}%`}>
+          <div className="w-full bg-gray-200 h-2 rounded mt-1">
+            <div
+              className="bg-blue-500 h-2 rounded"
+              style={{ width: `${task.progress || 0}%` }}
+            />
+          </div>
+        </DetailRow>
+        <DetailRow label="Ưu tiên" value={getPriorityText(task.priority)} />
+        <DetailRow
+          label="Đã hoàn thành"
+          value={task.isCompleted ? "✅ Có" : "❌ Chưa"}
+        />
+        <DetailRow
+          label="Thông báo quá hạn"
+          value={task.isOverdueNotified ? "✅ Có" : "❌ Chưa"}
+        />
+        <DetailRow label="ID dự án" value={task.projectId} />
+        <DetailRow label="Ngày tạo" value={formatDate(task.createdAt)} />
+        <DetailRow label="Ngày cập nhật" value={formatDate(task.updatedAt)} />
+
+        {/* Button Actions */}
+        <div className="flex justify-end gap-4 pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Quay lại
-          </button>
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Chi Tiết Nhiệm Vụ #{task.id}
-          </h2>
-        </div>
-
-        {/* Task Information */}
-        <div className="space-y-4">
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">
-              Tên Nhiệm Vụ:
-            </span>
-            <span className="w-2/3 text-gray-900">{task.name || "N/A"}</span>
-          </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">Mô Tả:</span>
-            <span className="w-2/3 text-gray-900">
-              {task.description || "N/A"}
-            </span>
-          </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">Trạng Thái:</span>
-            <span className="w-2/3 text-gray-900">{task.status || "N/A"}</span>
-          </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">
-              Thành Viên Được Giao:
-            </span>
-            <span className="w-2/3 text-gray-900">
-              {task.assignedMember?.name || "Chưa giao"}
-            </span>
-          </div>
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <span className="w-1/3 font-medium text-gray-700">Nhóm:</span>
-            <span className="w-2/3 text-gray-900">
-              {getTeamName(task.teamId)}
-            </span>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => setDeleteTarget(task)}
-            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Xóa Nhiệm Vụ
+            Hủy
           </button>
           <button
-            onClick={() => navigate("/update-task", { state: { task } })}
-            className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+            onClick={() => navigate(`/update-task/${task._id}`)}
+            className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 flex items-center"
           >
             <Pencil className="w-4 h-4 mr-2" />
-            Sửa Nhiệm Vụ
+            Chỉnh sửa
           </button>
         </div>
-
-        {/* Delete Confirmation Modal */}
-        {deleteTarget && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
-              <h3 className="text-lg font-semibold mb-4">
-                Bạn có chắc chắn muốn xóa nhiệm vụ{" "}
-                <span className="text-red-600">{deleteTarget.name}</span>?
-              </h3>
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  onClick={() => setDeleteTarget(null)}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                >
-                  Xác nhận
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 };
+
+const DetailRow = ({ label, value, children }) => (
+  <div className="grid grid-cols-12 gap-4 items-start">
+    <div className="col-span-4 text-gray-500 font-medium">{label}</div>
+    <div className="col-span-8 text-gray-900">
+      <p className="font-semibold">{value}</p>
+      {children}
+    </div>
+  </div>
+);
 
 export default TaskDetail;

@@ -5,17 +5,17 @@ import axios from "axios";
 
 const PAGE_SIZE = 3;
 
-const TaskMember = () => {
+const TeamMember = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchTeams = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/member/showallTask",
+          "http://localhost:8001/api/member/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -23,34 +23,31 @@ const TaskMember = () => {
           }
         );
 
-        if (Array.isArray(response.data.tasks)) {
-          const formatted = response.data.tasks.map((task, index) => ({
-            id: task._id || `task-${index}`,
-            name: task.name || "N/A",
-            description: task.description || "N/A",
-            status: task.status || "N/A",
-            priority: task.priority || 0,
-            deadline: task.deadline
-              ? new Date(task.deadline).toLocaleDateString("vi-VN")
-              : "N/A",
-            projectId: task.projectId || "N/A",
+        if (Array.isArray(response.data.teams)) {
+          const formatted = response.data.teams.map((team, index) => ({
+            id: team.id || `team-${index}`,
+            name: team.name || "N/A",
+            assignedLeader: team.assignedLeader || "Chưa có trưởng nhóm",
+            assignedMembers: Array.isArray(team.assignedMembers)
+              ? team.assignedMembers.map((member) => member.name)
+              : [],
           }));
-          setTasks(formatted);
+          setTeams(formatted);
         } else {
-          setTasks([]);
+          setTeams([]);
         }
       } catch (error) {
-        console.error("Lỗi khi tải danh sách nhiệm vụ:", error);
+        console.error("Lỗi khi tải danh sách đội nhóm:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTasks();
+    fetchTeams();
   }, []);
 
-  const totalPages = Math.ceil(tasks.length / PAGE_SIZE);
-  const paginatedTasks = tasks.slice(
+  const totalPages = Math.ceil(teams.length / PAGE_SIZE);
+  const paginatedTeams = teams.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
@@ -60,7 +57,7 @@ const TaskMember = () => {
   };
 
   const handleView = (id) => {
-    navigate(`/task-detail/${id}`);
+    navigate(`/team-detail/${id}`);
   };
 
   return (
@@ -73,18 +70,18 @@ const TaskMember = () => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Quay lại
         </button>
-        <h2 className="text-2xl font-bold">Nhiệm Vụ Thành Viên</h2>
+        <h2 className="text-2xl font-bold">Đội Nhóm Dự Án</h2>
       </div>
 
       {loading ? (
         <p className="text-gray-500">Đang tải dữ liệu...</p>
-      ) : paginatedTasks.length === 0 ? (
-        <p className="text-gray-500">Không có nhiệm vụ nào.</p>
+      ) : paginatedTeams.length === 0 ? (
+        <p className="text-gray-500">Không có đội nhóm nào.</p>
       ) : (
         <div className="space-y-4">
-          {paginatedTasks.map((task, index) => (
+          {paginatedTeams.map((team, index) => (
             <div
-              key={task.id}
+              key={team.id}
               className="border rounded-lg p-4 hover:shadow transition"
             >
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
@@ -93,27 +90,21 @@ const TaskMember = () => {
                     #{(currentPage - 1) * PAGE_SIZE + index + 1}
                   </div>
                   <h3 className="text-lg font-semibold">
-                    <strong>Nhiệm vụ:</strong> {task.name}
+                    <strong>Tên đội:</strong> {team.name}
                   </h3>
                   <p className="text-gray-600">
-                    <strong>Mô tả:</strong> {task.description}
+                    <strong>Trưởng nhóm:</strong> {team.assignedLeader}
                   </p>
                   <p className="text-gray-600">
-                    <strong>Trạng thái:</strong> {task.status}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Độ ưu tiên:</strong> {task.priority}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Hạn chót:</strong> {task.deadline}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Mã dự án:</strong> {task.projectId}
+                    <strong>Thành viên:</strong>{" "}
+                    {team.assignedMembers.length > 0
+                      ? team.assignedMembers.join(", ")
+                      : "Không có thành viên"}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <button
-                    onClick={() => handleView(task.id)}
+                    onClick={() => handleView(team.id)}
                     className="flex items-center px-3 py-2 border border-gray-300 rounded hover:bg-gray-100 text-base"
                   >
                     <Eye className="w-5 h-5 mr-2" />
@@ -147,4 +138,4 @@ const TaskMember = () => {
   );
 };
 
-export default TaskMember;
+export default TeamMember;
