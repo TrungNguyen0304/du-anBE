@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Group Video Call - Leader & Member</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { margin: 5px 0; padding: 8px; width: 100%; max-width: 400px; }
+    video { width: 45%; margin: 10px; border: 1px solid #ccc; }
+    #notification { background: yellow; padding: 10px; margin-top: 10px; display: none; }
+    .video-container { display: flex; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <h2>Group Video Call</h2>
+
+  <label>User ID:</label>
+  <input type="text" id="userId" placeholder="User ID" />
+  <label>Group ID:</label>
+  <input type="text" id="groupId" placeholder="Group ID" />
+  <button onclick="initSocket()">🔌 Kết nối & Vào Nhóm</button>
+  <button onclick="startCall()">📞 Leader: Gọi nhóm</button>
+
+  <div id="notification">
+    <strong>📞 Nhóm đang có cuộc gọi!</strong>
+    <button onclick="joinCall()">🎥 Tham gia</button>
+  </div>
+
+  <div class="video-container" id="videos"></div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:8001");
+    const peerConnections = new Map();
+    const pendingCandidates = new Map();
+    const servers = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+    let localStream, userId, groupId;
+
+    function $(id) { return document.getElementById(id); }
+
+    async function initSocket() {
+      userId = $("userId").value;
+      groupId = $("groupId").value;
+      socket.emit("user-online", userId);
+      socket.emit("join-group", { userId, groupId });
+    }
+
+    async function startCall() {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      addVideoStream(userId, localStream, "You");
+
+      const offer = await createPeerAndOffer();
+      socket.emit("start-call", { groupId, userId, offer });
+    }
+
+    async function joinCall() {
+      $("notification").style.display = "none";
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      addVideoStream(userId, localStream, "You");
+    }
+
+    async function createPeerAndOffer() {
+      const pc = new RTCPeerConnection(servers);
+      peerConnections.set(userId, pc);
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          for (const [targetId] of peerConnections) {
+            if (targetId !== userId) {
+              socket.emit("ice-candidate", {
+                groupId,
+                userId,
+                toUserId: targetId,
+                candidate: event.candidate
+              });
+            }
+          }
+        }
+      };
+
+      pc.ontrack = (event) => {
+        addVideoStream("remote", event.streams[0], "Khách");
+      };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      return offer;
+    }
+
+    socket.on("call-started", async ({ userId: callerId, userName, offer }) => {
+      if (callerId === userId) return;
+      $("notification").style.display = "block";
+
+      window.joinCall = async () => {
+        $("notification").style.display = "none";
+
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        addVideoStream(userId, localStream, "You");
+
+        const pc = new RTCPeerConnection(servers);
+        peerConnections.set(callerId, pc);
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit("ice-candidate", {
+              groupId,
+              userId,
+              toUserId: callerId,
+              candidate: event.candidate
+            });
+          }
+        };
+
+        pc.ontrack = (event) => {
+          addVideoStream(callerId, event.streams[0], userName);
+        };
+
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        socket.emit("call-answer", {
+          groupId,
+          userId,
+          answer,
+          toUserId: callerId
+        });
+      };
+    });
+
+    socket.on("call-answer", async ({ userId: peerId, answer }) => {
+      const pc = peerConnections.get(userId);
+      if (pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        if (pendingCandidates.has(peerId)) {
+          for (const candidate of pendingCandidates.get(peerId)) {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+          pendingCandidates.delete(peerId);
+        }
+      }
+    });
+
+    socket.on("ice-candidate", async ({ userId: fromId, candidate }) => {
+      const pc = peerConnections.get(fromId);
+      if (pc && pc.remoteDescription) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } else {
+        if (!pendingCandidates.has(fromId)) pendingCandidates.set(fromId, []);
+        pendingCandidates.get(fromId).push(candidate);
+      }
+    });
+
+    function addVideoStream(id, stream, label) {
+      if (document.getElementById("video-" + id)) return;
+      const div = document.createElement("div");
+      const video = document.createElement("video");
+      const name = document.createElement("div");
+      video.id = "video-" + id;
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+      name.textContent = label;
+      div.appendChild(video);
+      div.appendChild(name);
+      $("videos").appendChild(div);
+    }
+  </script>
+</body>
+</html>
