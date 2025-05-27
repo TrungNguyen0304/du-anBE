@@ -7,7 +7,11 @@ const {
     getGroupMessages,
     sendGroupMessage,
     removeMember,
-    leaveGroup
+    leaveGroup,
+    startCall,
+    getCallStatus,
+    startScreenShare,
+    startFileTransfer
 } = require('../controller/group');
 const authenticateJWT = require('../middleware/auth.js');
 
@@ -28,9 +32,21 @@ router.get('/:groupId/messages', authenticateJWT, getGroupMessages);
 router.post('/:groupId/messages', authenticateJWT, sendGroupMessage);
 
 //  xóa một thành viên
-router.delete("/:groupId/members/:userId", authenticateJWT, removeMember); 
+router.delete("/:groupId/members/:userId", authenticateJWT, removeMember);
 
 //rời khỏi nhóm
-router.delete("/:groupId/leave", authenticateJWT, leaveGroup); 
+router.delete("/:groupId/leave", authenticateJWT, leaveGroup);
+
+// Khởi tạo cuộc gọi video
+router.post('/:groupId/call', authenticateJWT, startCall);
+
+// Lấy trạng thái cuộc gọi và chia sẻ màn hình
+router.get('/:groupId/call-status', authenticateJWT, getCallStatus);
+
+// Khởi tạo chia sẻ màn hình
+router.post('/:groupId/screen-share', authenticateJWT, startScreenShare);
+
+// Khởi tạo truyền file P2P
+router.post('/:groupId/file-transfer', authenticateJWT, startFileTransfer);
 
 module.exports = router;

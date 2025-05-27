@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat with WebRTC - Leader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.18.9/babel.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const socket = io('http://localhost:8001');
+        const userId = '6825a8a92b6891f456886f97'; // Leader's userId
+        const groupId = '68303fa5c6fbb63612918978'; // Group ID
+        const authToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1YThhOTJiNjg5MWY0NTY4ODZmOTciLCJuYW1lIjoiTmd1eeG7hW4gVsSDbiBI4bqjaSIsImVtYWlsIjoidmFuaGFpQGdtYWlsLmNvbSIsInJvbGUiOiJsZWFkZXIiLCJnZW5kZXIiOjAsImRhdGVPZkJpcnRoIjoiMjAyNS0wNS0xOFQwMDowMDowMC4wMDBaIiwicGhvbmVOdW1iZXIiOiIwMzI5NTc1NTQxIiwiYWRkcmVzcyI6ImzDtCBBMTYgcGjGsOG7nW5nIGdpYSBo4buZaSIsImlhdCI6MTc0ODI0MzU1NywiZXhwIjoxNzQ4MjYxNTU3fQ.nVfCxSZViZdRkxG5PDpdWv55PBFWDDH1P_ZBN5I1KEw';
+
+        function App() {
+            const [messages, setMessages] = React.useState([]);
+            const [message, setMessage] = React.useState('');
+            const [typing, setTyping] = React.useState(null);
+            const [callActive, setCallActive] = React.useState(false);
+            const [screenShares, setScreenShares] = React.useState({});
+            const [peers, setPeers] = React.useState({});
+            const [localStream, setLocalStream] = React.useState(null);
+            const [error, setError] = React.useState(null);
+            const [callNotification, setCallNotification] = React.useState(null);
+            const localVideoRef = React.useRef(null);
+            const messageInputRef = React.useRef(null);
+
+            // Socket.IO setup
+            React.useEffect(() => {
+                console.log('Leader: Connecting to Socket.IO');
+                socket.emit('user-online', userId);
+                socket.emit('join-group', { userId, groupId });
+
+                socket.on('connect', () => {
+                    console.log('Leader: Socket connected:', socket.id);
+                });
+
+                socket.on('group-message', (data) => {
+                    console.log('Leader: Received group-message:', data);
+                    setMessages((prev) => [...prev, data]);
+                });
+
+                socket.on('typing', ({ userId: typerId }) => {
+                    console.log('Leader: Typing from', typerId);
+                    setTyping(typerId);
+                    setTimeout(() => setTyping(null), 2000);
+                });
+
+                socket.on('call-started', ({ groupId, userId: callerId, userName, offer }) => {
+                    console.log('Leader: Received call-started:', { callerId, userName, offer });
+                    if (callerId !== userId && !callActive) {
+                        setCallNotification({ callerId, userName, offer }); // Store notification for joining
+                    }
+                    if (callActive) {
+                        setCallNotification(null);
+                    }
+                });
+
+                socket.on('call-answer', async ({ groupId, userId: answererId, answer }) => {
+                    console.log('Leader: Received call-answer from', answererId);
+                    const peer = peers[answererId] || peers[`${answererId}-screen`];
+                    if (peer) {
+                        try {
+                            await peer.setRemoteDescription(new RTCSessionDescription(answer));
+                        } catch (error) {
+                            console.error('Leader: Error setting remote description:', error);
+                            setError('Failed to process call answer: ' + error.message);
+                        }
+                    }
+                });
+
+                socket.on('ice-candidate', async ({ groupId, userId: senderId, candidate }) => {
+                    console.log('Leader: Received ice-candidate from', senderId);
+                    const peer = peers[senderId] || peers[`${senderId}-screen`];
+                    if (peer && candidate) {
+                        try {
+                            await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                        } catch (error) {
+                            console.error('Leader: Error adding ICE candidate:', error);
+                            setError('Failed to add ICE candidate: ' + error.message);
+                        }
+                    }
+                });
+
+                socket.on('call-ended', ({ userId: callerId }) => {
+                    console.log('Leader: Received call-ended from', callerId);
+                    if (peers[callerId]) {
+                        peers[callerId].close();
+                        setPeers((prev) => {
+                            const newPeers = { ...prev };
+                            delete newPeers[callerId];
+                            return newPeers;
+                        });
+                    }
+                    if (Object.keys(peers).length === 0) {
+                        setCallActive(false);
+                        if (localStream) {
+                            localStream.getTracks().forEach((track) => track.stop());
+                            setLocalStream(null);
+                        }
+                        setCallNotification(null);
+                    }
+                });
+
+                socket.on('screen-share-started', async ({ groupId, userId: sharerId, userName, offer }) => {
+                    console.log('Leader: Received screen-share-started:', { sharerId, userName, offer });
+                    setCallNotification({ type: 'screen-share', userName, sharerId });
+                    setTimeout(() => setCallNotification(null), 5000);
+                    if (sharerId !== userId) {
+                        const peer = createPeerConnection(`${sharerId}-screen`, 'screen');
+                        setPeers((prev) => ({ ...prev, [`${sharerId}-screen`]: peer }));
+
+                        try {
+                            await peer.setRemoteDescription(new RTCSessionDescription(offer));
+                            const answer = await peer.createAnswer();
+                            await peer.setLocalDescription(answer);
+
+                            console.log('Leader: Sending call-answer to', sharerId);
+                            socket.emit('call-answer', { groupId, userId, answer, toUserId: sharerId });
+                            setScreenShares((prev) => ({ ...prev, [sharerId]: true }));
+                        } catch (error) {
+                            console.error('Leader: Error handling screen-share-started:', error);
+                            setError('Failed to join screen share: ' + error.message);
+                        }
+                    }
+                });
+
+                socket.on('screen-share-stopped', ({ userId: sharerId }) => {
+                    console.log('Leader: Received screen-share-stopped from', sharerId);
+                    if (peers[`${sharerId}-screen`]) {
+                        peers[`${sharerId}-screen`].close();
+                        setPeers((prev) => {
+                            const newPeers = { ...prev };
+                            delete newPeers[`${sharerId}-screen`];
+                            return newPeers;
+                        });
+                    }
+                    setScreenShares((prev) => {
+                        const newShares = { ...prev };
+                        delete newShares[sharerId];
+                        return newShares;
+                    });
+                });
+
+                return () => {
+                    console.log('Leader: Disconnecting Socket.IO');
+                    socket.disconnect();
+                    if (localStream) {
+                        localStream.getTracks().forEach((track) => track.stop());
+                    }
+                    Object.values(peers).forEach((peer) => peer.close());
+                    setCallNotification(null);
+                };
+            }, []);
+
+            function createPeerConnection(peerId, type) {
+                console.log('Leader: Creating peer connection for', peerId, type);
+                const peer = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+                });
+
+                peer.onicecandidate = ({ candidate }) => {
+                    if (candidate) {
+                        console.log('Leader: Sending ice-candidate to', peerId);
+                        socket.emit('ice-candidate', { groupId, userId, candidate, toUserId: peerId.split('-')[0] });
+                    }
+                };
+
+                peer.ontrack = (event) => {
+                    console.log('Leader: Received remote track for', peerId, event.streams);
+                    const remoteVideo = document.getElementById(`video-${peerId}`);
+                    if (remoteVideo) {
+                        remoteVideo.srcObject = event.streams[0];
+                        console.log('Leader: Attached stream to video-', peerId);
+                    }
+                };
+
+                return peer;
+            }
+
+            const handleSendMessage = async (e) => {
+                e.preventDefault();
+                if (!message.trim()) return;
+
+                try {
+                    const response = await fetch(`http://localhost:8001/api/group/${groupId}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': authToken,
+                        },
+                        body: JSON.stringify({ message }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.statusText}`);
+                    }
+                    setMessage('');
+                    setError(null);
+                } catch (error) {
+                    console.error('Leader: Error sending message:', error);
+                    setError('Failed to send message: ' + error.message);
+                }
+            };
+
+            const handleTyping = () => {
+                socket.emit('typing', { userId, groupId });
+            };
+
+            const startCall = async () => {
+                try {
+                    console.log('Leader: Starting video call');
+                    const response = await fetch(`http://localhost:8001/api/group/${groupId}/call`, {
+                        method: 'POST',
+                        headers: { 'Authorization': authToken },
+                    });
+
+                    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    setLocalStream(stream);
+                    localVideoRef.current.srcObject = stream;
+
+                    const peer = createPeerConnection('6825bec97b2e3ab9579cee59', 'video');
+                    setPeers((prev) => ({ ...prev, '6825bec97b2e3ab9579cee59': peer }));
+
+                    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+                    const offer = await peer.createOffer();
+                    await peer.setLocalDescription(offer);
+
+                    socket.emit('start-call', { groupId, userId, offer });
+                    setCallActive(true);
+                    setCallNotification(null);
+                    setError(null);
+                } catch (error) {
+                    console.error('Leader: Error starting call:', error);
+                    setError('Failed to start video call: ' + error.message);
+                }
+            };
+
+            const joinCall = async (callerId, offer) => {
+                try {
+                    console.log('Leader: Joining video call from', callerId);
+                    const peer = createPeerConnection(callerId, 'video');
+                    setPeers((prev) => ({ ...prev, [callerId]: peer }));
+
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    setLocalStream(stream);
+                    localVideoRef.current.srcObject = stream;
+
+                    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+                    await peer.setRemoteDescription(new RTCSessionDescription(offer));
+                    const answer = await peer.createAnswer();
+                    await peer.setLocalDescription(answer);
+
+                    socket.emit('call-answer', { groupId, userId, answer, toUserId: callerId });
+                    setCallActive(true);
+                    setCallNotification(null);
+                    setError(null);
+                } catch (error) {
+                    console.error('Leader: Error joining call:', error);
+                    setError('Failed to join video call: ' + error.message);
+                }
+            };
+
+            const startScreenShare = async () => {
+                try {
+                    console.log('Leader: Starting screen share');
+                    const response = await fetch(`http://localhost:8001/api/group/${groupId}/screen-share`, {
+                        method: 'POST',
+                        headers: { 'Authorization': authToken },
+                    });
+
+                    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+
+                    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                    setLocalStream(stream);
+                    localVideoRef.current.srcObject = stream;
+
+                    const peer = createPeerConnection('6825bec97b2e3ab9579cee59-screen', 'screen');
+                    setPeers((prev) => ({ ...prev, ['6825bec97b2e3ab9579cee59-screen']: peer }));
+
+                    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+                    const offer = await peer.createOffer();
+                    await peer.setLocalDescription(offer);
+
+                    socket.emit('start-screen-share', { groupId, userId, offer });
+                    setScreenShares((prev) => ({ ...prev, [userId]: true }));
+                    setError(null);
+                } catch (error) {
+                    console.error('Leader: Error starting screen share:', error);
+                    setError('Failed to start screen share: ' + error.message);
+                }
+            };
+
+            const endCall = () => {
+                console.log('Leader: Ending call');
+                socket.emit('end-call', { groupId, userId });
+                socket.emit('stop-screen-share', { groupId, userId });
+                if (localStream) {
+                    localStream.getTracks().forEach((track) => track.stop());
+                    setLocalStream(null);
+                }
+                Object.values(peers).forEach((peer) => peer.close());
+                setPeers({});
+                setCallActive(false);
+                setScreenShares({});
+                setError(null);
+                setCallNotification(null);
+            };
+
+            React.useEffect(() => {
+                const fetchMessages = async () => {
+                    try {
+                        const response = await fetch(`http://localhost:8001/api/group/${groupId}/messages`, {
+                            headers: { 'Authorization': authToken },
+                        });
+                        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            setMessages(data);
+                        } else {
+                            console.error('Leader: API response is not an array:', data);
+                            setError('Invalid message data received from server');
+                        }
+                    } catch (error) {
+                        console.error('Leader: Error fetching messages:', error);
+                        setError('Failed to load messages: ' + error.message);
+                    }
+                };
+                fetchMessages();
+            }, []);
+
+            return (
+                <div className="container mx-auto p-4">
+                    <h1 className="text-2xl font-bold mb-4">Group Chat - Leader</h1>
+                    {error && (
+                        <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">{error}</div>
+                    )}
+                    {callNotification && (
+                        <div className="bg-blue-100 text-blue-700 p-4 mb-4 rounded">
+                            {callNotification.type === 'screen-share' ? (
+                                `${callNotification.userName} has started screen sharing`
+                            ) : (
+                                <button
+                                    onClick={() => joinCall(callNotification.callerId, callNotification.offer)}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                                >
+                                    {`${callNotification.userName} has started a video call. Click to join.`}
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <div className="mb-4">
+                        <button
+                            onClick={startCall}
+                            className="bg-blue-500 text-white px-4 py-2 rounded mr-2 disabled:bg-gray-400"
+                            disabled={callActive}
+                        >
+                            Start Video Call
+                        </button>
+                        <button
+                            onClick={startScreenShare}
+                            className="bg-green-500 text-white px-4 py-2 rounded mr-2 disabled:bg-gray-400"
+                            disabled={screenShares[userId]}
+                        >
+                            Start Screen Share
+                        </button>
+                        <button
+                            onClick={endCall}
+                            className="bg-red-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                            // disabled={!callActive && !Object.keys(screenShares).length}
+                        >
+                            End Call/Share
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <h2 className="text-xl font-semibold">Local Video</h2>
+                            <video ref={localVideoRef} autoPlay muted className="w-full h-64 bg-black"></video>
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-semibold">Remote Video</h2>
+                            {Object.keys(peers).map((peerId) => (
+                                <div key={peerId}>
+                                    <p>{peerId.includes('screen') ? 'Screen Share' : 'Video'} from {peerId.split('-')[0]}</p>
+                                    <video
+                                        id={`video-${peerId}`}
+                                        autoPlay
+                                        className="w-full h-64 bg-black mb-2"
+                                    ></video>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="border p-4 h-96 overflow-y-auto mb-4">
+                        {Array.isArray(messages) && messages.length > 0 ? (
+                            messages.map((msg, index) => (
+                                <div key={index} className={`mb-2 ${msg.senderId === userId ? 'text-right' : 'text-left'}`}>
+                                    <span className="font-bold">{msg.senderName || 'Unknown'}: </span>
+                                    <span>{msg.message}</span>
+                                    <span className="text-xs text-gray-500 ml-2">
+                                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'N/A'}
+                                    </span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500">No messages available</div>
+                        )}
+                        {typing && typing !== userId && (
+                            <div className="text-gray-500 italic">Someone is typing...</div>
+                        )}
+                    </div>
+                    <form onSubmit={handleSendMessage} className="flex">
+                        <input
+                            ref={messageInputRef}
+                            type="text"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyPress={handleTyping}
+                            className="flex-grow border p-2 rounded-l"
+                            placeholder="Type a message..."
+                        />
+                        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-r">
+                            Send
+                        </button>
+                    </form>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
