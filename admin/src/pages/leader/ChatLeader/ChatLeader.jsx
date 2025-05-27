@@ -23,12 +23,31 @@ const ChatLeader = () => {
   const chatEndRef = useRef(null);
   const addMemberRef = useRef(null);
   const createGroupRef = useRef(null);
+  const socketRef = useRef(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user")) || {
     _id: "",
     name: "Guest",
   };
-  const socketRef = useRef(io(SOCKET_URL));
+
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Socket connected:", socketRef.current.id);
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
 
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -192,7 +211,6 @@ const ChatLeader = () => {
           system: true,
         };
         setMessages((prev) => [...prev, systemMessage]);
-        // Only update group data without refetching messages
         const fetchGroupData = async () => {
           try {
             const token = localStorage.getItem("token");
@@ -302,7 +320,6 @@ const ChatLeader = () => {
       setSelectedGroup({ ...res.data.group, members: res.data.group.members || [] });
       setNewMemberId("");
       setAddingMember(false);
-      // Notify via socket (already handled by backend)
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi thêm thành viên");
     }
@@ -322,7 +339,6 @@ const ChatLeader = () => {
         members: prev.members.filter((_, i) => i !== index),
       }));
       setSelectedMemberIndex(null);
-      // Notify via socket (already handled by backend)
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi xóa thành viên");
     }
@@ -333,14 +349,27 @@ const ChatLeader = () => {
     if (!selectedGroup?._id) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`${API_URL}/${selectedGroup._id}/leave`, {}, {
+      if (!token) {
+        setError("Không tìm thấy token. Vui lòng đăng nhập lại.");
+        return;
+      }
+      await axios.delete(`${API_URL}/${selectedGroup._id}/leave`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setGroups((prev) => prev.filter((group) => group._id !== selectedGroup._id));
       setSelectedGroup(null);
       setHasLeftGroup(true);
+      socketRef.current.emit("leave-group", {
+        userId: currentUser._id,
+        groupId: selectedGroup._id,
+      });
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi rời nhóm");
+      if (err.response?.status === 401) {
+        setError("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+        // Optionally redirect to login page
+        // navigate("/login");
+      }
     }
   };
 
@@ -428,7 +457,7 @@ const ChatLeader = () => {
                 </option>
               ))}
             </select>
-            <button
+            <button 
               onClick={handleCreateGroup}
               className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
@@ -443,9 +472,8 @@ const ChatLeader = () => {
             <button
               key={group._id}
               onClick={() => setSelectedGroup(group)}
-              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${
-                selectedGroup?._id === group._id ? "bg-blue-100 font-semibold" : "bg-white"
-              } shadow-sm`}
+              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${selectedGroup?._id === group._id ? "bg-blue-100 font-semibold" : "bg-white"
+                } shadow-sm`}
             >
               {group.name}
             </button>
@@ -470,7 +498,7 @@ const ChatLeader = () => {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => navigate("/chat/video-call")}
+                onClick={() => navigate(`/chat/video-call/${selectedGroup._id}`)}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 title="Bắt đầu cuộc gọi video"
               >
@@ -623,23 +651,20 @@ const ChatLeader = () => {
                     key={msg._id || msg.timestamp}
                     className="text-center text-xs italic text-gray-500 mb-3"
                   >
-                  
+                    {msg.text}
                   </div>
                 );
               }
               return (
                 <div
                   key={msg._id || msg.timestamp}
-                  className={`mb-4 flex flex-col ${
-                    isCurrentUser ? "items-end" : "items-start"
-                  }`}
+                  className={`mb-4 flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[70%] px-4 py-2 rounded-lg ${
-                      isCurrentUser
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : "bg-white border border-gray-300 rounded-bl-none"
-                    } shadow`}
+                    className={`max-w-[70%] px-4 py-2 rounded-lg ${isCurrentUser
+                      ? "bg-blue-600 text-white rounded-br-none"
+                      : "bg-white border border-gray-300 rounded-bl-none"
+                      } shadow`}
                   >
                     {!isCurrentUser && (
                       <div className="text-xs font-semibold mb-1 text-gray-600">
