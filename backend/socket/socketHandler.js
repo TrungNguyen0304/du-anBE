@@ -162,6 +162,11 @@ function setupSocket(io) {
         socket.on("start-screen-share", async ({ groupId, userId, offer }) => {
             if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(userId)) return;
 
+            if (!offer) {
+                console.warn("🛑 Không có offer để chia sẻ màn hình từ:", userId);
+                return;
+            }
+
             try {
                 if (!screenShares.has(groupId)) screenShares.set(groupId, new Set());
                 screenShares.get(groupId).add(userId);
@@ -169,14 +174,14 @@ function setupSocket(io) {
                 const user = await mongoose.model("User").findById(userId).select("name");
                 if (!user) return;
 
-                socket.to(groupId).emit("screen-share-started", {
+                io.to(groupId).emit("screen-share-started", {
                     groupId,
                     userId,
                     userName: user.name,
                     offer,
                 });
-            } catch (err) {
-                console.error("Lỗi start-screen-share:", err);
+            } catch (error) {
+                console.error("Lỗi start-screen-share:", error);
             }
         });
 
