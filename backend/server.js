@@ -28,7 +28,7 @@ const allowedOrigins = [
   "https://du-an-be-zcax.vercel.app",
   "https://du-an-be-svrj.vercel.app",
   "http://127.0.0.1:5500",
-
+ 
 ];
 
 
