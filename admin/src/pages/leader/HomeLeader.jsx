@@ -130,14 +130,15 @@ const HomeLeader = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-screen-xl mx-auto">
+    <div className="p-4 md:p-6 space-y-6 w-full mx-auto">
       <div>
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
           Trang Chủ Leader
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      {/* Thẻ tổng quan */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { title: "Tổng Nhân Viên", value: 42 },
           { title: "Nhiệm Vụ Đã Giao", value: 24 },
@@ -145,14 +146,15 @@ const HomeLeader = () => {
           { title: "Dự Án Đang Thực Hiện", value: 6 },
         ].map((item, idx) => (
           <div key={idx} className="bg-white p-4 rounded-xl shadow text-center">
+            <p className="text-2xl font-bold text-blue-600">{item.value}</p>
             <h3 className="text-sm md:text-base font-semibold text-gray-700">
               {item.title}
             </h3>
-            <p className="text-2xl font-bold text-blue-600">{item.value}</p>
           </div>
         ))}
       </div>
 
+      {/* Biểu đồ */}
       <div className="bg-white p-4 rounded-xl shadow">
         <h3 className="text-lg md:text-xl font-bold mb-4 text-gray-800">
           Biểu Đồ Nhiệm Vụ Theo Tháng
@@ -182,12 +184,13 @@ const HomeLeader = () => {
         </div>
       </div>
 
+      {/* Nhiệm vụ gần nhất */}
       <div className="bg-white p-4 rounded-xl shadow">
         <h3 className="text-lg md:text-xl font-bold mb-4 text-gray-800">
           Nhiệm Vụ Gần Nhất
         </h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border text-sm">
+          <table className="min-w-full table-auto border text-xs sm:text-sm">
             <thead>
               <tr className="bg-gray-100 text-left">
                 <th className="p-2 border">#</th>
@@ -211,12 +214,13 @@ const HomeLeader = () => {
         {renderPagination(tasks.length, taskPage, setTaskPage)}
       </div>
 
+      {/* Dự án mới nhất */}
       <div className="bg-white p-4 rounded-xl shadow">
         <h3 className="text-lg md:text-xl font-bold mb-4 text-gray-800">
           Dự Án Mới Nhất
         </h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border text-sm">
+          <table className="min-w-full table-auto border text-xs sm:text-sm">
             <thead>
               <tr className="bg-gray-100 text-left">
                 <th className="p-2 border">#</th>

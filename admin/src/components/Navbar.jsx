@@ -37,7 +37,7 @@ const Navbar = ({ userId }) => {
   };
 
   return (
-    <nav className="w-full bg-white shadow-md px-4 sm:px-6 py-5 flex items-center justify-end">
+    <nav className="w-full bg-white shadow-md px-4 sm:px-6 py-5 flex items-center justify-end sticky top-0 z-10">
       <div
         className="flex items-center gap-2 sm:gap-4 relative"
         ref={dropdownRef}

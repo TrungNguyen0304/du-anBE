@@ -250,7 +250,7 @@ const FeedbackMember = () => {
           {paginatedFeedbacks.map((feedback, index) => (
             <div
               key={feedback.id}
-              className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md"
+              className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm"
             >
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div>
