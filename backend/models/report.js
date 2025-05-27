@@ -16,6 +16,12 @@ const reportSchema = new Schema({
         min: 0,
         max: 100
     },
+    projectProgress: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 100
+    },
     
     task: {
         type: mongoose.Schema.Types.ObjectId,
