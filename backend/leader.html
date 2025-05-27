@@ -3,439 +3,699 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Chat with WebRTC - Leader</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.18.9/babel.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Group Chat with WebRTC - Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        #authForm, #groupList, #chatBox, #videoGrid, #callNotification {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        #authForm input {
+            padding: 8px;
+            margin: 5px;
+            width: calc(100% - 20px);
+            font-size: 16px;
+        }
+        #connectButton {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #connectButton:hover {
+            background-color: #218838;
+        }
+        #groupList select {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+        }
+        #videoGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        video {
+            width: 100%;
+            max-height: 200px;
+            background: black;
+            border-radius: 4px;
+        }
+        #chatMessages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: calc(100% - 90px);
+            padding: 8px;
+        }
+        #sendMessage, #startCall, #cancelCall, #startScreenShare, #stopScreenShare, #selectFile, #joinCall {
+            padding: 8px 15px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #sendMessage:hover, #startCall:hover, #cancelCall:hover, #startScreenShare:hover, #stopScreenShare:hover, #selectFile:hover, #joinCall:hover {
+            background-color: #0056b3;
+        }
+        #status, #callNotification {
+            margin-top: 10px;
+            color: #333;
+        }
+        #callNotification {
+            background-color: #e7f3fe;
+            border-color: #b6d4fe;
+        }
+        #callNotification button {
+            background-color: #28a745;
+        }
+        #callNotification button:hover {
+            background-color: #218838;
+        }
+        .typing-indicator {
+            font-style: italic;
+            color: #666;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .message .sender {
+            font-weight: bold;
+        }
+        #connectionStatus {
+            color: #d33;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const socket = io('http://localhost:8001');
-        const userId = '6825a8a92b6891f456886f97'; // Leader's userId
-        const groupId = '68303fa5c6fbb63612918978'; // Group ID
-        const authToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1YThhOTJiNjg5MWY0NTY4ODZmOTciLCJuYW1lIjoiTmd1eeG7hW4gVsSDbiBI4bqjaSIsImVtYWlsIjoidmFuaGFpQGdtYWlsLmNvbSIsInJvbGUiOiJsZWFkZXIiLCJnZW5kZXIiOjAsImRhdGVPZkJpcnRoIjoiMjAyNS0wNS0xOFQwMDowMDowMC4wMDBaIiwicGhvbmVOdW1iZXIiOiIwMzI5NTc1NTQxIiwiYWRkcmVzcyI6ImzDtCBBMTYgcGjGsOG7nW5nIGdpYSBo4buZaSIsImlhdCI6MTc0ODI0MzU1NywiZXhwIjoxNzQ4MjYxNTU3fQ.nVfCxSZViZdRkxG5PDpdWv55PBFWDDH1P_ZBN5I1KEw';
+    <div class="container">
+        <h1>Group Chat with WebRTC - Test Interface</h1>
 
-        function App() {
-            const [messages, setMessages] = React.useState([]);
-            const [message, setMessage] = React.useState('');
-            const [typing, setTyping] = React.useState(null);
-            const [callActive, setCallActive] = React.useState(false);
-            const [screenShares, setScreenShares] = React.useState({});
-            const [peers, setPeers] = React.useState({});
-            const [localStream, setLocalStream] = React.useState(null);
-            const [error, setError] = React.useState(null);
-            const [callNotification, setCallNotification] = React.useState(null);
-            const localVideoRef = React.useRef(null);
-            const messageInputRef = React.useRef(null);
+        <!-- Authentication Form -->
+        <div id="authForm">
+            <h3>Enter Credentials</h3>
+            <input type="text" id="userIdInput" placeholder="Enter User ID">
+            <input type="text" id="groupIdInput" placeholder="Enter Group ID">
+            <input type="text" id="tokenInput" placeholder="Enter Token">
+            <button id="connectButton" onclick="connect()">Connect</button>
+            <div id="connectionStatus"></div>
+        </div>
 
-            // Socket.IO setup
-            React.useEffect(() => {
-                console.log('Leader: Connecting to Socket.IO');
-                socket.emit('user-online', userId);
-                socket.emit('join-group', { userId, groupId });
+        <!-- Call Notification -->
+        <div id="callNotification" style="display: none;">
+            <span id="callNotificationText"></span>
+            <button id="joinCall" onclick="joinCall()">Join Call</button>
+        </div>
 
-                socket.on('connect', () => {
-                    console.log('Leader: Socket connected:', socket.id);
-                });
+        <!-- Group Selection -->
+        <div id="groupList">
+            <h3>Select or Enter Group</h3>
+            <select id="groupSelect" onchange="joinGroup()">
+                <option value="">Select a group</option>
+            </select>
+        </div>
 
-                socket.on('group-message', (data) => {
-                    console.log('Leader: Received group-message:', data);
-                    setMessages((prev) => [...prev, data]);
-                });
+        <!-- Video Grid -->
+        <div id="videoGrid"></div>
 
-                socket.on('typing', ({ userId: typerId }) => {
-                    console.log('Leader: Typing from', typerId);
-                    setTyping(typerId);
-                    setTimeout(() => setTyping(null), 2000);
-                });
+        <!-- Chat Box -->
+        <div id="chatBox">
+            <h3>Group Chat</h3>
+            <div id="chatMessages"></div>
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleTyping(event)">
+            <button id="sendMessage" onclick="sendMessage()">Send</button>
+            <div id="status"></div>
+        </div>
 
-                socket.on('call-started', ({ groupId, userId: callerId, userName, offer }) => {
-                    console.log('Leader: Received call-started:', { callerId, userName, offer });
-                    if (callerId !== userId && !callActive) {
-                        setCallNotification({ callerId, userName, offer }); // Store notification for joining
-                    }
-                    if (callActive) {
-                        setCallNotification(null);
-                    }
-                });
+        <!-- Call and Screen Share Controls -->
+        <div>
+            <button id="startCall" onclick="startCall()">Start Video Call</button>
+            <button id="cancelCall" onclick="cancelCall()" style="display: none;">Cancel Video Call</button>
+            <button id="startScreenShare" onclick="startScreenShare()">Start Screen Share</button>
+            <button id="stopScreenShare" onclick="stopScreenShare()" style="display: none;">Stop Screen Share</button>
+            <input type="file" id="fileInput" style="display: none;" onchange="startFileTransfer()">
+            <button id="selectFile" onclick="document.getElementById('fileInput').click()">Share File</button>
+        </div>
+    </div>
 
-                socket.on('call-answer', async ({ groupId, userId: answererId, answer }) => {
-                    console.log('Leader: Received call-answer from', answererId);
-                    const peer = peers[answererId] || peers[`${answererId}-screen`];
-                    if (peer) {
-                        try {
-                            await peer.setRemoteDescription(new RTCSessionDescription(answer));
-                        } catch (error) {
-                            console.error('Leader: Error setting remote description:', error);
-                            setError('Failed to process call answer: ' + error.message);
-                        }
-                    }
-                });
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // Configuration
+        let socket = null;
+        let userId = null;
+        let currentGroupId = null;
+        let token = null;
+        let localStream = null;
+        let screenStream = null;
+        const peerConnections = new Map(); // userId -> RTCPeerConnection
+        const videoElements = new Map(); // userId -> video element
+        let isInCall = false;
+        let isScreenSharing = false;
 
-                socket.on('ice-candidate', async ({ groupId, userId: senderId, candidate }) => {
-                    console.log('Leader: Received ice-candidate from', senderId);
-                    const peer = peers[senderId] || peers[`${senderId}-screen`];
-                    if (peer && candidate) {
-                        try {
-                            await peer.addIceCandidate(new RTCIceCandidate(candidate));
-                        } catch (error) {
-                            console.error('Leader: Error adding ICE candidate:', error);
-                            setError('Failed to add ICE candidate: ' + error.message);
-                        }
-                    }
-                });
+        // WebRTC Configuration
+        const servers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' }
+            ]
+        };
 
-                socket.on('call-ended', ({ userId: callerId }) => {
-                    console.log('Leader: Received call-ended from', callerId);
-                    if (peers[callerId]) {
-                        peers[callerId].close();
-                        setPeers((prev) => {
-                            const newPeers = { ...prev };
-                            delete newPeers[callerId];
-                            return newPeers;
-                        });
-                    }
-                    if (Object.keys(peers).length === 0) {
-                        setCallActive(false);
-                        if (localStream) {
-                            localStream.getTracks().forEach((track) => track.stop());
-                            setLocalStream(null);
-                        }
-                        setCallNotification(null);
-                    }
-                });
+        // Connect to Socket.IO and Initialize
+        function connect() {
+            userId = document.getElementById('userIdInput').value.trim();
+            currentGroupId = document.getElementById('groupIdInput').value.trim();
+            token = document.getElementById('tokenInput').value.trim();
+            const connectionStatus = document.getElementById('connectionStatus');
 
-                socket.on('screen-share-started', async ({ groupId, userId: sharerId, userName, offer }) => {
-                    console.log('Leader: Received screen-share-started:', { sharerId, userName, offer });
-                    setCallNotification({ type: 'screen-share', userName, sharerId });
-                    setTimeout(() => setCallNotification(null), 5000);
-                    if (sharerId !== userId) {
-                        const peer = createPeerConnection(`${sharerId}-screen`, 'screen');
-                        setPeers((prev) => ({ ...prev, [`${sharerId}-screen`]: peer }));
-
-                        try {
-                            await peer.setRemoteDescription(new RTCSessionDescription(offer));
-                            const answer = await peer.createAnswer();
-                            await peer.setLocalDescription(answer);
-
-                            console.log('Leader: Sending call-answer to', sharerId);
-                            socket.emit('call-answer', { groupId, userId, answer, toUserId: sharerId });
-                            setScreenShares((prev) => ({ ...prev, [sharerId]: true }));
-                        } catch (error) {
-                            console.error('Leader: Error handling screen-share-started:', error);
-                            setError('Failed to join screen share: ' + error.message);
-                        }
-                    }
-                });
-
-                socket.on('screen-share-stopped', ({ userId: sharerId }) => {
-                    console.log('Leader: Received screen-share-stopped from', sharerId);
-                    if (peers[`${sharerId}-screen`]) {
-                        peers[`${sharerId}-screen`].close();
-                        setPeers((prev) => {
-                            const newPeers = { ...prev };
-                            delete newPeers[`${sharerId}-screen`];
-                            return newPeers;
-                        });
-                    }
-                    setScreenShares((prev) => {
-                        const newShares = { ...prev };
-                        delete newShares[sharerId];
-                        return newShares;
-                    });
-                });
-
-                return () => {
-                    console.log('Leader: Disconnecting Socket.IO');
-                    socket.disconnect();
-                    if (localStream) {
-                        localStream.getTracks().forEach((track) => track.stop());
-                    }
-                    Object.values(peers).forEach((peer) => peer.close());
-                    setCallNotification(null);
-                };
-            }, []);
-
-            function createPeerConnection(peerId, type) {
-                console.log('Leader: Creating peer connection for', peerId, type);
-                const peer = new RTCPeerConnection({
-                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-                });
-
-                peer.onicecandidate = ({ candidate }) => {
-                    if (candidate) {
-                        console.log('Leader: Sending ice-candidate to', peerId);
-                        socket.emit('ice-candidate', { groupId, userId, candidate, toUserId: peerId.split('-')[0] });
-                    }
-                };
-
-                peer.ontrack = (event) => {
-                    console.log('Leader: Received remote track for', peerId, event.streams);
-                    const remoteVideo = document.getElementById(`video-${peerId}`);
-                    if (remoteVideo) {
-                        remoteVideo.srcObject = event.streams[0];
-                        console.log('Leader: Attached stream to video-', peerId);
-                    }
-                };
-
-                return peer;
+            if (!userId || !currentGroupId || !token) {
+                connectionStatus.textContent = 'Please enter User ID, Group ID, and Token';
+                return;
             }
 
-            const handleSendMessage = async (e) => {
-                e.preventDefault();
-                if (!message.trim()) return;
+            // Initialize Socket.IO
+            socket = io('http://localhost:8001', {
+                auth: { token }
+            });
 
-                try {
-                    const response = await fetch(`http://localhost:8001/api/group/${groupId}/messages`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': authToken,
-                        },
-                        body: JSON.stringify({ message }),
-                    });
+            socket.on('connect', () => {
+                connectionStatus.textContent = 'Connected to server';
+                connectionStatus.style.color = '#28a745';
+                socket.emit('user-online', userId);
+                joinGroup();
+                fetchGroups();
+            });
 
-                    if (!response.ok) {
-                        throw new Error(`API error: ${response.statusText}`);
-                    }
-                    setMessage('');
-                    setError(null);
-                } catch (error) {
-                    console.error('Leader: Error sending message:', error);
-                    setError('Failed to send message: ' + error.message);
-                }
-            };
+            socket.on('connect_error', (err) => {
+                connectionStatus.textContent = `Connection failed: ${err.message}`;
+            });
 
-            const handleTyping = () => {
-                socket.emit('typing', { userId, groupId });
-            };
-
-            const startCall = async () => {
-                try {
-                    console.log('Leader: Starting video call');
-                    const response = await fetch(`http://localhost:8001/api/group/${groupId}/call`, {
-                        method: 'POST',
-                        headers: { 'Authorization': authToken },
-                    });
-
-                    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    setLocalStream(stream);
-                    localVideoRef.current.srcObject = stream;
-
-                    const peer = createPeerConnection('6825bec97b2e3ab9579cee59', 'video');
-                    setPeers((prev) => ({ ...prev, '6825bec97b2e3ab9579cee59': peer }));
-
-                    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
-                    const offer = await peer.createOffer();
-                    await peer.setLocalDescription(offer);
-
-                    socket.emit('start-call', { groupId, userId, offer });
-                    setCallActive(true);
-                    setCallNotification(null);
-                    setError(null);
-                } catch (error) {
-                    console.error('Leader: Error starting call:', error);
-                    setError('Failed to start video call: ' + error.message);
-                }
-            };
-
-            const joinCall = async (callerId, offer) => {
-                try {
-                    console.log('Leader: Joining video call from', callerId);
-                    const peer = createPeerConnection(callerId, 'video');
-                    setPeers((prev) => ({ ...prev, [callerId]: peer }));
-
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    setLocalStream(stream);
-                    localVideoRef.current.srcObject = stream;
-
-                    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
-                    await peer.setRemoteDescription(new RTCSessionDescription(offer));
-                    const answer = await peer.createAnswer();
-                    await peer.setLocalDescription(answer);
-
-                    socket.emit('call-answer', { groupId, userId, answer, toUserId: callerId });
-                    setCallActive(true);
-                    setCallNotification(null);
-                    setError(null);
-                } catch (error) {
-                    console.error('Leader: Error joining call:', error);
-                    setError('Failed to join video call: ' + error.message);
-                }
-            };
-
-            const startScreenShare = async () => {
-                try {
-                    console.log('Leader: Starting screen share');
-                    const response = await fetch(`http://localhost:8001/api/group/${groupId}/screen-share`, {
-                        method: 'POST',
-                        headers: { 'Authorization': authToken },
-                    });
-
-                    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-
-                    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                    setLocalStream(stream);
-                    localVideoRef.current.srcObject = stream;
-
-                    const peer = createPeerConnection('6825bec97b2e3ab9579cee59-screen', 'screen');
-                    setPeers((prev) => ({ ...prev, ['6825bec97b2e3ab9579cee59-screen']: peer }));
-
-                    stream.getTracks().forEach((track) => peer.addTrack(track, stream));
-                    const offer = await peer.createOffer();
-                    await peer.setLocalDescription(offer);
-
-                    socket.emit('start-screen-share', { groupId, userId, offer });
-                    setScreenShares((prev) => ({ ...prev, [userId]: true }));
-                    setError(null);
-                } catch (error) {
-                    console.error('Leader: Error starting screen share:', error);
-                    setError('Failed to start screen share: ' + error.message);
-                }
-            };
-
-            const endCall = () => {
-                console.log('Leader: Ending call');
-                socket.emit('end-call', { groupId, userId });
-                socket.emit('stop-screen-share', { groupId, userId });
-                if (localStream) {
-                    localStream.getTracks().forEach((track) => track.stop());
-                    setLocalStream(null);
-                }
-                Object.values(peers).forEach((peer) => peer.close());
-                setPeers({});
-                setCallActive(false);
-                setScreenShares({});
-                setError(null);
-                setCallNotification(null);
-            };
-
-            React.useEffect(() => {
-                const fetchMessages = async () => {
-                    try {
-                        const response = await fetch(`http://localhost:8001/api/group/${groupId}/messages`, {
-                            headers: { 'Authorization': authToken },
-                        });
-                        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-                        const data = await response.json();
-                        if (Array.isArray(data)) {
-                            setMessages(data);
-                        } else {
-                            console.error('Leader: API response is not an array:', data);
-                            setError('Invalid message data received from server');
-                        }
-                    } catch (error) {
-                        console.error('Leader: Error fetching messages:', error);
-                        setError('Failed to load messages: ' + error.message);
-                    }
-                };
-                fetchMessages();
-            }, []);
-
-            return (
-                <div className="container mx-auto p-4">
-                    <h1 className="text-2xl font-bold mb-4">Group Chat - Leader</h1>
-                    {error && (
-                        <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">{error}</div>
-                    )}
-                    {callNotification && (
-                        <div className="bg-blue-100 text-blue-700 p-4 mb-4 rounded">
-                            {callNotification.type === 'screen-share' ? (
-                                `${callNotification.userName} has started screen sharing`
-                            ) : (
-                                <button
-                                    onClick={() => joinCall(callNotification.callerId, callNotification.offer)}
-                                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                                >
-                                    {`${callNotification.userName} has started a video call. Click to join.`}
-                                </button>
-                            )}
-                        </div>
-                    )}
-                    <div className="mb-4">
-                        <button
-                            onClick={startCall}
-                            className="bg-blue-500 text-white px-4 py-2 rounded mr-2 disabled:bg-gray-400"
-                            disabled={callActive}
-                        >
-                            Start Video Call
-                        </button>
-                        <button
-                            onClick={startScreenShare}
-                            className="bg-green-500 text-white px-4 py-2 rounded mr-2 disabled:bg-gray-400"
-                            disabled={screenShares[userId]}
-                        >
-                            Start Screen Share
-                        </button>
-                        <button
-                            onClick={endCall}
-                            className="bg-red-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                            // disabled={!callActive && !Object.keys(screenShares).length}
-                        >
-                            End Call/Share
-                        </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <h2 className="text-xl font-semibold">Local Video</h2>
-                            <video ref={localVideoRef} autoPlay muted className="w-full h-64 bg-black"></video>
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-semibold">Remote Video</h2>
-                            {Object.keys(peers).map((peerId) => (
-                                <div key={peerId}>
-                                    <p>{peerId.includes('screen') ? 'Screen Share' : 'Video'} from {peerId.split('-')[0]}</p>
-                                    <video
-                                        id={`video-${peerId}`}
-                                        autoPlay
-                                        className="w-full h-64 bg-black mb-2"
-                                    ></video>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="border p-4 h-96 overflow-y-auto mb-4">
-                        {Array.isArray(messages) && messages.length > 0 ? (
-                            messages.map((msg, index) => (
-                                <div key={index} className={`mb-2 ${msg.senderId === userId ? 'text-right' : 'text-left'}`}>
-                                    <span className="font-bold">{msg.senderName || 'Unknown'}: </span>
-                                    <span>{msg.message}</span>
-                                    <span className="text-xs text-gray-500 ml-2">
-                                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'N/A'}
-                                    </span>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-gray-500">No messages available</div>
-                        )}
-                        {typing && typing !== userId && (
-                            <div className="text-gray-500 italic">Someone is typing...</div>
-                        )}
-                    </div>
-                    <form onSubmit={handleSendMessage} className="flex">
-                        <input
-                            ref={messageInputRef}
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyPress={handleTyping}
-                            className="flex-grow border p-2 rounded-l"
-                            placeholder="Type a message..."
-                        />
-                        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-r">
-                            Send
-                        </button>
-                    </form>
-                </div>
-            );
+            // Setup Socket.IO event listeners
+            setupSocketEvents();
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        // Fetch Groups
+        async function fetchGroups() {
+            try {
+                const response = await fetch('http://localhost:8001/api/group', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to fetch groups');
+                const groups = await response.json();
+                const select = document.getElementById('groupSelect');
+                select.innerHTML = '<option value="">Select a group</option>';
+                groups.forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group._id;
+                    option.textContent = group.name;
+                    select.appendChild(option);
+                });
+                select.value = currentGroupId;
+            } catch (err) {
+                document.getElementById('connectionStatus').textContent = `Error fetching groups: ${err.message}`;
+            }
+        }
+
+        // Join Group
+        async function joinGroup() {
+            const select = document.getElementById('groupSelect');
+            const selectedGroupId = select.value;
+            if (selectedGroupId) {
+                currentGroupId = selectedGroupId;
+            }
+            if (!currentGroupId || !userId) return;
+
+            socket.emit('join-group', { userId, groupId: currentGroupId });
+            await fetchMessages();
+            updateCallStatus();
+            document.getElementById('connectionStatus').textContent = `Joined group ${currentGroupId}`;
+        }
+
+        // Fetch Messages
+        async function fetchMessages() {
+            if (!currentGroupId) return;
+            try {
+                const response = await fetch(`http://localhost:8001/api/group/${currentGroupId}/messages`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to fetch messages');
+                const messages = await response.json();
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = '';
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'message';
+                    div.innerHTML = `<span class="sender">${msg.senderName}:</span> ${msg.message || msg.fileName}`;
+                    chatMessages.appendChild(div);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (err) {
+                document.getElementById('status').textContent = `Error fetching messages: ${err.message}`;
+            }
+        }
+
+        // Send Message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message || !currentGroupId) return;
+
+            try {
+                const response = await fetch(`http://localhost:8001/api/group/${currentGroupId}/message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message })
+                });
+                if (!response.ok) throw new Error('Failed to send message');
+                input.value = '';
+            } catch (err) {
+                document.getElementById('status').textContent = `Error sending message: ${err.message}`;
+            }
+        }
+
+        // Handle Typing
+        function handleTyping(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+                return;
+            }
+            socket.emit('typing', { userId, groupId: currentGroupId });
+        }
+
+        // Start Video Call
+        async function startCall() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                addVideoStream(userId, localStream, 'You');
+
+                const response = await fetch(`http://localhost:8001/api/group/${currentGroupId}/call`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to start call');
+
+                socket.emit('start-call', {
+                    groupId: currentGroupId,
+                    userId,
+                    offer: await createOffer(userId)
+                });
+
+                isInCall = true;
+                document.getElementById('startCall').style.display = 'none';
+                document.getElementById('cancelCall').style.display = 'inline-block';
+            } catch (err) {
+                document.getElementById('status').textContent = `Error starting call: ${err.message}`;
+            }
+        }
+
+        // Cancel Video Call
+        function cancelCall() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            for (const [id, pc] of peerConnections) {
+                if (!id.includes('-screen')) {
+                    pc.close();
+                    peerConnections.delete(id);
+                    const video = videoElements.get(id);
+                    if (video) {
+                        video.parentElement.remove();
+                        videoElements.delete(id);
+                    }
+                }
+            }
+            socket.emit('end-call', { groupId: currentGroupId, userId });
+            isInCall = false;
+            document.getElementById('startCall').style.display = 'inline-block';
+            document.getElementById('cancelCall').style.display = 'none';
+            document.getElementById('callNotification').style.display = 'none';
+            updateCallStatus();
+        }
+
+        // Join Call
+        async function joinCall() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                addVideoStream(userId, localStream, 'You');
+
+                socket.emit('start-call', {
+                    groupId: currentGroupId,
+                    userId,
+                    offer: await createOffer(userId)
+                });
+
+                isInCall = true;
+                document.getElementById('startCall').style.display = 'none';
+                document.getElementById('cancelCall').style.display = 'inline-block';
+                document.getElementById('callNotification').style.display = 'none';
+            } catch (err) {
+                document.getElementById('status').textContent = `Error joining call: ${err.message}`;
+            }
+        }
+
+        // Start Screen Share
+        async function startScreenShare() {
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                addVideoStream(`${userId}-screen`, screenStream, 'Your Screen');
+
+                const response = await fetch(`http://localhost:8001/api/group/${currentGroupId}/screen-share`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to start screen share');
+
+                socket.emit('start-screen-share', {
+                    groupId: currentGroupId,
+                    userId,
+                    offer: await createOffer(userId, true)
+                });
+
+                isScreenSharing = true;
+                document.getElementById('startScreenShare').style.display = 'none';
+                document.getElementById('stopScreenShare').style.display = 'inline-block';
+            } catch (err) {
+                document.getElementById('status').textContent = `Error starting screen share: ${err.message}`;
+            }
+        }
+
+        // Stop Screen Share
+        function stopScreenShare() {
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+                screenStream = null;
+            }
+            const screenId = `${userId}-screen`;
+            const pc = peerConnections.get(screenId);
+            if (pc) {
+                pc.close();
+                peerConnections.delete(screenId);
+                const video = videoElements.get(screenId);
+                if (video) {
+                    video.parentElement.remove();
+                    videoElements.delete(screenId);
+                }
+            }
+            socket.emit('stop-screen-share', { groupId: currentGroupId, userId });
+            isScreenSharing = false;
+            document.getElementById('startScreenShare').style.display = 'inline-block';
+            document.getElementById('stopScreenShare').style.display = 'none';
+            updateCallStatus();
+        }
+
+        // Start File Transfer
+        async function startFileTransfer() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file || !currentGroupId) return;
+
+            try {
+                const response = await fetch(`http://localhost:8001/api/group/${currentGroupId}/file-transfer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ fileName: file.name, fileSize: file.size })
+                });
+                if (!response.ok) throw new Error('Failed to start file transfer');
+                const { fileId } = await response.json();
+
+                const chunkSize = 16 * 1024;
+                const reader = new FileReader();
+                let offset = 0;
+
+                reader.onload = (e) => {
+                    socket.emit('file-data', {
+                        groupId: currentGroupId,
+                        userId,
+                        toUserId: 'ALL',
+                        fileId,
+                        chunk: e.target.result
+                    });
+                    offset += chunkSize;
+                    if (offset < file.size) {
+                        readSlice(offset);
+                    }
+                };
+
+                function readSlice(o) {
+                    const slice = file.slice(offset, o + chunkSize);
+                    reader.readAsArrayBuffer(slice);
+                }
+
+                readSlice(0);
+            } catch (err) {
+                document.getElementById('status').textContent = `Error starting file transfer: ${err.message}`;
+            }
+        }
+
+        // Create Offer
+        async function createOffer(targetUserId, isScreenShare = false) {
+            const pc = new RTCPeerConnection(servers);
+            peerConnections.set(targetUserId + (isScreenShare ? '-screen' : ''), pc);
+
+            const stream = isScreenShare ? screenStream : localStream;
+            stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', {
+                        groupId: currentGroupId,
+                        userId,
+                        candidate: event.candidate,
+                        toUserId: targetUserId
+                    });
+                }
+            };
+
+            pc.ontrack = (event) => {
+                addVideoStream(targetUserId + (isScreenShare ? '-screen' : ''), event.streams[0], isScreenShare ? `${targetUserId}'s Screen` : targetUserId);
+            };
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            return offer;
+        }
+
+        // Add Video Stream
+        function addVideoStream(id, stream, name) {
+            if (videoElements.has(id)) return;
+
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.autoplay = true;
+            video.muted = id === userId || id === `${userId}-screen`;
+            video.id = id;
+
+            const videoContainer = document.createElement('div');
+            videoContainer.innerHTML = `<strong>${name}</strong>`;
+            videoContainer.appendChild(video);
+
+            document.getElementById('videoGrid').appendChild(videoContainer);
+            videoElements.set(id, video);
+        }
+
+        // Update Call Status
+        async function updateCallStatus() {
+            if (!currentGroupId) return;
+            try {
+                const response = await fetch(`http://localhost:8001/api/group/${currentGroupId}/call-status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to fetch call status');
+                const status = await response.json();
+                document.getElementById('status').textContent = 
+                    `Call: ${status.isCallActive ? 'Active' : 'Inactive'} | Screen Share: ${status.isScreenShareActive ? 'Active' : 'Inactive'} | Participants: ${status.participants.map(p => p.userName).join(', ')}`;
+            } catch (err) {
+                document.getElementById('status').textContent = `Error fetching call status: ${err.message}`;
+            }
+        }
+
+        // Setup Socket.IO Event Listeners
+        function setupSocketEvents() {
+            socket.on('group-message', (data) => {
+                const chatMessages = document.getElementById('chatMessages');
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerHTML = `<span class="sender">${data.senderName}:</span> ${data.message}`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+
+            socket.on('typing', (data) => {
+                document.getElementById('status').textContent = `${data.userId} is typing...`;
+                setTimeout(() => {
+                    if (document.getElementById('status').textContent.includes('is typing')) {
+                        document.getElementById('status').textContent = '';
+                    }
+                }, 2000);
+            });
+
+            socket.on('new-member', (data) => {
+                const status = document.getElementById('status');
+                status.textContent = `${data.memberName} ${data.isLeaving ? 'left' : 'joined'} the group`;
+                setTimeout(() => status.textContent = '', 3000);
+                updateCallStatus();
+            });
+
+            socket.on('call-started', async (data) => {
+                if (data.userId === userId) return;
+
+                if (!isInCall) {
+                    document.getElementById('callNotification').style.display = 'block';
+                    document.getElementById('callNotificationText').textContent = `${data.userName} started a video call in the group`;
+                }
+
+                const pc = new RTCPeerConnection(servers);
+                peerConnections.set(data.userId, pc);
+
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket.emit('ice-candidate', {
+                            groupId: currentGroupId,
+                            userId,
+                            candidate: event.candidate,
+                            toUserId: data.userId
+                        });
+                    }
+                };
+
+                pc.ontrack = (event) => {
+                    addVideoStream(data.userId, event.streams[0], data.userName);
+                };
+
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                socket.emit('call-answer', {
+                    groupId: currentGroupId,
+                    userId,
+                    answer,
+                    toUserId: data.userId
+                });
+
+                updateCallStatus();
+            });
+
+            socket.on('call-answer', async (data) => {
+                const pc = peerConnections.get(data.userId);
+                if (pc) {
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                }
+            });
+
+            socket.on('ice-candidate', async (data) => {
+                const pc = peerConnections.get(data.userId);
+                if (pc && data.candidate) {
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
+            });
+
+            socket.on('call-ended', (data) => {
+                const pc = peerConnections.get(data.userId);
+                if (pc) {
+                    pc.close();
+                    peerConnections.delete(data.userId);
+                    const video = videoElements.get(data.userId);
+                    if (video) {
+                        video.parentElement.remove();
+                        videoElements.delete(data.userId);
+                    }
+                }
+                document.getElementById('callNotification').style.display = 'none';
+                updateCallStatus();
+            });
+
+            socket.on('screen-share-started', async (data) => {
+                if (data.userId === userId) return;
+
+                const pc = new RTCPeerConnection(servers);
+                peerConnections.set(`${data.userId}-screen`, pc);
+
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket.emit('ice-candidate', {
+                            groupId: currentGroupId,
+                            userId,
+                            candidate: event.candidate,
+                            toUserId: data.userId
+                        });
+                    }
+                };
+
+                pc.ontrack = (event) => {
+                    addVideoStream(`${data.userId}-screen`, event.streams[0], `${data.userName}'s Screen`);
+                };
+
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                socket.emit('call-answer', {
+                    groupId: currentGroupId,
+                    userId,
+                    answer,
+                    toUserId: data.userId
+                });
+
+                updateCallStatus();
+            });
+
+            socket.on('screen-share-stopped', (data) => {
+                const pc = peerConnections.get(`${data.userId}-screen`);
+                if (pc) {
+                    pc.close();
+                    peerConnections.delete(`${data.userId}-screen`);
+                    const video = videoElements.get(`${data.userId}-screen`);
+                    if (video) {
+                        video.parentElement.remove();
+                        videoElements.delete(`${data.userId}-screen`);
+                    }
+                }
+                updateCallStatus();
+            });
+
+            socket.on('file-transfer', (data) => {
+                const chatMessages = document.getElementById('chatMessages');
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerHTML = `<span class="sender">${data.senderId}:</span> Shared file ${data.fileName} (${(data.fileSize / 1024).toFixed(2)} KB)`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+
+            socket.on('file-data', (data) => {
+                console.log(`Received file chunk for ${data.fileId}`);
+            });
+        }
     </script>
 </body>
 </html>

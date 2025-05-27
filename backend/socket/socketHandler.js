@@ -125,16 +125,14 @@ function setupSocket(io) {
                 const user = await mongoose.model("User").findById(userId).select("name");
                 if (!user) return;
 
-                console.log("➡️ Emiting 'call-started' to group:", groupId);
-
-                io.to(groupId).emit("call-started", {
+                socket.to(groupId).emit("call-started", {
                     groupId,
                     userId,
                     userName: user.name,
                     offer,
                 });
-            } catch (error) {
-                console.error("❌ Lỗi start-call:", error);
+            } catch (err) {
+                console.error("Lỗi start-call:", err);
             }
         });
 
@@ -171,51 +169,38 @@ function setupSocket(io) {
                 const user = await mongoose.model("User").findById(userId).select("name");
                 if (!user) return;
 
-                io.to(groupId).emit("screen-share-started", {
+                socket.to(groupId).emit("screen-share-started", {
                     groupId,
                     userId,
                     userName: user.name,
                     offer,
                 });
-            } catch (error) {
-                console.error("Lỗi start-screen-share:", error);
+            } catch (err) {
+                console.error("Lỗi start-screen-share:", err);
             }
         });
 
         socket.on("stop-screen-share", ({ groupId, userId }) => {
-            const groupScreen = screenShares.get(groupId);
-            if (groupScreen?.has(userId)) {
-                groupScreen.delete(userId);
+            const groupShare = screenShares.get(groupId);
+            if (groupShare?.has(userId)) {
+                groupShare.delete(userId);
                 io.to(groupId).emit("screen-share-stopped", { groupId, userId });
-                if (groupScreen.size === 0) screenShares.delete(groupId);
+                if (groupShare.size === 0) screenShares.delete(groupId);
             }
         });
 
         socket.on("file-transfer", ({ groupId, userId, fileName, fileSize, fileId }) => {
             if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(userId)) return;
 
-            // Gửi cho tất cả trong phòng nhóm (bao gồm cả người gửi nếu không exclude)
-            socket.to(groupId).emit("file-transfer", {
-                groupId,
-                userId,
-                fileName,
-                fileSize,
-                fileId,
-            });
+            socket.to(groupId).emit("file-transfer", { groupId, userId, fileName, fileSize, fileId });
         });
 
         socket.on("file-data", ({ groupId, userId, toUserId, fileId, chunk }) => {
             const targetSocket = onlineUsers.get(toUserId);
             if (targetSocket) {
-                io.to(targetSocket).emit("file-data", {
-                    groupId,
-                    userId,
-                    fileId,
-                    chunk,
-                });
+                io.to(targetSocket).emit("file-data", { groupId, userId, fileId, chunk });
             }
         });
-
         socket.on("leave-group", async ({ userId, groupId }) => {
             if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(groupId)) return;
 

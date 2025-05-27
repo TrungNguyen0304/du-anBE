@@ -326,17 +326,26 @@ const startCall = async (req, res) => {
             return res.status(404).json({ message: "Nhóm không tồn tại" });
         }
 
-        const memberIds = group.members.map(id => id.toString());
-        if (!memberIds.includes(userId.toString())) {
+        if (!group.members.map(id => id.toString()).includes(userId.toString())) {
             return res.status(403).json({ message: "Bạn không có trong nhóm" });
         }
+
+        // Gửi tín hiệu đến tất cả thành viên trong nhóm để chuẩn bị signaling
+        const io = getIO();
+        group.members.forEach(memberId => {
+            if (memberId.toString() !== userId.toString()) {
+                io.to(memberId.toString()).emit("call-started", {
+                    groupId,
+                    callerId: userId,
+                });
+            }
+        });
 
         res.status(200).json({ message: "Khởi tạo cuộc gọi thành công" });
     } catch (error) {
         res.status(500).json({ message: "Lỗi khi khởi tạo cuộc gọi", error: error.message });
     }
 };
-
 const startScreenShare = async (req, res) => {
     try {
         const { groupId } = req.params;
@@ -351,10 +360,20 @@ const startScreenShare = async (req, res) => {
             return res.status(404).json({ message: "Nhóm không tồn tại" });
         }
 
-        const memberIds = group.members.map(id => id.toString());
-        if (!memberIds.includes(userId.toString())) {
+        if (!group.members.map(id => id.toString()).includes(userId.toString())) {
             return res.status(403).json({ message: "Bạn không có trong nhóm" });
         }
+
+        // Gửi thông báo chia sẻ màn hình đến các thành viên khác
+        const io = getIO();
+        group.members.forEach(memberId => {
+            if (memberId.toString() !== userId.toString()) {
+                io.to(memberId.toString()).emit("screen-share-started", {
+                    groupId,
+                    sharerId: userId,
+                });
+            }
+        });
 
         res.status(200).json({ message: "Khởi tạo chia sẻ màn hình thành công" });
     } catch (error) {
@@ -376,36 +395,29 @@ const getCallStatus = async (req, res) => {
             return res.status(404).json({ message: "Nhóm không tồn tại" });
         }
 
-        const memberIds = group.members.map(id => id.toString());
-        if (!memberIds.includes(userId.toString())) {
+        if (!group.members.map(id => id.toString()).includes(userId.toString())) {
             return res.status(403).json({ message: "Bạn không có trong nhóm" });
         }
 
         const activeCall = activeCalls.get(groupId) || new Set();
         const screenShare = screenShares.get(groupId) || new Set();
-        const participants = [];
-        const screenSharers = [];
 
-        for (const participantId of activeCall) {
-            const user = await User.findById(participantId).select("name");
-            if (user) {
-                participants.push({ userId: participantId, userName: user.name });
-            }
-        }
+        const participants = await Promise.all([...activeCall].map(async (id) => {
+            const user = await User.findById(id).select("name");
+            return user ? { userId: id, userName: user.name } : null;
+        }));
 
-        for (const sharerId of screenShare) {
-            const user = await User.findById(sharerId).select("name");
-            if (user) {
-                screenSharers.push({ userId: sharerId, userName: user.name });
-            }
-        }
+        const screenSharers = await Promise.all([...screenShare].map(async (id) => {
+            const user = await User.findById(id).select("name");
+            return user ? { userId: id, userName: user.name } : null;
+        }));
 
         res.status(200).json({
             groupId,
             isCallActive: activeCall.size > 0,
-            participants,
+            participants: participants.filter(Boolean),
             isScreenShareActive: screenShare.size > 0,
-            screenSharers,
+            screenSharers: screenSharers.filter(Boolean),
         });
     } catch (error) {
         res.status(500).json({ message: "Lỗi khi lấy trạng thái cuộc gọi", error: error.message });
@@ -432,8 +444,7 @@ const startFileTransfer = async (req, res) => {
             return res.status(404).json({ message: "Nhóm không tồn tại" });
         }
 
-        const memberIds = group.members.map(id => id.toString());
-        if (!memberIds.includes(userId.toString())) {
+        if (!group.members.map(id => id.toString()).includes(userId.toString())) {
             return res.status(403).json({ message: "Bạn không thuộc nhóm này" });
         }
 
@@ -442,40 +453,35 @@ const startFileTransfer = async (req, res) => {
             allowedAttributes: {},
         });
 
-        const fileId = `_${Date.now().toString()}`;
-        const io = getIO();
+        const fileId = `file_${Date.now()}`;
 
-        // Gửi đến tất cả thành viên trong nhóm
+        const io = getIO();
         group.members.forEach(memberId => {
-            io.to(memberId.toString()).emit("file-transfer", {
-                groupId,
-                userId,
-                fileName: sanitizedFileName,
-                fileSize,
-                fileId,
-            });
+            if (memberId.toString() !== userId.toString()) {
+                io.to(memberId.toString()).emit("file-transfer", {
+                    groupId,
+                    senderId: userId,
+                    fileId,
+                    fileName: sanitizedFileName,
+                    fileSize,
+                });
+            }
         });
 
-        const messageDoc = await Message.create({
+        await Message.create({
             groupId,
             senderId: userId,
-            message: null,
             fileName: sanitizedFileName,
             fileSize,
             fileId,
             timestamp: new Date(),
         });
 
-        res.status(200).json({
-            message: "Khởi tạo truyền file thành công",
-            fileId,
-            // savedMessageId: messageDoc._id,
-        });
+        res.status(200).json({ message: "Khởi tạo truyền file thành công", fileId });
     } catch (error) {
         res.status(500).json({ message: "Lỗi khi khởi tạo truyền file", error: error.message });
     }
 };
-
 
 module.exports = {
     createGroup,
