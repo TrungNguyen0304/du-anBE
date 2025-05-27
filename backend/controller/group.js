@@ -3,8 +3,9 @@ const Group = require("../models/group");
 const Message = require("../models/message");
 const User = require("../models/user");
 const Team = require("../models/team");
-const { getIO, notifyNewMember } = require("../socket/socketHandler");
+const { getIO, notifyNewMember, screenShares, activeCalls } = require("../socket/socketHandler");
 const sanitizeHtml = require("sanitize-html");
+
 
 const createGroup = async (req, res) => {
     try {
@@ -205,7 +206,7 @@ const sendGroupMessage = async (req, res) => {
 const getGroupMessages = async (req, res) => {
     try {
         const { groupId } = req.params;
-        const { skip = 0, limit = 50 } = req.query; // Hỗ trợ phân trang
+        const { skip = 0, limit = 50 } = req.query;
 
         if (!mongoose.Types.ObjectId.isValid(groupId)) {
             return res.status(400).json({ message: "ID nhóm không hợp lệ" });
@@ -222,8 +223,13 @@ const getGroupMessages = async (req, res) => {
             groupId: msg.groupId,
             senderId: msg.senderId._id,
             senderName: msg.senderId.name,
-            message: msg.message,
+            message: msg.message, // text message (nếu có)
             timestamp: msg.timestamp,
+
+            // Thông tin file (nếu là file message)
+            fileId: msg.fileId,
+            fileName: msg.fileName,
+            fileSize: msg.fileSize,
         }));
 
         res.status(200).json(formattedMessages);
@@ -231,6 +237,7 @@ const getGroupMessages = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy tin nhắn", error: error.message });
     }
 };
+
 
 const removeMember = async (req, res) => {
     try {
@@ -266,12 +273,12 @@ const removeMember = async (req, res) => {
 
         const user = await User.findById(userId).select("name");
         notifyNewMember(groupId, userId, user.name, true); // Thông báo rời nhóm
-       
+
         const populatedGroup = await Group.findById(groupId).populate("members", "name");
 
         res.status(200).json({
             message: `Đã xóa thành viên ${user.name} khỏi nhóm`,
-            group:populatedGroup
+            group: populatedGroup
         });
     } catch (error) {
         res.status(500).json({ message: "Lỗi khi xóa thành viên", error: error.message });
@@ -305,6 +312,171 @@ const leaveGroup = async (req, res) => {
     }
 };
 
+const startCall = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const userId = req.user._id;
+
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: "ID nhóm không hợp lệ" });
+        }
+
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: "Nhóm không tồn tại" });
+        }
+
+        const memberIds = group.members.map(id => id.toString());
+        if (!memberIds.includes(userId.toString())) {
+            return res.status(403).json({ message: "Bạn không có trong nhóm" });
+        }
+
+        res.status(200).json({ message: "Khởi tạo cuộc gọi thành công" });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi khởi tạo cuộc gọi", error: error.message });
+    }
+};
+
+const startScreenShare = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const userId = req.user._id;
+
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: "ID nhóm không hợp lệ" });
+        }
+
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: "Nhóm không tồn tại" });
+        }
+
+        const memberIds = group.members.map(id => id.toString());
+        if (!memberIds.includes(userId.toString())) {
+            return res.status(403).json({ message: "Bạn không có trong nhóm" });
+        }
+
+        res.status(200).json({ message: "Khởi tạo chia sẻ màn hình thành công" });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi khởi tạo chia sẻ màn hình", error: error.message });
+    }
+};
+
+const getCallStatus = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const userId = req.user._id;
+
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: "ID nhóm không hợp lệ" });
+        }
+
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: "Nhóm không tồn tại" });
+        }
+
+        const memberIds = group.members.map(id => id.toString());
+        if (!memberIds.includes(userId.toString())) {
+            return res.status(403).json({ message: "Bạn không có trong nhóm" });
+        }
+
+        const activeCall = activeCalls.get(groupId) || new Set();
+        const screenShare = screenShares.get(groupId) || new Set();
+        const participants = [];
+        const screenSharers = [];
+
+        for (const participantId of activeCall) {
+            const user = await User.findById(participantId).select("name");
+            if (user) {
+                participants.push({ userId: participantId, userName: user.name });
+            }
+        }
+
+        for (const sharerId of screenShare) {
+            const user = await User.findById(sharerId).select("name");
+            if (user) {
+                screenSharers.push({ userId: sharerId, userName: user.name });
+            }
+        }
+
+        res.status(200).json({
+            groupId,
+            isCallActive: activeCall.size > 0,
+            participants,
+            isScreenShareActive: screenShare.size > 0,
+            screenSharers,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi lấy trạng thái cuộc gọi", error: error.message });
+    }
+};
+
+// API để khởi tạo truyền file P2P
+const startFileTransfer = async (req, res) => {
+    try {
+        const { fileName, fileSize } = req.body;
+        const { groupId } = req.params;
+        const userId = req.user._id;
+
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: "ID nhóm không hợp lệ" });
+        }
+
+        if (!fileName || !fileSize) {
+            return res.status(400).json({ message: "Tên file và kích thước file là bắt buộc" });
+        }
+
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: "Nhóm không tồn tại" });
+        }
+
+        const memberIds = group.members.map(id => id.toString());
+        if (!memberIds.includes(userId.toString())) {
+            return res.status(403).json({ message: "Bạn không thuộc nhóm này" });
+        }
+
+        const sanitizedFileName = sanitizeHtml(fileName, {
+            allowedTags: [],
+            allowedAttributes: {},
+        });
+
+        const fileId = `_${Date.now().toString()}`;
+        const io = getIO();
+
+        // Gửi đến tất cả thành viên trong nhóm
+        group.members.forEach(memberId => {
+            io.to(memberId.toString()).emit("file-transfer", {
+                groupId,
+                userId,
+                fileName: sanitizedFileName,
+                fileSize,
+                fileId,
+            });
+        });
+
+        const messageDoc = await Message.create({
+            groupId,
+            senderId: userId,
+            message: null,
+            fileName: sanitizedFileName,
+            fileSize,
+            fileId,
+            timestamp: new Date(),
+        });
+
+        res.status(200).json({
+            message: "Khởi tạo truyền file thành công",
+            fileId,
+            // savedMessageId: messageDoc._id,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi khởi tạo truyền file", error: error.message });
+    }
+};
+
+
 module.exports = {
     createGroup,
     getGroups,
@@ -313,4 +485,8 @@ module.exports = {
     sendGroupMessage,
     removeMember,
     leaveGroup,
+    startCall,
+    getCallStatus,
+    startScreenShare,
+    startFileTransfer,
 };
