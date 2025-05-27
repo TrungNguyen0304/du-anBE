@@ -23,31 +23,12 @@ const ChatMember = () => {
   const chatEndRef = useRef(null);
   const addMemberRef = useRef(null);
   const createGroupRef = useRef(null);
-  const socketRef = useRef(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user")) || {
     _id: "",
     name: "Guest",
   };
-
-  useEffect(() => {
-    socketRef.current = io(SOCKET_URL, {
-      transports: ["websocket"],
-      withCredentials: true,
-    });
-
-    socketRef.current.on("connect", () => {
-      console.log("Socket connected:", socketRef.current.id);
-    });
-
-    socketRef.current.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    return () => {
-      socketRef.current.disconnect();
-    };
-  }, []);
+  const socketRef = useRef(io(SOCKET_URL));
 
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -140,7 +121,8 @@ const ChatMember = () => {
         setTeamMembers(members);
       } catch (err) {
         setError(
-          err.response?.data?.message || "Không thể lấy danh sách thành viên team"
+          err.response?.data?.message ||
+            "Không thể lấy danh sách thành viên team"
         );
       }
     };
@@ -154,9 +136,12 @@ const ChatMember = () => {
     const fetchMessages = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_URL}/${selectedGroup._id}/messages`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          `${API_URL}/${selectedGroup._id}/messages`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setMessages(
           res.data.map((msg) => ({
             _id: msg._id,
@@ -219,7 +204,10 @@ const ChatMember = () => {
             });
             const updatedGroup = res.data.find((g) => g._id === groupId);
             if (updatedGroup) {
-              setSelectedGroup({ ...updatedGroup, members: updatedGroup.members || [] });
+              setSelectedGroup({
+                ...updatedGroup,
+                members: updatedGroup.members || [],
+              });
             }
           } catch (err) {
             setError("Không thể cập nhật thông tin nhóm");
@@ -269,7 +257,10 @@ const ChatMember = () => {
       if (addMemberRef.current && !addMemberRef.current.contains(e.target)) {
         setAddingMember(false);
       }
-      if (createGroupRef.current && !createGroupRef.current.contains(e.target)) {
+      if (
+        createGroupRef.current &&
+        !createGroupRef.current.contains(e.target)
+      ) {
         setCreatingGroup(false);
       }
     };
@@ -317,7 +308,10 @@ const ChatMember = () => {
         { userId: newMemberId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSelectedGroup({ ...res.data.group, members: res.data.group.members || [] });
+      setSelectedGroup({
+        ...res.data.group,
+        members: res.data.group.members || [],
+      });
       setNewMemberId("");
       setAddingMember(false);
     } catch (err) {
@@ -331,9 +325,12 @@ const ChatMember = () => {
     if (!member) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/${selectedGroup._id}/members/${member._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `${API_URL}/${selectedGroup._id}/members/${member._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setSelectedGroup((prev) => ({
         ...prev,
         members: prev.members.filter((_, i) => i !== index),
@@ -349,27 +346,20 @@ const ChatMember = () => {
     if (!selectedGroup?._id) return;
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Không tìm thấy token. Vui lòng đăng nhập lại.");
-        return;
-      }
-      await axios.delete(`${API_URL}/${selectedGroup._id}/leave`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setGroups((prev) => prev.filter((group) => group._id !== selectedGroup._id));
+      await axios.post(
+        `${API_URL}/${selectedGroup._id}/leave`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setGroups((prev) =>
+        prev.filter((group) => group._id !== selectedGroup._id)
+      );
       setSelectedGroup(null);
       setHasLeftGroup(true);
-      socketRef.current.emit("leave-group", {
-        userId: currentUser._id,
-        groupId: selectedGroup._id,
-      });
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi rời nhóm");
-      if (err.response?.status === 401) {
-        setError("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-        // Optionally redirect to login page
-        // navigate("/login");
-      }
     }
   };
 
@@ -386,7 +376,10 @@ const ChatMember = () => {
         { name: newGroupName, members: newGroupMembers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const newGroup = { ...res.data.group, members: res.data.group.members || [] };
+      const newGroup = {
+        ...res.data.group,
+        members: res.data.group.members || [],
+      };
       setGroups((prev) => [...prev, newGroup]);
       setSelectedGroup(newGroup);
       setMessages([
@@ -431,7 +424,6 @@ const ChatMember = () => {
 
         {creatingGroup && (
           <div ref={createGroupRef} className="space-y-3 rounded-lg shadow-sm">
-          <div className="space-y-3 rounded-lg shadow-sm">
             <input
               type="text"
               placeholder="Tên nhóm"
@@ -458,45 +450,8 @@ const ChatMember = () => {
                 </option>
               ))}
             </select>
-            <button 얍
-              onClick={handleCreateGroup}
-            <textarea
-              rows={2}
-              placeholder="Thành viên (ngăn cách bởi dấu phẩy)"
-              value={newGroupMembers}
-              onChange={(e) => setNewGroupMembers(e.target.value)}
-              className="w-full border border-gray-300 px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
             <button
-              onClick={() => {
-                if (!newGroupName.trim()) return;
-                const members = newGroupMembers
-                  .split(",")
-                  .map((m) => m.trim())
-                  .filter((m) => m);
-                setJoinedGroups((prev) => [
-                  ...prev,
-                  {
-                    id: newGroupName.toLowerCase().replace(/\s+/g, "-"),
-                    name: newGroupName,
-                  },
-                ]);
-                setRoom({
-                  id: newGroupName.toLowerCase().replace(/\s+/g, "-"),
-                  name: newGroupName,
-                  members: [currentUser, ...members],
-                });
-                setMessages([
-                  {
-                    sender: "System",
-                    text: `Nhóm "${newGroupName}" đã được tạo.`,
-                    system: true,
-                  },
-                ]);
-                setCreatingGroup(false);
-                setNewGroupName("");
-                setNewGroupMembers("");
-              }}
+              onClick={handleCreateGroup}
               className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
               Tạo nhóm
@@ -510,31 +465,10 @@ const ChatMember = () => {
             <button
               key={group._id}
               onClick={() => setSelectedGroup(group)}
-              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${selectedGroup?._id === group._id ? "bg-blue-100 font-semibold" : "bg-white"
-                } shadow-sm`}
               className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${
-                selectedGroup?._id === group._id ? "bg-blue-100 font-semibold" : "bg-white"
-        {/* List of joined groups */}
-        <div className="flex-1 overflow-y-auto space-y-3">
-          {joinedGroups.map((group, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setRoom((prev) => ({
-                  ...prev,
-                  id: group.id,
-                  name: group.name,
-                }));
-                setMessages([
-                  {
-                    sender: "System",
-                    text: `Bạn đang ở nhóm "${group.name}".`,
-                    system: true,
-                  },
-                ]);
-              }}
-              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${
-                room.id === group.id ? "bg-blue-100 font-semibold" : "bg-white"
+                selectedGroup?._id === group._id
+                  ? "bg-blue-100 font-semibold"
+                  : "bg-white"
               } shadow-sm`}
             >
               {group.name}
@@ -543,13 +477,14 @@ const ChatMember = () => {
         </div>
       </div>
 
-
       {selectedGroup && (
         <div className="relative flex flex-col h-screen bg-white shadow-lg rounded-r-xl overflow-hidden w-full mx-auto">
           {/* Header */}
           <div className="px-6 py-4 bg-white border-b shadow-sm flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-blue-800">{selectedGroup.name}</h2>
+              <h2 className="text-2xl font-bold text-blue-800">
+                {selectedGroup.name}
+              </h2>
               <p className="text-sm text-gray-600">
                 {selectedGroup.members.length} thành viên
                 {typingUsers.size > 0 && (
@@ -603,11 +538,14 @@ const ChatMember = () => {
                   className="flex items-center justify-between w-full px-4 py-2 bg-gray-50 border rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <span className="flex items-center gap-2 text-gray-800">
-                    <Users size={16} /> Thành viên ({selectedGroup.members.length})
+                    <Users size={16} /> Thành viên (
+                    {selectedGroup.members.length})
                   </span>
                   <ChevronDown
                     size={16}
-                    className={`${showMembers ? "rotate-180" : ""} transition-transform text-gray-600`}
+                    className={`${
+                      showMembers ? "rotate-180" : ""
+                    } transition-transform text-gray-600`}
                   />
                 </button>
 
@@ -634,7 +572,10 @@ const ChatMember = () => {
                               }
                               className="hover:bg-gray-100 rounded p-1 transition-colors"
                             >
-                              <MoreVertical size={16} className="text-gray-600" />
+                              <MoreVertical
+                                size={16}
+                                className="text-gray-600"
+                              />
                             </button>
                             {selectedMemberIndex === index && (
                               <div className="absolute right-0 top-6 bg-white border rounded-lg shadow z-10">
@@ -658,7 +599,8 @@ const ChatMember = () => {
                     onClick={() => setAddingMember(!addingMember)}
                     className="flex items-center gap-2 text-base bg-gray-50 border rounded-lg hover:bg-gray-100 px-4 py-2 w-full transition-colors"
                   >
-                    <UserPlus size={16} className="text-blue-600" /> Thêm thành viên
+                    <UserPlus size={16} className="text-blue-600" /> Thêm thành
+                    viên
                   </button>
                   {addingMember && (
                     <div className="flex gap-3 mt-3 items-center">
@@ -671,7 +613,9 @@ const ChatMember = () => {
                         {teamMembers
                           .filter(
                             (m) =>
-                              !selectedGroup.members.some((member) => member._id === m._id)
+                              !selectedGroup.members.some(
+                                (member) => member._id === m._id
+                              )
                           )
                           .map((member) => (
                             <option key={member._id} value={member._id}>
@@ -713,22 +657,22 @@ const ChatMember = () => {
                   <div
                     key={msg._id || msg.timestamp}
                     className="text-center text-xs italic text-gray-500 mb-3"
-                  >
-                   
-                  </div>
+                  ></div>
                 );
               }
               return (
                 <div
                   key={msg._id || msg.timestamp}
-                  className={`mb-4 flex flex-col ${isCurrentUser ? "items-end" : "items-start"
-                    }`}
+                  className={`mb-4 flex flex-col ${
+                    isCurrentUser ? "items-end" : "items-start"
+                  }`}
                 >
                   <div
-                    className={`max-w-[70%] px-4 py-2 rounded-lg ${isCurrentUser
+                    className={`max-w-[70%] px-4 py-2 rounded-lg ${
+                      isCurrentUser
                         ? "bg-blue-600 text-white rounded-br-none"
                         : "bg-white border border-gray-300 rounded-bl-none"
-                      } shadow`}
+                    } shadow`}
                   >
                     {!isCurrentUser && (
                       <div className="text-xs font-semibold mb-1 text-gray-600">
@@ -767,210 +711,6 @@ const ChatMember = () => {
           </div>
         </div>
       )}
-
-      <div className="relative flex flex-col h-screen bg-white shadow-lg rounded-r-xl overflow-hidden w-full mx-auto">
-        {/* Header */}
-        <div className="px-6 py-4 bg-white border-b shadow-sm flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-blue-800">{room.name}</h2>
-            <p className="text-sm text-gray-600">
-              {room.members.length} thành viên
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate("/chat/video-call")}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              title="Bắt đầu cuộc gọi video"
-            >
-              <Video size={20} className="text-blue-600" />
-            </button>
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <MoreVertical size={20} className="text-blue-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        {sidebarOpen && (
-          <div className="absolute top-0 right-0 h-full w-72 bg-white border-l shadow-xl z-10 flex flex-col">
-            <div className="flex items-center justify-between px-4 py-4 border-b bg-gray-50">
-              <div>
-                <h1 className="font-bold text-gray-800 text-lg">
-                  {currentUser}
-                </h1>
-                <p className="text-xs text-gray-600">Bạn đang online</p>
-              </div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="hover:bg-gray-100 rounded p-1 transition-colors"
-              >
-                <X size={18} className="text-gray-600" />
-              </button>
-            </div>
-
-            <div className="p-4 flex flex-col gap-4 flex-1">
-              {/* Toggle Member List */}
-              <button
-                onClick={() => setShowMembers(!showMembers)}
-                className="flex items-center justify-between w-full px-4 py-2 bg-gray-50 border rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <span className="flex items-center gap-2 text-gray-800">
-                  <Users size={16} /> Thành viên ({room.members.length})
-                </span>
-                <ChevronDown
-                  size={16}
-                  className={`${
-                    showMembers ? "rotate-180" : ""
-                  } transition-transform text-gray-600`}
-                />
-              </button>
-
-              {showMembers && (
-                <div className="bg-gray-50 p-3 rounded-lg border space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
-                  {room.members.map((member, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center text-sm text-gray-800"
-                    >
-                      <span>{member}</span>
-                      {member !== currentUser && (
-                        <div className="relative">
-                          <button
-                            onClick={() =>
-                              setSelectedMemberIndex((prev) =>
-                                prev === index ? null : index
-                              )
-                            }
-                            className="hover:bg-gray-100 rounded p-1 transition-colors"
-                          >
-                            <MoreVertical size={16} className="text-gray-600" />
-                          </button>
-                          {selectedMemberIndex === index && (
-                            <div className="absolute right-0 top-6 bg-white border rounded-lg shadow z-10">
-                              <button
-                                onClick={() => handleRemoveMember(index)}
-                                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-sm"
-                              >
-                                <Trash2 size={14} /> Xóa
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Add member */}
-              <div ref={addMemberRef}>
-                <button
-                  onClick={() => setAddingMember(!addingMember)}
-                  className="flex items-center gap-2 text-base bg-gray-50 border rounded-lg hover:bg-gray-100 px-4 py-2 w-full transition-colors"
-                >
-                  <UserPlus size={16} className="text-blue-600" /> Thêm thành
-                  viên
-                </button>
-                {addingMember && (
-                  <div className="flex gap-3 mt-3 items-center">
-                    <input
-                      type="text"
-                      placeholder="Tên thành viên"
-                      value={newMemberName}
-                      onChange={(e) => setNewMemberName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleConfirmAdd()}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={handleConfirmAdd}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                    >
-                      Thêm
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Leave group */}
-              <button
-                onClick={handleLeaveGroup}
-                className="mt-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Rời nhóm
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Chat messages */}
-        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-gray-50">
-          {messages.map((msg, i) => {
-            const isCurrentUser = msg.sender === currentUser;
-            if (msg.system) {
-              return (
-                <div
-                  key={i}
-                  className="text-center text-xs italic text-gray-500 mb-3"
-                >
-                  {msg.text}
-                </div>
-              );
-            }
-            return (
-              <div
-                key={i}
-                className={`mb-4 flex flex-col ${
-                  isCurrentUser ? "items-end" : "items-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] px-4 py-2 rounded-lg ${
-                    isCurrentUser
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-white border border-gray-300 rounded-bl-none"
-                  } shadow`}
-                >
-                  {!isCurrentUser && (
-                    <div className="text-xs font-semibold mb-1 text-gray-600">
-                      {msg.sender}
-                    </div>
-                  )}
-                  <div>{msg.text}</div>
-                </div>
-              </div>
-            );
-          })}
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Input to send message */}
-        <div className="border-t px-6 py-4 bg-white flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Nhập tin nhắn..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSendMessage();
-              }
-            }}
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleSendMessage}
-            className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
-            title="Gửi tin nhắn"
-          >
-            <Send size={20} />
-          </button>
-        </div>
-      </div>
-
     </div>
   );
 };
