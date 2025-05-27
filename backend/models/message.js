@@ -6,9 +6,12 @@ const messageSchema = new mongoose.Schema({
         ref: "User",
         required: false
     },
-    message: { type: String, required: true },
+    message: { type: String, required: null },
     timestamp: { type: Date, default: Date.now },
     groupId: { type: mongoose.Schema.Types.ObjectId, ref: "Group", required: true },
+    fileName: String,
+    fileSize: Number,
+    fileId: String,
 
 })
 

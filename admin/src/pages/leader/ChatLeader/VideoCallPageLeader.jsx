@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   FaPhoneSlash,
   FaMicrophoneSlash,
@@ -9,138 +9,388 @@ import {
 } from "react-icons/fa6";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { HiMiniVideoCamera } from "react-icons/hi2";
+import { MdScreenShare, MdStopScreenShare } from "react-icons/md";
+import io from "socket.io-client";
+import axios from "axios";
 
-const initialParticipants = [
-  { id: 1, name: "Bạn", isSelf: true, isCameraOff: false, isMicOff: false },
-  { id: 2, name: "Nguyễn Văn A", isCameraOff: false, isMicOff: false },
-  { id: 3, name: "Trần Thị B", isCameraOff: false, isMicOff: false },
-  { id: 4, name: "Lê Quang C", isCameraOff: false, isMicOff: false },
-  { id: 5, name: "Phạm D", isCameraOff: false, isMicOff: false },
-  { id: 6, name: "Vũ E", isCameraOff: false, isMicOff: false },
-  { id: 7, name: "Người F", isCameraOff: false, isMicOff: false },
-  { id: 8, name: "Người G", isCameraOff: false, isMicOff: false },
-];
+const socket = io("http://localhost:8001", {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+}); // Replace with your Socket.IO server URL
+const API_BASE_URL = "http://localhost:8001/api/group";
 
-const MAX_VISIBLE = 5; // Hiển thị 5 người + 1 ô xem thêm
+const MAX_VISIBLE = 5;
 
-const VideoCallPageLeader = () => {
+const VideoCallPageLeader = ({ userId, authToken }) => {
+  const { groupId } = useParams();
   const navigate = useNavigate();
-  const [participants, setParticipants] = useState(initialParticipants);
+  const currentUser = JSON.parse(localStorage.getItem("user")) || {
+    _id: userId || "guest",
+    name: "Guest",
+  };
+
+  // Initialize participants with current user
+  const [participants, setParticipants] = useState([
+    {
+      id: currentUser._id,
+      name: currentUser.name,
+      isSelf: true,
+      isCameraOff: false,
+      isMicOff: false,
+    },
+  ]);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showMoreModal, setShowMoreModal] = useState(false);
-  const [openModalMenuId, setOpenModalMenuId] = useState(null); // menu 3 chấm trong modal
+  const [openModalMenuId, setOpenModalMenuId] = useState(null);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [callStatus, setCallStatus] = useState({
+    isCallActive: false,
+    participants: [],
+    isScreenShareActive: false,
+    screenSharers: [],
+  });
+  const [error, setError] = useState(null);
 
   const selfVideoRef = useRef(null);
+  const screenShareVideoRef = useRef(null);
   const [selfStream, setSelfStream] = useState(null);
+  const peerConnections = useRef(new Map());
+  const remoteStreams = useRef(new Map());
+  const videoRefs = useRef(new Map());
 
-  // Mảng ID của những người đang được ghim hiển thị chính (tối đa 5), luôn có self ở đầu
-  const [visibleParticipantIds, setVisibleParticipantIds] = useState(() => {
-    const selfId = initialParticipants.find((p) => p.isSelf).id;
-    // Sắp xếp theo độ ưu tiên: cả camera và mic > mic không camera > camera không mic > không gì cả
-    const sortedParticipants = initialParticipants
-      .filter((p) => !p.isSelf)
-      .sort((a, b) => {
-        const aScore =
-          !a.isCameraOff && !a.isMicOff
-            ? 3
-            : !a.isMicOff
-            ? 2
-            : !a.isCameraOff
-            ? 1
-            : 0;
-        const bScore =
-          !b.isCameraOff && !b.isMicOff
-            ? 3
-            : !b.isMicOff
-            ? 2
-            : !b.isCameraOff
-            ? 1
-            : 0;
-        return bScore - aScore;
-      });
-    const initialIds = [
-      selfId,
-      ...sortedParticipants.slice(0, MAX_VISIBLE - 1).map((p) => p.id),
-    ];
-    return initialIds;
-  });
+  const [visibleParticipantIds, setVisibleParticipantIds] = useState([
+    currentUser._id,
+  ]);
 
   const self = participants.find((p) => p.isSelf);
 
-  // Quản lý stream camera cho người dùng self
-  useEffect(() => {
-    if (self.isCameraOff) {
-      if (selfStream) {
-        selfStream.getTracks().forEach((track) => track.stop());
-        setSelfStream(null);
-      }
-      if (selfVideoRef.current) {
-        selfVideoRef.current.srcObject = null;
-      }
-    } else {
-      navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-          setSelfStream(stream);
-          if (selfVideoRef.current) {
-            selfVideoRef.current.srcObject = stream;
-          }
-        })
-        .catch((error) => {
-          console.error("Lỗi khi lấy camera/micro:", error);
+  // WebRTC configuration
+  const configuration = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+    ],
+  };
+
+  // Fetch call status and participants
+  const fetchCallStatus = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/${groupId}/call-status`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      setCallStatus(response.data);
+      const serverParticipants = response.data.participants || [];
+      const updatedParticipants = serverParticipants.map((sp) => ({
+        id: sp.userId,
+        name: sp.userName,
+        isSelf: sp.userId === currentUser._id,
+        isCameraOff: sp.isCameraOff || false,
+        isMicOff: sp.isMicOff || false,
+      }));
+
+      // Ensure current user is included
+      if (!updatedParticipants.some((p) => p.isSelf)) {
+        updatedParticipants.push({
+          id: currentUser._id,
+          name: currentUser.name,
+          isSelf: true,
+          isCameraOff: false,
+          isMicOff: false,
         });
+      }
+      setParticipants(updatedParticipants);
+
+      // Update visible participant IDs
+      const selfId = updatedParticipants.find((p) => p.isSelf)?.id;
+      const sortedParticipants = updatedParticipants
+        .filter((p) => !p.isSelf)
+        .sort((a, b) => {
+          const aScore = !a.isCameraOff && !a.isMicOff ? 3 : !a.isMicOff ? 2 : !a.isCameraOff ? 1 : 0;
+          const bScore = !b.isCameraOff && !b.isMicOff ? 3 : !b.isMicOff ? 2 : !b.isCameraOff ? 1 : 0;
+          return bScore - aScore;
+        });
+      const newVisibleIds = [
+        selfId,
+        ...sortedParticipants.slice(0, MAX_VISIBLE - 1).map((p) => p.id),
+      ].filter(Boolean);
+      setVisibleParticipantIds(newVisibleIds);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching call status:", error.response?.data?.message || error.message);
+      setError("Không thể tải danh sách người tham gia. Vui lòng thử lại.");
     }
+  };
+
+  // Initiate call
+  const initCall = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/${groupId}/call`, {}, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      socket.emit("start-call", { groupId, userId: currentUser._id, offer: null });
+    } catch (error) {
+      console.error("Error initiating call:", error.response?.data?.message || error.message);
+      setError("Không thể khởi tạo cuộc gọi. Vui lòng thử lại.");
+    }
+  };
+
+  // Initialize WebRTC, Socket.IO, and fetch participants
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("user-online", currentUser._id);
+    });
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+      setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
+    });
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    fetchCallStatus();
+    initCall();
+
+    const initWebRTC = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setSelfStream(stream);
+        if (selfVideoRef.current) {
+          selfVideoRef.current.srcObject = stream;
+        }
+
+        socket.on("call-started", async ({ groupId: callGroupId, userId: callerId, offer }) => {
+          if (callGroupId !== groupId || callerId === currentUser._id) return;
+
+          const peerConnection = new RTCPeerConnection(configuration);
+          peerConnections.current.set(callerId, peerConnection);
+
+          stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+
+          peerConnection.ontrack = (event) => {
+            const [remoteStream] = event.streams;
+            remoteStreams.current.set(callerId, remoteStream);
+            const videoElement = videoRefs.current.get(callerId);
+            if (videoElement) {
+              videoElement.srcObject = remoteStream;
+            }
+          };
+
+          peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit("ice-candidate", {
+                groupId,
+                userId: currentUser._id,
+                candidate: event.candidate,
+                toUserId: callerId,
+              });
+            }
+          };
+
+          if (offer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit("call-answer", { groupId, userId: currentUser._id, answer, toUserId: callerId });
+          }
+        });
+
+        socket.on("call-answer", async ({ groupId: callGroupId, userId: answererId, answer }) => {
+          if (callGroupId !== groupId) return;
+          const peerConnection = peerConnections.current.get(answererId);
+          if (peerConnection && answer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+          }
+        });
+
+        socket.on("ice-candidate", ({ groupId: callGroupId, userId: senderId, candidate }) => {
+          if (callGroupId !== groupId) return;
+          const peerConnection = peerConnections.current.get(senderId);
+          if (peerConnection && candidate) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+        });
+
+        socket.on("call-ended", ({ groupId: callGroupId, userId: endedUserId }) => {
+          if (callGroupId !== groupId) return;
+          const peerConnection = peerConnections.current.get(endedUserId);
+          if (peerConnection) {
+            peerConnection.close();
+            peerConnections.current.delete(endedUserId);
+            remoteStreams.current.delete(endedUserId);
+            const videoElement = videoRefs.current.get(endedUserId);
+            if (videoElement) {
+              videoElement.srcObject = null;
+            }
+          }
+          fetchCallStatus();
+        });
+
+        socket.on("screen-share-started", async ({ groupId: callGroupId, userId: sharerId, offer }) => {
+          if (callGroupId !== groupId || sharerId === currentUser._id) return;
+
+          const peerConnection = new RTCPeerConnection(configuration);
+          peerConnections.current.set(`screen-${sharerId}`, peerConnection);
+
+          peerConnection.ontrack = (event) => {
+            const [remoteStream] = event.streams;
+            remoteStreams.current.set(`screen-${sharerId}`, remoteStream);
+            if (screenShareVideoRef.current) {
+              screenShareVideoRef.current.srcObject = remoteStream;
+            }
+          };
+
+          peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit("ice-candidate", {
+                groupId,
+                userId: currentUser._id,
+                candidate: event.candidate,
+                toUserId: sharerId,
+              });
+            }
+          };
+
+          if (offer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit("call-answer", { groupId, userId: currentUser._id, answer, toUserId: sharerId });
+          }
+          fetchCallStatus();
+        });
+
+        socket.on("screen-share-stopped", ({ groupId: callGroupId, userId: sharerId }) => {
+          if (callGroupId !== groupId) return;
+          const peerConnection = peerConnections.current.get(`screen-${sharerId}`);
+          if (peerConnection) {
+            peerConnection.close();
+            peerConnections.current.delete(`screen-${sharerId}`);
+            remoteStreams.current.delete(`screen-${sharerId}`);
+            if (screenShareVideoRef.current) {
+              screenShareVideoRef.current.srcObject = null;
+            }
+          }
+          fetchCallStatus();
+        });
+      } catch (error) {
+        console.error("Error initializing WebRTC:", error);
+        setError("Không thể truy cập camera hoặc micro. Vui lòng kiểm tra quyền truy cập.");
+      }
+    };
+
+    initWebRTC();
 
     return () => {
       if (selfStream) {
         selfStream.getTracks().forEach((track) => track.stop());
       }
+      peerConnections.current.forEach((pc) => pc.close());
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.off("disconnect");
+      socket.off("call-started");
+      socket.off("call-answer");
+      socket.off("ice-candidate");
+      socket.off("call-ended");
+      socket.off("screen-share-started");
+      socket.off("screen-share-stopped");
     };
-  }, [self.isCameraOff]);
+  }, [groupId, currentUser._id]);
 
-  // Cập nhật visibleParticipantIds khi trạng thái mic hoặc camera thay đổi
+  // Handle camera toggle
   useEffect(() => {
-    const selfId = participants.find((p) => p.isSelf).id;
-    const currentVisible = visibleParticipantIds.filter((id) => id !== selfId);
-    // Sắp xếp theo độ ưu tiên: cả camera và mic > mic không camera > camera không mic > không gì cả
-    const sortedParticipants = participants
-      .filter((p) => !p.isSelf && !currentVisible.includes(p.id))
-      .sort((a, b) => {
-        const aScore =
-          !a.isCameraOff && !a.isMicOff
-            ? 3
-            : !a.isMicOff
-            ? 2
-            : !a.isCameraOff
-            ? 1
-            : 0;
-        const bScore =
-          !b.isCameraOff && !b.isMicOff
-            ? 3
-            : !b.isMicOff
-            ? 2
-            : !b.isCameraOff
-            ? 1
-            : 0;
-        return bScore - aScore;
+    if (selfStream && self) {
+      selfStream.getVideoTracks().forEach((track) => {
+        track.enabled = !self.isCameraOff;
+      });
+    }
+  }, [self?.isCameraOff, selfStream]);
+
+  // Handle microphone toggle
+  useEffect(() => {
+    if (selfStream && self) {
+      selfStream.getAudioTracks().forEach((track) => {
+        track.enabled = !self.isMicOff;
+      });
+    }
+  }, [self?.isMicOff, selfStream]);
+
+  // Handle screen sharing
+  const handleScreenShare = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/${groupId}/screen-share`, {}, {
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
-    let newVisibleIds = [selfId, ...currentVisible];
-    const needed = MAX_VISIBLE - newVisibleIds.length;
-    if (needed > 0) {
-      const additionalIds = sortedParticipants
-        .slice(0, needed)
-        .map((p) => p.id);
-      newVisibleIds = [...newVisibleIds, ...additionalIds];
-    }
-    setVisibleParticipantIds(newVisibleIds);
-  }, [participants]);
+      if (!isScreenSharing) {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        setIsScreenSharing(true);
+        const peerConnection = new RTCPeerConnection(configuration);
+        peerConnections.current.set(`screen-${currentUser._id}`, peerConnection);
 
-  const handleEndCall = () => {
+        stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit("ice-candidate", {
+              groupId,
+              userId: currentUser._id,
+              candidate: event.candidate,
+              toUserId: null,
+            });
+          }
+        };
+
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit("start-screen-share", { groupId, userId: currentUser._id, offer });
+
+        stream.getVideoTracks()[0].onended = () => {
+          handleStopScreenShare();
+        };
+      }
+    } catch (error) {
+      console.error("Error starting screen share:", error.response?.data?.message || error.message);
+      setError("Không thể chia sẻ màn hình. Vui lòng thử lại.");
+    }
+  };
+
+  const handleStopScreenShare = async () => {
+    setIsScreenSharing(false);
+    const peerConnection = peerConnections.current.get(`screen-${currentUser._id}`);
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnections.current.delete(`screen-${currentUser._id}`);
+      socket.emit("stop-screen-share", { groupId, userId: currentUser._id });
+    }
+    try {
+      await axios.post(`${API_BASE_URL}/${groupId}/screen-share`, {}, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      fetchCallStatus();
+    } catch (error) {
+      console.error("Error stopping screen share:", error.response?.data?.message || error.message);
+      setError("Không thể dừng chia sẻ màn hình. Vui lòng thử lại.");
+    }
+  };
+
+  const handleEndCall = async () => {
     if (selfStream) {
       selfStream.getTracks().forEach((track) => track.stop());
     }
-    navigate("/chat");
+    peerConnections.current.forEach((pc) => pc.close());
+    socket.emit("end-call", { groupId, userId: currentUser._id });
+    try {
+      await axios.post(`${API_BASE_URL}/${groupId}/call`, {}, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      navigate("/chat");
+    } catch (error) {
+      console.error("Error ending call:", error.response?.data?.message || error.message);
+      navigate("/chat");
+    }
   };
 
   const toggleMenu = (userId) => {
@@ -159,37 +409,19 @@ const VideoCallPageLeader = () => {
     setOpenModalMenuId(null);
   };
 
-  // Bấm vào người trong modal để ghim/bỏ ghim
   const togglePinParticipant = (userId) => {
-    const selfId = participants.find((p) => p.isSelf).id;
-    if (userId === selfId) return; // Không cho phép bỏ ghim self
+    if (userId === currentUser._id) return;
 
     setVisibleParticipantIds((prev) => {
       let newIds;
       if (prev.includes(userId)) {
-        // Bỏ ghim
         newIds = prev.filter((id) => id !== userId);
-        // Nếu số lượng dưới MAX_VISIBLE và còn người để ghim, thêm người mới theo độ ưu tiên
         if (newIds.length < MAX_VISIBLE) {
           const sortedParticipants = participants
             .filter((p) => !p.isSelf && !newIds.includes(p.id))
             .sort((a, b) => {
-              const aScore =
-                !a.isCameraOff && !a.isMicOff
-                  ? 3
-                  : !a.isMicOff
-                  ? 2
-                  : !a.isCameraOff
-                  ? 1
-                  : 0;
-              const bScore =
-                !b.isCameraOff && !b.isMicOff
-                  ? 3
-                  : !b.isMicOff
-                  ? 2
-                  : !b.isCameraOff
-                  ? 1
-                  : 0;
+              const aScore = !a.isCameraOff && !a.isMicOff ? 3 : !a.isMicOff ? 2 : !a.isCameraOff ? 1 : 0;
+              const bScore = !b.isCameraOff && !b.isMicOff ? 3 : !b.isMicOff ? 2 : !b.isCameraOff ? 1 : 0;
               return bScore - aScore;
             });
           const additionalIds = sortedParticipants
@@ -198,11 +430,9 @@ const VideoCallPageLeader = () => {
           newIds = [...newIds, ...additionalIds];
         }
       } else {
-        // Ghìm thêm
         if (prev.length < MAX_VISIBLE) {
           newIds = [...prev, userId];
         } else {
-          // Thay người cuối cùng bằng người mới (giữ self ở đầu)
           newIds = prev.slice(0, MAX_VISIBLE - 1);
           newIds.push(userId);
         }
@@ -211,24 +441,25 @@ const VideoCallPageLeader = () => {
     });
   };
 
-  // Lấy danh sách người hiển thị chính theo visibleParticipantIds
   const visibleParticipants = visibleParticipantIds
     .map((id) => participants.find((p) => p.id === id))
     .filter(Boolean);
 
-  // Những người không được ghim (không nằm trong visibleParticipantIds)
   const otherParticipants = participants.filter(
     (p) => !visibleParticipantIds.includes(p.id)
   );
 
   return (
     <div className="h-screen bg-gray-900 text-white flex flex-col p-4 relative rounded-2xl shadow-lg">
-      {/* Header */}
+      {error && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow">
+          {error}
+        </div>
+      )}
       <div className="absolute top-4 left-4 text-lg font-semibold">
         Đang gọi nhóm video...
       </div>
 
-      {/* Close Button */}
       <button
         onClick={handleEndCall}
         className="absolute top-4 right-4 p-2 rounded-full bg-gray-800 hover:bg-gray-700"
@@ -236,21 +467,16 @@ const VideoCallPageLeader = () => {
         <X size={20} />
       </button>
 
-      {/* Video Grid */}
       <div className="flex-1 mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 place-items-center overflow-y-auto px-2">
         {visibleParticipants.map((user) => (
           <div
             key={user.id}
-            className={`w-full h-52 rounded-xl flex items-center justify-center relative ${
-              user.isSelf ? "bg-blue-700" : "bg-gray-700"
-            }`}
+            className={`w-full h-52 rounded-xl flex items-center justify-center relative ${user.isSelf ? "bg-blue-700" : "bg-gray-700"
+              }`}
           >
-            {/* Hiển thị video nếu là self và camera bật */}
             {user.isSelf ? (
               user.isCameraOff ? (
-                <span className="text-sm text-gray-400 italic">
-                  Camera đã tắt
-                </span>
+                <span className="text-sm text-gray-400 italic">Camera đã tắt</span>
               ) : (
                 <video
                   ref={selfVideoRef}
@@ -261,14 +487,16 @@ const VideoCallPageLeader = () => {
                 />
               )
             ) : user.isCameraOff ? (
-              <span className="text-sm text-gray-400 italic">
-                Camera đã tắt
-              </span>
+              <span className="text-sm text-gray-400 italic">Camera đã tắt</span>
             ) : (
-              <span className="text-sm text-gray-300">Video {user.name}</span>
+              <video
+                ref={(el) => videoRefs.current.set(user.id, el)}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover rounded-xl"
+              />
             )}
 
-            {/* Menu chỉ cho user khác */}
             {!user.isSelf && (
               <div className="absolute top-2 right-2">
                 <button
@@ -277,7 +505,6 @@ const VideoCallPageLeader = () => {
                 >
                   <BsThreeDotsVertical />
                 </button>
-
                 {openMenuId === user.id && (
                   <div className="absolute right-0 mt-2 w-40 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
                     <button
@@ -297,7 +524,6 @@ const VideoCallPageLeader = () => {
               </div>
             )}
 
-            {/* Tên và trạng thái micro */}
             <span className="absolute bottom-2 left-2 text-xs text-gray-300">
               {user.name}
             </span>
@@ -311,7 +537,20 @@ const VideoCallPageLeader = () => {
           </div>
         ))}
 
-        {/* Nếu có nhiều hơn MAX_VISIBLE người thì hiển thị ô "Xem thêm" */}
+        {callStatus.isScreenShareActive && (
+          <div className="w-full h-52 rounded-xl flex items-center justify-center relative bg-gray-700">
+            <video
+              ref={screenShareVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover rounded-xl"
+            />
+            <span className="absolute bottom-2 left-2 text-xs text-gray-300">
+              Screen Share ({callStatus.screenSharers[0]?.userName || "Unknown"})
+            </span>
+          </div>
+        )}
+
         {participants.length > MAX_VISIBLE && (
           <div
             className="w-full h-52 rounded-xl flex items-center justify-center cursor-pointer bg-gray-700 hover:bg-gray-600 text-xl font-semibold select-none"
@@ -322,22 +561,18 @@ const VideoCallPageLeader = () => {
         )}
       </div>
 
-      {/* Controls */}
       <div className="flex justify-center items-center gap-6 mt-6">
         <button
           onClick={() =>
+            self &&
             setParticipants((prev) =>
               prev.map((p) => (p.isSelf ? { ...p, isMicOff: !p.isMicOff } : p))
             )
           }
           className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
-          title={
-            participants.find((p) => p.isSelf)?.isMicOff
-              ? "Bật micro"
-              : "Tắt micro"
-          }
+          title={self?.isMicOff ? "Bật micro" : "Tắt micro"}
         >
-          {participants.find((p) => p.isSelf)?.isMicOff ? (
+          {self?.isMicOff ? (
             <FaMicrophoneSlash className="text-red-500 text-xl" />
           ) : (
             <FaMicrophone className="text-green-400 text-xl" />
@@ -346,23 +581,30 @@ const VideoCallPageLeader = () => {
 
         <button
           onClick={() =>
+            self &&
             setParticipants((prev) =>
-              prev.map((p) =>
-                p.isSelf ? { ...p, isCameraOff: !p.isCameraOff } : p
-              )
+              prev.map((p) => (p.isSelf ? { ...p, isCameraOff: !p.isCameraOff } : p))
             )
           }
           className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
-          title={
-            participants.find((p) => p.isSelf)?.isCameraOff
-              ? "Bật camera"
-              : "Tắt camera"
-          }
+          title={self?.isCameraOff ? "Bật camera" : "Tắt camera"}
         >
-          {participants.find((p) => p.isSelf)?.isCameraOff ? (
+          {self?.isCameraOff ? (
             <FaVideoSlash className="text-red-500 text-xl" />
           ) : (
             <HiMiniVideoCamera className="text-green-400 text-xl" />
+          )}
+        </button>
+
+        <button
+          onClick={isScreenSharing ? handleStopScreenShare : handleScreenShare}
+          className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
+          title={isScreenSharing ? "Dừng chia sẻ màn hình" : "Chia sẻ màn hình"}
+        >
+          {isScreenSharing ? (
+            <MdStopScreenShare className="text-red-500 text-xl" />
+          ) : (
+            <MdScreenShare className="text-green-400 text-xl" />
           )}
         </button>
 
@@ -375,7 +617,6 @@ const VideoCallPageLeader = () => {
         </button>
       </div>
 
-      {/* Modal xem thêm người tham gia */}
       {showMoreModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6 relative">
@@ -385,22 +626,16 @@ const VideoCallPageLeader = () => {
             >
               <X size={20} />
             </button>
-            <h3 className="text-xl font-semibold mb-4">
-              Quản lý người tham gia
-            </h3>
-
+            <h3 className="text-xl font-semibold mb-4">Quản lý người tham gia</h3>
             <p className="mb-4 text-gray-400 text-sm">
-              Bấm vào tên để ghim/bỏ ghim người đó lên video chính (tối đa{" "}
-              {MAX_VISIBLE})
+              Bấm vào tên để ghim/bỏ ghim người đó lên video chính (tối đa {MAX_VISIBLE})
             </p>
-
             <ul className="divide-y divide-gray-700">
               {participants.map((user) => (
                 <li
                   key={user.id}
-                  className={`flex justify-between items-center py-3 cursor-pointer hover:bg-blue-400 px-3 rounded ${
-                    visibleParticipantIds.includes(user.id) ? "bg-blue-700" : ""
-                  } ${user.isSelf ? "cursor-not-allowed" : ""}`}
+                  className={`flex justify-between items-center py-3 cursor-pointer hover:bg-blue-400 px-3 rounded ${visibleParticipantIds.includes(user.id) ? "bg-blue-700" : ""
+                    } ${user.isSelf ? "cursor-not-allowed" : ""}`}
                   onClick={() => togglePinParticipant(user.id)}
                 >
                   <div>
@@ -409,16 +644,12 @@ const VideoCallPageLeader = () => {
                       <span className="ml-2 text-xs italic">(Bạn)</span>
                     )}
                   </div>
-
                   <div className="flex items-center gap-2 relative">
-                    {/* Microphone icon */}
                     {user.isMicOff ? (
                       <FaMicrophoneSlash className="text-red-500" />
                     ) : (
                       <FaMicrophone className="text-green-400" />
                     )}
-
-                    {/* Menu 3 chấm */}
                     {!user.isSelf && (
                       <>
                         <button

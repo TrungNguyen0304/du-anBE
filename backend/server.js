@@ -14,8 +14,8 @@ const protectedRoute = require("./route/protectedRoute.js");
 const companyRoute = require("./route/companyRoute.js");
 const memberRoute = require("./route/memberRoute.js");
 const leaderRoute = require("./route/leaderRoute.js");
-const notificationRoute = require("./route/notificationRoute.js")
-const groupRoute = require("./route/groupRoute.js")
+const notificationRoute = require("./route/notificationRoute.js");
+const groupRoute = require("./route/groupRoute.js");
 
 dotenv.config();
 const app = express();
@@ -24,31 +24,32 @@ const server = http.createServer(app);
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5174",           
+  "http://localhost:5174",
   "https://du-an-be-zcax.vercel.app",
+  "https://du-an-be-svrj.vercel.app",
+  "http://127.0.0.1:5500"
 ];
 
-// Cấu hình Socket.IO với CORS đúng origin
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    credentials: true,
-  },
-});
 
-// Cấu hình CORS middleware cho API HTTP
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-    origin: ["http://localhost:5173", "https://du-an-be-svrj.vercel.app"],
   })
 );
 
 app.use(express.json());
 ConnectDB();
 
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  },
+});
+
+// API routes
 app.use("/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/protected", protectedRoute);

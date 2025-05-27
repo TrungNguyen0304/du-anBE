@@ -24,12 +24,31 @@ const ChatLeader = () => {
   const chatEndRef = useRef(null);
   const addMemberRef = useRef(null);
   const createGroupRef = useRef(null);
+  const socketRef = useRef(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user")) || {
     _id: "",
     name: "Guest",
   };
-  const socketRef = useRef(io(SOCKET_URL));
+
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Socket connected:", socketRef.current.id);
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
 
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -352,21 +371,27 @@ const ChatLeader = () => {
     if (!selectedGroup?._id) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        `${API_URL}/${selectedGroup._id}/leave`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setGroups((prev) =>
-        prev.filter((group) => group._id !== selectedGroup._id)
-      );
+      if (!token) {
+        setError("Không tìm thấy token. Vui lòng đăng nhập lại.");
+        return;
+      }
+      await axios.delete(`${API_URL}/${selectedGroup._id}/leave`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setGroups((prev) => prev.filter((group) => group._id !== selectedGroup._id));
       setSelectedGroup(null);
       setHasLeftGroup(true);
-      setError(null);
+      socketRef.current.emit("leave-group", {
+        userId: currentUser._id,
+        groupId: selectedGroup._id,
+      });
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi rời nhóm");
+      if (err.response?.status === 401) {
+        setError("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+        // Optionally redirect to login page
+        // navigate("/login");
+      }
     }
   };
 
@@ -483,21 +508,45 @@ const ChatLeader = () => {
                 Tạo nhóm
               </button>
             </div>
+
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
         )}
 
         <div className="flex-1 overflow-y-auto space-y-3">
-          {groups.length > 0 ? (
-            groups.map((group) => (
-              <button
-                key={group._id}
-                onClick={() => setSelectedGroup(group)}
-                className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${
-                  selectedGroup?._id === group._id
-                    ? "bg-blue-100 font-semibold"
-                    : "bg-white"
+          {groups.map((group) => (
+            <button
+              key={group._id}
+              onClick={() => setSelectedGroup(group)}
+              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${selectedGroup?._id === group._id ? "bg-blue-100 font-semibold" : "bg-white"
                 } shadow-sm`}
+            >
+              {group.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {selectedGroup && (
+        <div className="relative flex flex-col h-screen bg-white shadow-lg rounded-r-xl overflow-hidden w-full mx-auto">
+          {/* Header */}
+          <div className="px-6 py-4 bg-white border-b shadow-sm flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-blue-800">{selectedGroup.name}</h2>
+              <p className="text-sm text-gray-600">
+                {selectedGroup.members.length} thành viên
+                {typingUsers.size > 0 && (
+                  <span className="ml-2 text-blue-500 animate-pulse">
+                    {[...typingUsers].length} người đang nhập...
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(`/chat/video-call/${selectedGroup._id}`)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Bắt đầu cuộc gọi video"
               >
                 {group.name}
               </button>
@@ -726,25 +775,33 @@ const ChatLeader = () => {
                       isCurrentUser ? "items-end" : "items-start"
                     }`}
                   >
-                    <div
-                      className={`max-w-[70%] px-4 py-2 rounded-lg ${
-                        isCurrentUser
-                          ? "bg-blue-600 text-white rounded-br-none"
-                          : "bg-white border border-gray-300 rounded-bl-none"
-                      } shadow`}
-                    >
-                      {!isCurrentUser && (
-                        <div className="text-xs font-semibold mb-1 text-gray-600">
-                          {msg.senderName}
-                        </div>
-                      )}
-                      <div>{msg.text}</div>
-                    </div>
+                    {msg.text}
                   </div>
                 );
-              })}
-              <div ref={chatEndRef} />
-            </div>
+              }
+              return (
+                <div
+                  key={msg._id || msg.timestamp}
+                  className={`mb-4 flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
+                >
+                  <div
+                    className={`max-w-[70%] px-4 py-2 rounded-lg ${isCurrentUser
+                      ? "bg-blue-600 text-white rounded-br-none"
+                      : "bg-white border border-gray-300 rounded-bl-none"
+                      } shadow`}
+                  >
+                    {!isCurrentUser && (
+                      <div className="text-xs font-semibold mb-1 text-gray-600">
+                        {msg.senderName}
+                      </div>
+                    )}
+                    <div>{msg.text}</div>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={chatEndRef} />
+          </div>
 
             {/* Input to send message */}
             <div className="border-t px-6 py-4 bg-white flex items-center gap-4">

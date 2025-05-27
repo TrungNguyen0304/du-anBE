@@ -125,7 +125,7 @@ const LeaderLayout = () => {
 
             <Route path="/chat" element={<ChatLeader />} />
             <Route path="/chat/requests" element={<JoinRequestsPageLeader />} />
-            <Route path="/chat/video-call" element={<VideoCallPageLeader />} />
+            <Route path="/chat/video-call/:groupId" element={<VideoCallPageLeader />} />
           </Routes>
         </main>
       </div>
