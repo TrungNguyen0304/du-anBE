@@ -13,6 +13,8 @@ import {
 import { GiProgression } from "react-icons/gi";
 import { TbSubtask } from "react-icons/tb";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import { RiTeamLine } from "react-icons/ri";
+import { VscFeedback } from "react-icons/vsc";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,6 +70,11 @@ const Sidebar = () => {
           label: "Tiến độ dự án",
           to: "/projectprogress",
           icon: <GiProgression />,
+        },
+        {
+          label: "Đánh Giá",
+          icon: <VscFeedback />,
+          to: "/feedback-admin",
         },
         {
           label: "Trò chuyện",
@@ -127,6 +134,16 @@ const Sidebar = () => {
           label: "Nhiệm Vụ",
           icon: <TbSubtask />,
           to: "/task-member",
+        },
+        {
+          label: "Đội Nhóm",
+          icon: <RiTeamLine />,
+          to: "/team-member",
+        },
+        {
+          label: "Đánh Giá",
+          icon: <VscFeedback />,
+          to: "/feedback-member",
         },
         {
           label: "Trò chuyện",
