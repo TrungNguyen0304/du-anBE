@@ -17,7 +17,6 @@ const UpdateTask = () => {
   const [loading, setLoading] = useState(true);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  // Lấy dữ liệu nhiệm vụ theo ID
   useEffect(() => {
     const fetchTask = async () => {
       try {
@@ -82,7 +81,7 @@ const UpdateTask = () => {
       );
       setSubmitSuccess(true);
       setTimeout(() => {
-        navigate(-1); // Quay lại trang trước (AssignedTasks)
+        navigate(-1);
       }, 1500);
     } catch (error) {
       console.error("Lỗi khi cập nhật nhiệm vụ:", error);
@@ -90,30 +89,44 @@ const UpdateTask = () => {
     }
   };
 
-  if (loading) return <p className="p-4">Đang tải thông tin nhiệm vụ...</p>;
+  if (loading)
+    return (
+      <p className="p-6 text-center text-gray-500 font-medium">
+        Đang tải thông tin nhiệm vụ...
+      </p>
+    );
 
   return (
-    <div className="w-full mx-auto bg-white p-6 rounded-2xl shadow">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-blue-600 hover:underline mb-4"
-      >
-        <ArrowLeft className="w-5 h-5 mr-2" />
-        Quay lại
-      </button>
+    <div className="w-full mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+      <div className="flex justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-blue-600 hover:underline mb-6 font-semibold"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Quay lại
+        </button>
 
-      <h2 className="text-2xl font-bold mb-4">Cập Nhật Nhiệm Vụ</h2>
+        <h2 className="text-xl md:text-3xl font-bold mb-8 text-gray-900">
+          Cập Nhật Nhiệm Vụ
+        </h2>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tên nhiệm vụ */}
         <div>
-          <label className="block font-medium mb-1">Tên nhiệm vụ</label>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Tên nhiệm vụ <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
+            className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+              errors.name ? "border-red-500" : "border-gray-300"
+            }`}
+            placeholder="Nhập tên nhiệm vụ"
           />
           {errors.name && (
             <p className="text-red-600 text-sm mt-1">{errors.name}</p>
@@ -122,26 +135,35 @@ const UpdateTask = () => {
 
         {/* Mô tả */}
         <div>
-          <label className="block font-medium mb-1">Mô tả</label>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Mô tả
+          </label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-            rows="4"
+            rows="5"
+            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            placeholder="Mô tả chi tiết nhiệm vụ"
           />
         </div>
 
         {/* Trạng thái */}
         <div>
-          <label className="block font-medium mb-1">Trạng thái</label>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Trạng thái <span className="text-red-500">*</span>
+          </label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
+            className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+              errors.status ? "border-red-500" : "border-gray-300"
+            }`}
           >
-            <option value="">-- Chọn trạng thái --</option>
+            <option value="" disabled>
+              -- Chọn trạng thái --
+            </option>
             <option value="pending">Chưa bắt đầu</option>
             <option value="in_progress">Đang thực hiện</option>
             <option value="completed">Đã hoàn thành</option>
@@ -154,25 +176,31 @@ const UpdateTask = () => {
 
         {/* Độ ưu tiên */}
         <div>
-          <label className="block font-medium mb-1">Độ ưu tiên</label>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Độ ưu tiên <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             name="priority"
+            min="1"
+            max="3"
             value={formData.priority}
             onChange={handleChange}
-            min="1"
-            className="w-full border px-3 py-2 rounded"
+            className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+              errors.priority ? "border-red-500" : "border-gray-300"
+            }`}
+            placeholder="Nhập độ ưu tiên (1-Cao, 2-Trung bình, 3-Thấp)"
           />
           {errors.priority && (
             <p className="text-red-600 text-sm mt-1">{errors.priority}</p>
           )}
         </div>
 
-        {/* Submit */}
-        <div className="text-right">
+        {/* Nút submit */}
+        <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-md transition"
           >
             Cập nhật
           </button>
@@ -180,7 +208,7 @@ const UpdateTask = () => {
 
         {/* Thông báo thành công */}
         {submitSuccess && (
-          <p className="text-green-600 font-medium mb-4">
+          <p className="text-green-600 font-semibold mt-4 text-center">
             Cập nhật nhiệm vụ thành công! Đang quay lại...
           </p>
         )}
