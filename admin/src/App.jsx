@@ -27,7 +27,6 @@ import UnassignedTasks from "./pages/leader/Tasks/UnassignedTasks";
 import AssignedTasks from "./pages/leader/Tasks/AssignedTasks";
 import TeamTable from "./pages/leader/Teams/TeamTable";
 import HomeMember from "./pages/member/HomeMember";
-import ProjectsMember from "./pages/member/ProjectsMember";
 import TeamDetail from "./pages/leader/Teams/TeamDetail";
 import MemberDetailLeader from "./pages/leader/Teams/MemberDetailLeader";
 import CreateTask from "./pages/leader/Tasks/CreateTask";
@@ -45,6 +44,9 @@ import VideoCallPageLeader from "./pages/leader/ChatLeader/VideoCallPageLeader";
 import Chat from "./pages/admin/Chat/Chat";
 import JoinRequestsPage from "./pages/admin/Chat/JoinRequestsPage";
 import VideoCallPage from "./pages/admin/Chat/VideoCallPage";
+import TeamMember from "./pages/member/Task/TeamMember";
+import FeedbackMember from "./pages/member/Task/FeedbackMember";
+import FeedbackAdmin from "./pages/admin/Feedback/FeedbackAdmin";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -80,6 +82,7 @@ const CompanyLayout = () => {
             <Route path="/project-detail/:id" element={<ProjectDetail />} />
             <Route path="/projectprogress" element={<ProjectProgress />} />
 
+            <Route path="/feedback-admin" element={<FeedbackAdmin />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/requests" element={<JoinRequestsPage />} />
             <Route path="/chat/video-call" element={<VideoCallPage />} />
@@ -109,7 +112,7 @@ const LeaderLayout = () => {
             <Route path="/assigned-tasks" element={<AssignedTasks />} />
             <Route path="/create-task" element={<CreateTask />} />
             <Route path="/update-task/:id" element={<UpdateTask />} />
-            <Route path="/task-detail" element={<TaskDetail />} />
+            <Route path="/task-detail/:id" element={<TaskDetail />} />
 
             <Route path="/unassigned-tasks" element={<UnassignedTasks />} />
 
@@ -143,7 +146,8 @@ const MemberLayout = () => {
           <Routes>
             <Route path="/" element={<HomeMember />} />
             <Route path="/task-member" element={<TaskMember />} />
-            <Route path="/projects-member" element={<ProjectsMember />} />
+            <Route path="/team-member" element={<TeamMember />} />
+            <Route path="/feedback-member" element={<FeedbackMember />} />
 
             <Route path="/chat" element={<ChatMember />} />
             <Route path="/chat/requests" element={<JoinRequestsPageMember />} />
