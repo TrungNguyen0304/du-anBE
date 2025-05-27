@@ -6,7 +6,6 @@ import axios from "axios";
 
 const PAGE_SIZE = 3;
 
-// Mảng trạng thái mẫu, bạn chỉnh theo thực tế
 const STATUS_SEQUENCE = ["Chưa bắt đầu", "Đang tiến hành", "Hoàn thành"];
 
 const TaskMember = () => {
@@ -156,7 +155,7 @@ const TaskMember = () => {
               </div>
 
               {/* Action buttons */}
-              <div className="flex flex-wrap gap-3 items-center justify-start sm:justify-end min-w-[160px]">
+              <div className="flex flex-wrap gap-3 items-end justify-start sm:justify-end min-w-[160px]">
                 <button
                   onClick={() => handleReport(task)}
                   className="flex items-center px-4 py-2 border border-blue-500 text-blue-600 rounded hover:bg-blue-50 transition text-sm sm:text-base"

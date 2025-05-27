@@ -8,7 +8,6 @@ import {
   Trash2,
   ChevronDown,
   Video,
-  PlusCircle,
 } from "lucide-react";
 import ChatHomeOutLeader from "./ChatHomeOutLeader";
 import { useNavigate } from "react-router-dom";
@@ -282,9 +281,6 @@ const ChatLeader = () => {
         !createGroupRef.current.contains(e.target)
       ) {
         setCreatingGroup(false);
-        setNewGroupName("");
-        setNewGroupMembers([]);
-        setError(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -337,7 +333,6 @@ const ChatLeader = () => {
       });
       setNewMemberId("");
       setAddingMember(false);
-      setError(null);
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi thêm thành viên");
     }
@@ -360,7 +355,6 @@ const ChatLeader = () => {
         members: prev.members.filter((_, i) => i !== index),
       }));
       setSelectedMemberIndex(null);
-      setError(null);
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi xóa thành viên");
     }
@@ -378,7 +372,9 @@ const ChatLeader = () => {
       await axios.delete(`${API_URL}/${selectedGroup._id}/leave`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setGroups((prev) => prev.filter((group) => group._id !== selectedGroup._id));
+      setGroups((prev) =>
+        prev.filter((group) => group._id !== selectedGroup._id)
+      );
       setSelectedGroup(null);
       setHasLeftGroup(true);
       socketRef.current.emit("leave-group", {
@@ -427,7 +423,6 @@ const ChatLeader = () => {
       setNewGroupName("");
       setNewGroupMembers([]);
       setCreatingGroup(false);
-      setError(null);
       socketRef.current.emit("join-group", {
         userId: currentUser._id,
         groupId: newGroup._id,
@@ -435,14 +430,6 @@ const ChatLeader = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi tạo nhóm");
     }
-  };
-
-  // Reset group creation form
-  const handleCancelCreateGroup = () => {
-    setCreatingGroup(false);
-    setNewGroupName("");
-    setNewGroupMembers([]);
-    setError(null);
   };
 
   if (hasLeftGroup) {
@@ -456,10 +443,10 @@ const ChatLeader = () => {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">Nhóm của tôi</h2>
           <button
-            onClick={() => setCreatingGroup(true)}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            onClick={() => setCreatingGroup(!creatingGroup)}
+            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
           >
-            Tạo nhóm
+            {creatingGroup ? "" : "Tạo nhóm"}
           </button>
         </div>
 
@@ -467,6 +454,7 @@ const ChatLeader = () => {
           <div
             ref={createGroupRef}
             className="space-y-3 rounded-lg shadow-sm p-4 bg-gray-50 border"
+            onClick={(e) => e.stopPropagation()}
           >
             <input
               type="text"
@@ -475,40 +463,51 @@ const ChatLeader = () => {
               onChange={(e) => setNewGroupName(e.target.value)}
               className="w-full border border-gray-300 px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <select
-              multiple
-              value={newGroupMembers}
-              onChange={(e) =>
-                setNewGroupMembers(
-                  Array.from(e.target.selectedOptions, (option) => option.value)
-                )
-              }
-              className="w-full border border-gray-300 px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                Chọn thành viên
-              </option>
+            <div className="max-h-40 overflow-y-auto custom-scrollbar border border-gray-300 rounded-lg p-3 bg-white">
               {teamMembers.map((member) => (
-                <option key={member._id} value={member._id}>
+                <label
+                  key={member._id}
+                  className="flex items-center justify-between gap-2 py-1 text-sm text-gray-800 hover:bg-gray-100 rounded px-2"
+                >
                   {member.name}
-                </option>
+                  <input
+                    type="checkbox"
+                    checked={newGroupMembers.includes(member._id)}
+                    onChange={() => {
+                      setNewGroupMembers((prev) =>
+                        prev.includes(member._id)
+                          ? prev.filter((id) => id !== member._id)
+                          : [...prev, member._id]
+                      );
+                    }}
+                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                </label>
               ))}
-            </select>
-            <div className="flex gap-2">
+            </div>
+            <div className="flex gap-3">
               <button
-                onClick={handleCancelCreateGroup}
-                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNewGroupName("");
+                  setNewGroupMembers([]);
+                  setError(null);
+                  setCreatingGroup(false);
+                }}
+                className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors text-sm"
               >
                 Hủy
               </button>
               <button
-                onClick={handleCreateGroup}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateGroup();
+                }}
                 className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
                 Tạo nhóm
               </button>
             </div>
-
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
         )}
@@ -518,8 +517,11 @@ const ChatLeader = () => {
             <button
               key={group._id}
               onClick={() => setSelectedGroup(group)}
-              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${selectedGroup?._id === group._id ? "bg-blue-100 font-semibold" : "bg-white"
-                } shadow-sm`}
+              className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${
+                selectedGroup?._id === group._id
+                  ? "bg-blue-100 font-semibold"
+                  : "bg-white"
+              } shadow-sm`}
             >
               {group.name}
             </button>
@@ -532,7 +534,9 @@ const ChatLeader = () => {
           {/* Header */}
           <div className="px-6 py-4 bg-white border-b shadow-sm flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-blue-800">{selectedGroup.name}</h2>
+              <h2 className="text-2xl font-bold text-blue-800">
+                {selectedGroup.name}
+              </h2>
               <p className="text-sm text-gray-600">
                 {selectedGroup.members.length} thành viên
                 {typingUsers.size > 0 && (
@@ -544,236 +548,169 @@ const ChatLeader = () => {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => navigate(`/chat/video-call/${selectedGroup._id}`)}
+                onClick={() =>
+                  navigate(`/chat/video-call/${selectedGroup._id}`)
+                }
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 title="Bắt đầu cuộc gọi video"
               >
-                {group.name}
+                <Video size={20} className="text-blue-600" />
               </button>
-            ))
-          ) : (
-            <div className="text-center text-gray-500 text-sm italic">
-              Chưa có nhóm nào. Hãy tạo một nhóm để bắt đầu!
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <MoreVertical size={20} className="text-blue-600" />
+              </button>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {groups.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-r-xl shadow-lg">
-          <PlusCircle size={48} className="text-blue-600 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            Chưa có nhóm trò chuyện
-          </h2>
-          <p className="text-gray-600 text-sm mb-6 max-w-md text-center">
-            Bạn hiện tại chưa tham gia nhóm nào. Tạo một nhóm mới để bắt đầu trò
-            chuyện với đồng nghiệp của bạn!
-          </p>
-          <button
-            onClick={() => setCreatingGroup(true)}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <PlusCircle size={20} />
-            Tạo nhóm mới
-          </button>
-          {error && (
-            <div className="text-red-500 text-center bg-red-50 px-4 py-2 rounded-lg mt-4">
-              {error}
-            </div>
-          )}
-        </div>
-      ) : (
-        selectedGroup && (
-          <div className="relative flex flex-col h-screen bg-white shadow-lg rounded-r-xl overflow-hidden w-full mx-auto">
-            {/* Header */}
-            <div className="px-6 py-4 bg-white border-b shadow-sm flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-blue-800">
-                  {selectedGroup.name}
-                </h2>
-                <p className="text-sm text-gray-600">
-                  {selectedGroup.members.length} thành viên
-                  {typingUsers.size > 0 && (
-                    <span className="ml-2 text-blue-500 animate-pulse">
-                      {[...typingUsers].length} người đang nhập...
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => navigate("/chat/video-call")}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                  title="Bắt đầu cuộc gọi video"
-                >
-                  <Video size={20} className="text-blue-600" />
-                </button>
-                <button
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  <MoreVertical size={20} className="text-blue-600" />
-                </button>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            {sidebarOpen && (
-              <div className="absolute top-0 right-0 h-full w-72 bg-white border-l shadow-xl z-10 flex flex-col">
-                <div className="flex items-center justify-between px-4 py-4 border-b bg-gray-50">
-                  <div>
-                    <h1 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-                      {currentUser.name}
-                      {onlineUsers.has(currentUser._id) && (
-                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      )}
-                    </h1>
-                    <p className="text-xs text-gray-600">Bạn đang online</p>
-                  </div>
-                  <button
-                    onClick={() => setSidebarOpen(false)}
-                    className="hover:bg-gray-100 rounded p-1 transition-colors"
-                  >
-                    <X size={18} className="text-gray-600" />
-                  </button>
+          {/* Sidebar */}
+          {sidebarOpen && (
+            <div className="absolute top-0 right-0 h-full w-72 bg-white border-l shadow-xl z-10 flex flex-col">
+              <div className="flex items-center justify-between px-4 py-4 border-b bg-gray-50">
+                <div>
+                  <h1 className="font-bold text-gray-800 text-lg flex items-center gap-2">
+                    {currentUser.name}
+                    {onlineUsers.has(currentUser._id) && (
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    )}
+                  </h1>
+                  <p className="text-xs text-gray-600">Bạn đang online</p>
                 </div>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="hover:bg-gray-100 rounded p-1 transition-colors"
+                >
+                  <X size={18} className="text-gray-600" />
+                </button>
+              </div>
 
-                <div className="p-4 flex flex-col gap-4 flex-1">
-                  <button
-                    onClick={() => setShowMembers(!showMembers)}
-                    className="flex items-center justify-between w-full px-4 py-2 bg-gray-50 border rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <span className="flex items-center gap-2 text-gray-800">
-                      <Users size={16} /> Thành viên (
-                      {selectedGroup.members.length})
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`${
-                        showMembers ? "rotate-180" : ""
-                      } transition-transform text-gray-600`}
-                    />
-                  </button>
+              <div className="p-4 flex flex-col gap-4 flex-1">
+                <button
+                  onClick={() => setShowMembers(!showMembers)}
+                  className="flex items-center justify-between w-full px-4 py-2 bg-gray-50 border rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <span className="flex items-center gap-2 text-gray-800">
+                    <Users size={16} /> Thành viên (
+                    {selectedGroup.members.length})
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`${
+                      showMembers ? "rotate-180" : ""
+                    } transition-transform text-gray-600`}
+                  />
+                </button>
 
-                  {showMembers && (
-                    <div className="bg-gray-50 p-3 rounded-lg border space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
-                      {selectedGroup.members.map((member, index) => (
-                        <div
-                          key={member._id}
-                          className="flex justify-between items-center text-sm text-gray-800"
-                        >
-                          <span className="flex items-center gap-2">
-                            {member.name}
-                            {onlineUsers.has(member._id) && (
-                              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            )}
-                          </span>
-                          {member._id !== currentUser._id && (
-                            <div className="relative">
-                              <button
-                                onClick={() =>
-                                  setSelectedMemberIndex((prev) =>
-                                    prev === index ? null : index
-                                  )
-                                }
-                                className="hover:bg-gray-100 rounded p-1 transition-colors"
-                              >
-                                <MoreVertical
-                                  size={16}
-                                  className="text-gray-600"
-                                />
-                              </button>
-                              {selectedMemberIndex === index && (
-                                <div className="absolute right-0 top-6 bg-white border rounded-lg shadow z-10">
-                                  <button
-                                    onClick={() => handleRemoveMember(index)}
-                                    className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-sm"
-                                  >
-                                    <Trash2 size={14} /> Xóa
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                {showMembers && (
+                  <div className="bg-gray-50 p-3 rounded-lg border space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
+                    {selectedGroup.members.map((member, index) => (
+                      <div
+                        key={member._id}
+                        className="flex justify-between items-center text-sm text-gray-800"
+                      >
+                        <span className="flex items-center gap-2">
+                          {member.name}
+                          {onlineUsers.has(member._id) && (
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                           )}
-                        </div>
-                      ))}
+                        </span>
+                        {member._id !== currentUser._id && (
+                          <div className="relative">
+                            <button
+                              onClick={() =>
+                                setSelectedMemberIndex((prev) =>
+                                  prev === index ? null : index
+                                )
+                              }
+                              className="hover:bg-gray-100 rounded p-1 transition-colors"
+                            >
+                              <MoreVertical
+                                size={16}
+                                className="text-gray-600"
+                              />
+                            </button>
+                            {selectedMemberIndex === index && (
+                              <div className="absolute right-0 top-6 bg-white border rounded-lg shadow z-10">
+                                <button
+                                  onClick={() => handleRemoveMember(index)}
+                                  className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-sm"
+                                >
+                                  <Trash2 size={14} /> Xóa
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div ref={addMemberRef}>
+                  <button
+                    onClick={() => setAddingMember(!addingMember)}
+                    className="flex items-center gap-2 text-base bg-gray-50 border rounded-lg hover:bg-gray-100 px-4 py-2 w-full transition-colors"
+                  >
+                    <UserPlus size={16} className="text-blue-600" /> Thêm thành
+                    viên
+                  </button>
+                  {addingMember && (
+                    <div className="flex gap-3 mt-3 items-center">
+                      <select
+                        value={newMemberId}
+                        onChange={(e) => setNewMemberId(e.target.value)}
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Chọn thành viên</option>
+                        {teamMembers
+                          .filter(
+                            (m) =>
+                              !selectedGroup.members.some(
+                                (member) => member._id === m._id
+                              )
+                          )
+                          .map((member) => (
+                            <option key={member._id} value={member._id}>
+                              {member.name}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        onClick={handleConfirmAdd}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      >
+                        Thêm
+                      </button>
                     </div>
                   )}
-
-                  <div ref={addMemberRef}>
-                    <button
-                      onClick={() => setAddingMember(!addingMember)}
-                      className="flex items-center gap-2 text-base bg-gray-50 border rounded-lg hover:bg-gray-100 px-4 py-2 w-full transition-colors"
-                    >
-                      <UserPlus size={16} className="text-blue-600" /> Thêm
-                      thành viên
-                    </button>
-                    {addingMember && (
-                      <div className="flex gap-3 mt-3 items-center">
-                        <select
-                          value={newMemberId}
-                          onChange={(e) => setNewMemberId(e.target.value)}
-                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Chọn thành viên</option>
-                          {teamMembers
-                            .filter(
-                              (m) =>
-                                !selectedGroup.members.some(
-                                  (member) => member._id === m._id
-                                )
-                            )
-                            .map((member) => (
-                              <option key={member._id} value={member._id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                        <button
-                          onClick={handleConfirmAdd}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                        >
-                          Thêm
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={handleLeaveGroup}
-                    className="mt-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Rời nhóm
-                  </button>
                 </div>
+
+                <button
+                  onClick={handleLeaveGroup}
+                  className="mt-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Rời nhóm
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Chat messages */}
+          <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-gray-50">
+            {error && (
+              <div className="text-red-500 text-center bg-red-50 px-4 py-2 rounded-lg mb-4">
+                {error}
               </div>
             )}
-
-            {/* Chat messages */}
-            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-gray-50">
-              {error && (
-                <div className="text-red-500 text-center bg-red-50 px-4 py-2 rounded-lg mb-4">
-                  {error}
-                </div>
-              )}
-              {messages.map((msg) => {
-                const isCurrentUser = msg.senderId === currentUser._id;
-                if (msg.system) {
-                  return (
-                    <div
-                      key={msg._id || msg.timestamp}
-                      className="text-center text-xs italic text-gray-500 mb-3"
-                    >
-                      {msg.text}
-                    </div>
-                  );
-                }
+            {messages.map((msg) => {
+              const isCurrentUser = msg.senderId === currentUser._id;
+              if (msg.system) {
                 return (
                   <div
                     key={msg._id || msg.timestamp}
-                    className={`mb-4 flex flex-col ${
-                      isCurrentUser ? "items-end" : "items-start"
-                    }`}
+                    className="text-center text-xs italic text-gray-500 mb-3"
                   >
                     {msg.text}
                   </div>
@@ -782,13 +719,16 @@ const ChatLeader = () => {
               return (
                 <div
                   key={msg._id || msg.timestamp}
-                  className={`mb-4 flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
+                  className={`mb-4 flex flex-col ${
+                    isCurrentUser ? "items-end" : "items-start"
+                  }`}
                 >
                   <div
-                    className={`max-w-[70%] px-4 py-2 rounded-lg ${isCurrentUser
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-white border border-gray-300 rounded-bl-none"
-                      } shadow`}
+                    className={`max-w-[70%] px-4 py-2 rounded-lg ${
+                      isCurrentUser
+                        ? "bg-blue-600 text-white rounded-br-none"
+                        : "bg-white border border-gray-300 rounded-bl-none"
+                    } shadow`}
                   >
                     {!isCurrentUser && (
                       <div className="text-xs font-semibold mb-1 text-gray-600">
@@ -803,30 +743,29 @@ const ChatLeader = () => {
             <div ref={chatEndRef} />
           </div>
 
-            {/* Input to send message */}
-            <div className="border-t px-6 py-4 bg-white flex items-center gap-4">
-              <input
-                type="text"
-                placeholder="Nhập tin nhắn..."
-                value={inputText}
-                onChange={handleInputChange}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSendMessage();
-                  }
-                }}
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
-                title="Gửi tin nhắn"
-              >
-                <Send size={20} />
-              </button>
-            </div>
+          {/* Input to send message */}
+          <div className="border-t px-6 py-4 bg-white flex items-center gap-4">
+            <input
+              type="text"
+              placeholder="Nhập tin nhắn..."
+              value={inputText}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSendMessage();
+                }
+              }}
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleSendMessage}
+              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+              title="Gửi tin nhắn"
+            >
+              <Send size={20} />
+            </button>
           </div>
-        )
+        </div>
       )}
     </div>
   );

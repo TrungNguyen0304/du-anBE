@@ -15,10 +15,10 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const socket = io('http://localhost:8001');
+      const socket = io('http://192.168.1.15:8001');
         const userId = '6825bec97b2e3ab9579cee59'; // Member's userId
         const groupId = '68303fa5c6fbb63612918978'; // Group ID
-        const authToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1YmVjOTdiMmUzYWI5NTc5Y2VlNTkiLCJuYW1lIjoiVHLhuqduIHRo4buLIEIiLCJlbWFpbCI6InRyYW5CQGdtYWlsLmNvbSIsInJvbGUiOiJtZW1iZXIiLCJnZW5kZXIiOm51bGwsImRhdGVPZkJpcnRoIjoiMjAwMC0wNS0wNFQwMDowMDowMC4wMDBaIiwicGhvbmVOdW1iZXIiOiIwMzI5NTc1NTQxIiwiYWRkcmVzcyI6IlTDonkgVGjDoG5oIiwiaWF0IjoxNzQ4MjQzNTMzLCJleHAiOjE3NDgyNjE1MzN9.qyGC9sN8b0oZ5pjQIpOM62gise737gT58nLN1Ebt_os';
+        const authToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1YmVjOTdiMmUzYWI5NTc5Y2VlNTkiLCJuYW1lIjoiVHLhuqduIHRo4buLIEIiLCJlbWFpbCI6InRyYW5CQGdtYWlsLmNvbSIsInJvbGUiOiJtZW1iZXIiLCJnZW5kZXIiOm51bGwsImRhdGVPZkJpcnRoIjoiMjAwMC0wNS0wNFQwMDowMDowMC4wMDBaIiwicGhvbmVOdW1iZXIiOiIwMzI5NTc1NTQxIiwiYWRkcmVzcyI6IlTDonkgVGjDoG5oIiwiaWF0IjoxNzQ4MzA5NjgzLCJleHAiOjE3NDgzMjc2ODN9.VVCU96PDEJtcEW3x9UCrj1A068UL7eF9KXSGOdxrZQU';
 
         function App() {
             const [messages, setMessages] = React.useState([]);
