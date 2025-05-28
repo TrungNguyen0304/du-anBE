@@ -720,7 +720,7 @@ const FeedbackAdmin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 flex items-center">
           <MdDashboard className="mr-2 text-2xl sm:text-3xl text-blue-500" />
           Bảng Điều Khiển Feedback (Admin)
