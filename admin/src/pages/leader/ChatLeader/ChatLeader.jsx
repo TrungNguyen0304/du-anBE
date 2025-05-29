@@ -9,12 +9,13 @@ import {
   ChevronDown,
   Video,
   Edit2,
+  Plus,
 } from "lucide-react";
 import ChatHomeOutLeader from "./ChatHomeOutLeader";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
-import { BiDotsVerticalRounded } from "react-icons/bi";
+import { BiDotsVerticalRounded, BiSolidImage } from "react-icons/bi";
 import { FaRegEyeSlash } from "react-icons/fa";
 
 const API_URL = "http://localhost:8001/api/group";
@@ -72,6 +73,28 @@ const ChatLeader = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null); // Trạng thái để theo dõi tin nhắn đang chỉnh sửa
   const [editText, setEditText] = useState(""); // Nội dung tin nhắn đang chỉnh sửa
+  const [showFileInput, setShowFileInput] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const token = localStorage.getItem("token");
+        const formData = new FormData();
+        formData.append("file", file);
+        await axios.post(`${API_URL}/${selectedGroup._id}/files`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        console.log("File uploaded:", file.name);
+        setShowFileInput(false); // Ẩn thẻ chọn file sau khi chọn
+      } catch (err) {
+        setError(err.response?.data?.message || "Lỗi khi tải ảnh lên");
+      }
+    }
+  };
 
   // Connect socket and emit user-online
   useEffect(() => {
@@ -922,25 +945,52 @@ const ChatLeader = () => {
           </div>
 
           {/* Input to send message */}
-          <div className="border-t px-6 py-4 bg-white flex items-center gap-4">
+          <div className="border-t bg-white px-4 py-3 sm:px-6 sm:py-4 flex items-center gap-3">
+            {/* Nút chọn file */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFileInput(!showFileInput)}
+                className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-all duration-200"
+                title="Tải lên file"
+              >
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+              {showFileInput && (
+                <div className="absolute bottom-12 left-0 bg-white border border-gray-200 rounded-md shadow-md z-10 w-36">
+                  <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition rounded-md">
+                    <BiSolidImage className="text-xl" />
+                    Tải ảnh lên
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {/* Ô nhập tin nhắn */}
             <input
               type="text"
               placeholder="Nhập tin nhắn..."
               value={inputText}
               onChange={handleInputChange}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSendMessage();
-                }
+                if (e.key === "Enter") handleSendMessage();
               }}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-gray-50 placeholder:text-gray-400"
             />
+
+            {/* Nút gửi */}
             <button
               onClick={handleSendMessage}
-              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+              disabled={!inputText.trim()}
+              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:bg-blue-300 transition-colors duration-200"
               title="Gửi tin nhắn"
             >
-              <Send size={20} />
+              <Send className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>
