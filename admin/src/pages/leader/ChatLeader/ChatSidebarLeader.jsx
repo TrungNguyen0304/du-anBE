@@ -17,12 +17,14 @@ const ChatSidebarLeader = ({
   setError,
 }) => {
   return (
-    <div className="w-80 bg-white border-r rounded-l-xl shadow-md flex flex-col p-6 gap-6">
+    <div className="w-full sm:w-80 bg-white sm:border-r sm:rounded-l-xl sm:shadow-md flex flex-col p-4 sm:p-6 gap-4 sm:gap-6 h-auto sm:h-full">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-800">Nhóm của tôi</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          Nhóm của tôi
+        </h2>
         <button
           onClick={() => setCreatingGroup(!creatingGroup)}
-          className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 transition-colors"
         >
           {creatingGroup ? "" : "Tạo nhóm"}
         </button>
@@ -39,13 +41,13 @@ const ChatSidebarLeader = ({
             placeholder="Tên nhóm"
             value={newGroupName}
             onChange={(e) => setNewGroupName(e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 px-3 py-2 text-xs sm:text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="max-h-40 overflow-y-auto custom-scrollbar border border-gray-300 rounded-lg p-3 bg-white">
             {teamMembers.map((member) => (
               <label
                 key={member._id}
-                className="flex items-center justify-between gap-2 py-1 text-sm text-gray-800 hover:bg-gray-100 rounded px-2"
+                className="flex items-center justify-between gap-2 py-1 text-xs sm:text-sm text-gray-800 hover:bg-gray-100 rounded px-2"
               >
                 {member.name}
                 <input
@@ -72,7 +74,7 @@ const ChatSidebarLeader = ({
                 setError(null);
                 setCreatingGroup(false);
               }}
-              className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+              className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors text-xs sm:text-sm"
             >
               Hủy
             </button>
@@ -81,12 +83,14 @@ const ChatSidebarLeader = ({
                 e.stopPropagation();
                 handleCreateGroup();
               }}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm"
             >
               Tạo nhóm
             </button>
           </div>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-xs sm:text-sm mt-2">{error}</p>
+          )}
         </div>
       )}
 
@@ -95,7 +99,7 @@ const ChatSidebarLeader = ({
           <button
             key={group._id}
             onClick={() => setSelectedGroup(group)}
-            className={`w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${
+            className={`w-full text-left px-3 sm:px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-sm sm:text-base ${
               selectedGroup?._id === group._id
                 ? "bg-blue-100 font-semibold"
                 : "bg-white"
@@ -105,6 +109,7 @@ const ChatSidebarLeader = ({
           </button>
         ))}
       </div>
+      <hr />
     </div>
   );
 };

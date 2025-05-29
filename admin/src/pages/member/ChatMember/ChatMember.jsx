@@ -44,7 +44,7 @@ const ChatMember = () => {
   const [editText, setEditText] = useState("");
   const [showFileInput, setShowFileInput] = useState(false);
 
-  // Socket setup
+  // Socket setup (unchanged)
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
       transports: ["websocket"],
@@ -140,7 +140,7 @@ const ChatMember = () => {
     };
   }, [selectedGroup]);
 
-  // Fetch groups
+  // Fetch groups, team members, messages, and other useEffect hooks remain unchanged
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -163,7 +163,6 @@ const ChatMember = () => {
     fetchGroups();
   }, []);
 
-  // Fetch team members
   useEffect(() => {
     const fetchTeamMembers = async () => {
       try {
@@ -191,7 +190,6 @@ const ChatMember = () => {
     fetchTeamMembers();
   }, []);
 
-  // Fetch messages
   useEffect(() => {
     if (!selectedGroup?._id) return;
 
@@ -227,12 +225,10 @@ const ChatMember = () => {
     fetchMessages();
   }, [selectedGroup, currentUser._id]);
 
-  // Auto-scroll to latest message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (addMemberRef.current && !addMemberRef.current.contains(e.target)) {
@@ -253,7 +249,6 @@ const ChatMember = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle file upload
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -275,7 +270,6 @@ const ChatMember = () => {
     }
   };
 
-  // Send message
   const handleSendMessage = async () => {
     if (!inputText.trim() || !selectedGroup?._id) return;
     try {
@@ -291,7 +285,6 @@ const ChatMember = () => {
     }
   };
 
-  // Add member
   const handleConfirmAdd = async () => {
     if (!newMemberId || !selectedGroup?._id) {
       setError("Vui lòng chọn thành viên để thêm");
@@ -315,7 +308,6 @@ const ChatMember = () => {
     }
   };
 
-  // Remove member
   const handleRemoveMember = async (index) => {
     const member = selectedGroup.members[index];
     if (!member) return;
@@ -337,7 +329,6 @@ const ChatMember = () => {
     }
   };
 
-  // Leave group
   const handleLeaveGroup = async () => {
     if (!selectedGroup?._id) return;
     try {
@@ -366,7 +357,6 @@ const ChatMember = () => {
     }
   };
 
-  // Create group
   const handleCreateGroup = async () => {
     if (!newGroupName.trim() || newGroupMembers.length === 0) {
       setError("Tên nhóm và danh sách thành viên là bắt buộc");
@@ -408,7 +398,6 @@ const ChatMember = () => {
     }
   };
 
-  // Delete message
   const handleDeleteMessage = async (messageId) => {
     try {
       const token = localStorage.getItem("token");
@@ -425,7 +414,6 @@ const ChatMember = () => {
     }
   };
 
-  // Hide message
   const handleHideMessage = (messageId) => {
     setMessages((prev) =>
       prev.map((msg) =>
@@ -435,7 +423,6 @@ const ChatMember = () => {
     setOpenMenuId(null);
   };
 
-  // Edit message
   const handleStartEditMessage = (messageId, text) => {
     setEditingMessageId(messageId);
     setEditText(text);
@@ -476,7 +463,7 @@ const ChatMember = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 sm:flex-row">
       <ChatMemberSidebar
         groups={groups}
         setSelectedGroup={setSelectedGroup}
@@ -525,6 +512,7 @@ const ChatMember = () => {
           setOpenMenuId={setOpenMenuId}
           editingMessageId={editingMessageId}
           setEditingMessageId={setEditingMessageId}
+
           editText={editText}
           setEditText={setEditText}
           handleStartEditMessage={handleStartEditMessage}
