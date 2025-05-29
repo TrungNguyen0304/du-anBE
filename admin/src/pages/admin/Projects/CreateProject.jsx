@@ -37,7 +37,7 @@ const CreateProject = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Thêm Dự Án Mới</h2>
       <div className="space-y-4">
         <div>

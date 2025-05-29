@@ -36,6 +36,7 @@ const getMyTeam = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 const getMyTasks = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -79,6 +80,7 @@ const getMyTasks = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 // const createReport = async (req, res) => {
 //   try {
 //     const { taskId, content, taskProgress, difficulties, feedback } = req.body;
@@ -153,6 +155,7 @@ const getMyTasks = async (req, res) => {
 //     res.status(500).json({ message: "Lỗi server.", error: error.message });
 //   }
 // };
+
 const showAllFeedback = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -197,6 +200,7 @@ const showAllFeedback = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 const updateTaskStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -267,6 +271,7 @@ const updateTaskStatus = async (req, res) => {
     res.status(500).json({ message: "Lỗi server.", error: error.message });
   }
 };
+
 // ghi đề taskProgress lên
 const createReport = async (req, res) => {
   try {
@@ -323,7 +328,7 @@ const createReport = async (req, res) => {
       task: taskId,
       team: team._id,
       assignedLeader: assignedLeader._id,
-      feedback
+      feedback: feedback || "",
     });
 
     await report.save();

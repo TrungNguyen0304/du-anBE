@@ -223,7 +223,7 @@ const Home = () => {
   };
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto font-sans text-gray-900 min-w-0">
+    <div className="p-3 sm:p-4 md:p-6 w-full mx-auto font-sans text-gray-900 min-w-0">
       <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 tracking-wide">
         Trang Chủ
       </h2>
