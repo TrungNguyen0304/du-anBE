@@ -1,21 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Group Video Call + Screen Share</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { margin: 5px 0; padding: 8px; width: 100%; max-width: 400px; }
-    video { width: 45%; margin: 10px; border: 1px solid #ccc; }
-    #notification { background: yellow; padding: 10px; margin-top: 10px; display: none; }
-    .video-container { display: flex; flex-wrap: wrap; }
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+
+    input,
+    button {
+      margin: 5px 0;
+      padding: 8px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    video {
+      width: 45%;
+      margin: 10px;
+      border: 1px solid #ccc;
+    }
+
+    #notification {
+      background: yellow;
+      padding: 10px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .video-container {
+      display: flex;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
+
 <body>
   <h2>Group Call + Screen Share</h2>
 
   <input id="userId" placeholder="Your User ID" />
   <input id="groupId" placeholder="Group ID" />
+  <input id="authToken" placeholder="JWT Token" />
   <button onclick="initSocket()">🔌 Vào nhóm</button>
   <button onclick="startCall()">📞 Bắt đầu gọi</button>
   <button onclick="startScreenShare()">🖥️ Chia sẻ màn hình</button>
@@ -56,36 +84,71 @@
       $("videos").appendChild(div);
     }
 
+    async function fetchJSON(url) {
+      const token = $("authToken").value;
+      const res = await fetch(url, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Request failed");
+      return res.json();
+    }
+
+    async function postJSON(url, body) {
+      const token = $("authToken").value;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error("Post request failed");
+      return res.json();
+    }
+
     async function initSocket() {
       userId = $("userId").value;
       groupId = $("groupId").value;
       socket.emit("user-online", userId);
       socket.emit("join-group", { userId, groupId });
+
+      try {
+        const { inCall } = await fetchJSON(`http://localhost:8001/api/group/${groupId}/call-status`);
+        if (inCall) $("notification").style.display = "block";
+      } catch (err) {
+        console.error("❌ Lỗi kiểm tra trạng thái call:", err);
+      }
     }
 
     async function startCall() {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      addVideoStream(userId, localStream, "Bạn");
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        addVideoStream(userId, localStream, "Bạn");
 
-      const pc = new RTCPeerConnection(servers);
-      peerConnections.set("call", pc);
-      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        const pc = new RTCPeerConnection(servers);
+        peerConnections.set("call", pc);
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-      pc.onicecandidate = event => {
-        if (event.candidate) {
-          socket.emit("ice-candidate", {
-            groupId, userId, toUserId: "all", candidate: event.candidate
-          });
-        }
-      };
+        pc.onicecandidate = event => {
+          if (event.candidate) {
+            socket.emit("ice-candidate", {
+              groupId, userId, toUserId: "all", candidate: event.candidate
+            });
+          }
+        };
 
-      pc.ontrack = event => {
-        addVideoStream("remote-call", event.streams[0], "Người khác");
-      };
+        pc.ontrack = event => {
+          addVideoStream("remote-call", event.streams[0], "Người khác");
+        };
 
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit("start-call", { groupId, userId, offer });
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await postJSON(`http://localhost:8001/api/group/${groupId}/call`, { userId, offer });
+        socket.emit("start-call", { groupId, userId, offer });
+      } catch (err) {
+        console.error("❌ Lỗi bắt đầu call:", err);
+      }
     }
 
     async function joinCall() {
@@ -117,9 +180,17 @@
 
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        socket.emit("start-screen-share", { groupId, userId, offer });
+
+        // ✅ gửi offer vào cả API và socket, để các peer nhận được
+        await postJSON(`http://localhost:8001/api/group/${groupId}/screen-share`, { offer });
+
+        socket.emit("screen-share-started", {
+          groupId,
+          sharerId: userId,
+          offer,
+        });
       } catch (err) {
-        console.error("Lỗi chia sẻ màn hình:", err);
+        console.error("❌ Lỗi chia sẻ màn hình:", err);
       }
     }
 
@@ -129,7 +200,6 @@
 
       window.joinCall = async () => {
         $("notification").style.display = "none";
-
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localStream = stream;
         addVideoStream(userId, stream, "Bạn");
@@ -163,10 +233,8 @@
     socket.on("screen-share-started", async ({ userId: fromId, userName, offer }) => {
       if (fromId === userId) return;
 
-      console.log("📺 Nhận chia sẻ màn hình từ", fromId);
-
       const pc = new RTCPeerConnection(servers);
-      peerConnections.set("screen", pc);
+      peerConnections.set("screen-" + fromId, pc);
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -177,7 +245,8 @@
       };
 
       pc.ontrack = (event) => {
-        addVideoStream("remote-screen", event.streams[0], "Màn hình " + userName);
+        console.log("📺 Nhận track chia sẻ màn hình từ", fromId);
+        addVideoStream("remote-screen-" + fromId, event.streams[0], "Màn hình " + userName);
       };
 
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
@@ -222,4 +291,5 @@
     });
   </script>
 </body>
+
 </html>

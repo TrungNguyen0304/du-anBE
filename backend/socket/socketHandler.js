@@ -118,6 +118,11 @@ function setupSocket(io) {
         socket.on("start-call", async ({ groupId, userId, offer }) => {
             if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(groupId)) return;
 
+            if (!offer || !offer.type || !offer.sdp) {
+                console.warn("❌ Không nhận được offer hợp lệ:", offer);
+                return;
+            }
+
             try {
                 if (!activeCalls.has(groupId)) activeCalls.set(groupId, new Set());
                 activeCalls.get(groupId).add(userId);

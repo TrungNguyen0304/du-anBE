@@ -347,38 +347,48 @@ const startCall = async (req, res) => {
     }
 };
 const startScreenShare = async (req, res) => {
-    try {
-        const { groupId } = req.params;
-        const userId = req.user._id;
+  try {
+    const { groupId } = req.params;
+    const userId = req.user._id;
+    const { offer } = req.body; // 🎯 Nhận offer từ client
 
-        if (!mongoose.Types.ObjectId.isValid(groupId)) {
-            return res.status(400).json({ message: "ID nhóm không hợp lệ" });
-        }
-
-        const group = await Group.findById(groupId);
-        if (!group) {
-            return res.status(404).json({ message: "Nhóm không tồn tại" });
-        }
-
-        if (!group.members.map(id => id.toString()).includes(userId.toString())) {
-            return res.status(403).json({ message: "Bạn không có trong nhóm" });
-        }
-
-        // Gửi thông báo chia sẻ màn hình đến các thành viên khác
-        const io = getIO();
-        group.members.forEach(memberId => {
-            if (memberId.toString() !== userId.toString()) {
-                io.to(memberId.toString()).emit("screen-share-started", {
-                    groupId,
-                    sharerId: userId,
-                });
-            }
-        });
-
-        res.status(200).json({ message: "Khởi tạo chia sẻ màn hình thành công" });
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi khi khởi tạo chia sẻ màn hình", error: error.message });
+    if (!offer || !offer.sdp || !offer.type) {
+      return res.status(400).json({ message: "Offer không hợp lệ" });
     }
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return res.status(400).json({ message: "ID nhóm không hợp lệ" });
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Nhóm không tồn tại" });
+    }
+
+    if (!group.members.map(id => id.toString()).includes(userId.toString())) {
+      return res.status(403).json({ message: "Bạn không có trong nhóm" });
+    }
+
+    const io = getIO();
+
+    group.members.forEach(memberId => {
+      if (memberId.toString() !== userId.toString()) {
+        io.to(memberId.toString()).emit("screen-share-started", {
+          groupId,
+          userId,
+          userName: req.user.name || "Không tên", // hoặc lấy từ DB
+          offer, // ✅ Gửi offer vào socket event
+        });
+      }
+    });
+
+    res.status(200).json({ message: "Khởi tạo chia sẻ màn hình thành công" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Lỗi khi khởi tạo chia sẻ màn hình",
+      error: error.message,
+    });
+  }
 };
 
 const getCallStatus = async (req, res) => {
