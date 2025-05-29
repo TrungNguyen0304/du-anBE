@@ -27,7 +27,8 @@ const allowedOrigins = [
   "http://localhost:5174",
   "https://du-an-be-zcax.vercel.app",
   "https://du-an-be-svrj.vercel.app",
-  "http://127.0.0.1:5500"
+  "http://127.0.0.1:5500",
+ 
 ];
 
 app.use(
@@ -63,6 +64,6 @@ setupSocket(io);
 startScheduleCheck();
 
 const PORT = process.env.PORT || 8001;
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${PORT}`);
 });

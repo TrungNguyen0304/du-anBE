@@ -809,7 +809,7 @@ const evaluateMemberReport = async (req, res) => {
 
 const createReportCompany = async (req, res) => {
   try {
-    const { projectId, content, taskProgress, difficulties, feedback } = req.body;
+    const { projectId, content, projectProgress, difficulties, feedback } = req.body;
     const userId = req.user._id;
 
     // Validate req.user
@@ -818,14 +818,14 @@ const createReportCompany = async (req, res) => {
     }
 
     // Kiểm tra dữ liệu bắt buộc
-    if (!projectId || !content || taskProgress === undefined) {
+    if (!projectId || !content || projectProgress === undefined) {
       return res.status(400).json({ message: "Thiếu projectId, nội dung hoặc tiến độ công việc." });
     }
 
     // Xử lý tiến độ nếu dạng string có dấu %
-    let progress = taskProgress;
-    if (typeof taskProgress === "string" && taskProgress.includes("%")) {
-      progress = parseInt(taskProgress.replace("%", ""), 10);
+    let progress = projectProgress;
+    if (typeof projectProgress === "string" && projectProgress.includes("%")) {
+      progress = parseInt(projectProgress.replace("%", ""), 10);
     }
 
     // Kiểm tra tiến độ hợp lệ
@@ -868,7 +868,7 @@ const createReportCompany = async (req, res) => {
     const report = new Report({
       content,
       difficulties,
-      taskProgress: progress,
+      projectProgress: progress,
       project: projectId,
       team: team._id,
       assignedLeader: userId,
