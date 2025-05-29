@@ -8,11 +8,15 @@ import {
   Trash2,
   ChevronDown,
   Video,
+  Edit2,
+  Plus,
 } from "lucide-react";
 import ChatMemberHomeOut from "./ChatMemberHomeOut";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
+import { BiDotsVerticalRounded, BiSolidImage } from "react-icons/bi";
+import { FaRegEyeSlash } from "react-icons/fa";
 
 const API_URL = "http://localhost:8001/api/group";
 const TEAM_API_URL = "http://localhost:8001/api/member/showallTeam";
@@ -23,12 +27,31 @@ const ChatMember = () => {
   const chatEndRef = useRef(null);
   const addMemberRef = useRef(null);
   const createGroupRef = useRef(null);
+  const socketRef = useRef(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user")) || {
     _id: "",
     name: "Guest",
   };
-  const socketRef = useRef(io(SOCKET_URL));
+
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Socket connected:", socketRef.current.id);
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
 
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -47,6 +70,31 @@ const ChatMember = () => {
   const [error, setError] = useState(null);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [showFileInput, setShowFileInput] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const token = localStorage.getItem("token");
+        const formData = new FormData();
+        formData.append("file", file);
+        await axios.post(`${API_URL}/${selectedGroup._id}/files`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        console.log("File uploaded:", file.name);
+        setShowFileInput(false);
+      } catch (err) {
+        setError(err.response?.data?.message || "Lỗi khi tải ảnh lên");
+      }
+    }
+  };
 
   // Connect socket and emit user-online
   useEffect(() => {
@@ -150,6 +198,7 @@ const ChatMember = () => {
             text: msg.message,
             timestamp: msg.timestamp,
             system: msg.senderId === "System",
+            hidden: false,
           }))
         );
         socketRef.current.emit("join-group", {
@@ -179,6 +228,7 @@ const ChatMember = () => {
           text: msg.message,
           timestamp: msg.timestamp,
           system: msg.senderId === "System",
+          hidden: false,
         },
       ]);
     };
@@ -194,6 +244,7 @@ const ChatMember = () => {
             : `Người dùng ${memberName} đã tham gia nhóm`,
           timestamp: new Date().toISOString(),
           system: true,
+          hidden: false,
         };
         setMessages((prev) => [...prev, systemMessage]);
         const fetchGroupData = async () => {
@@ -251,7 +302,7 @@ const ChatMember = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle click outside to close add member or create group
+  // Handle click outside to close add member, create group, or message menu
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (addMemberRef.current && !addMemberRef.current.contains(e.target)) {
@@ -262,6 +313,10 @@ const ChatMember = () => {
         !createGroupRef.current.contains(e.target)
       ) {
         setCreatingGroup(false);
+      }
+      if (!e.target.closest(".message-menu")) {
+        setOpenMenuId(null);
+        setEditingMessageId(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -346,20 +401,27 @@ const ChatMember = () => {
     if (!selectedGroup?._id) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        `${API_URL}/${selectedGroup._id}/leave`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      if (!token) {
+        setError("Không tìm thấy token. Vui lòng đăng nhập lại.");
+        return;
+      }
+      await axios.delete(`${API_URL}/${selectedGroup._id}/leave`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setGroups((prev) =>
         prev.filter((group) => group._id !== selectedGroup._id)
       );
       setSelectedGroup(null);
       setHasLeftGroup(true);
+      socketRef.current.emit("leave-group", {
+        userId: currentUser._id,
+        groupId: selectedGroup._id,
+      });
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi rời nhóm");
+      if (err.response?.status === 401) {
+        setError("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+      }
     }
   };
 
@@ -390,6 +452,7 @@ const ChatMember = () => {
           text: `Nhóm "${newGroup.name}" đã được tạo.`,
           timestamp: new Date().toISOString(),
           system: true,
+          hidden: false,
         },
       ]);
       setNewGroupName("");
@@ -402,6 +465,71 @@ const ChatMember = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi khi tạo nhóm");
     }
+  };
+
+  // Delete message
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${API_URL}/${selectedGroup._id}/messages/${messageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+      setOpenMenuId(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Lỗi khi xóa tin nhắn");
+    }
+  };
+
+  // Hide message (client-side only)
+  const handleHideMessage = (messageId) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === messageId ? { ...msg, hidden: true } : msg
+      )
+    );
+    setOpenMenuId(null);
+  };
+
+  // Start editing message
+  const handleStartEditMessage = (messageId, text) => {
+    setEditingMessageId(messageId);
+    setEditText(text);
+    setOpenMenuId(null);
+  };
+
+  // Save edited message
+  const handleSaveEditMessage = async (messageId) => {
+    if (!editText.trim()) {
+      setError("Tin nhắn không được để trống");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${API_URL}/${selectedGroup._id}/messages/${messageId}`,
+        { message: editText.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId ? { ...msg, text: editText.trim() } : msg
+        )
+      );
+      setEditingMessageId(null);
+      setEditText("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Lỗi khi chỉnh sửa tin nhắn");
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditText("");
   };
 
   if (hasLeftGroup) {
@@ -418,12 +546,16 @@ const ChatMember = () => {
             onClick={() => setCreatingGroup(!creatingGroup)}
             className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
           >
-            {creatingGroup ? "Hủy" : "Tạo nhóm"}
+            {creatingGroup ? "" : "Tạo nhóm"}
           </button>
         </div>
 
         {creatingGroup && (
-          <div ref={createGroupRef} className="space-y-3 rounded-lg shadow-sm">
+          <div
+            ref={createGroupRef}
+            className="space-y-3 rounded-lg shadow-sm p-4 bg-gray-50 border"
+            onClick={(e) => e.stopPropagation()}
+          >
             <input
               type="text"
               placeholder="Tên nhóm"
@@ -431,31 +563,51 @@ const ChatMember = () => {
               onChange={(e) => setNewGroupName(e.target.value)}
               className="w-full border border-gray-300 px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <select
-              multiple
-              value={newGroupMembers}
-              onChange={(e) =>
-                setNewGroupMembers(
-                  Array.from(e.target.selectedOptions, (option) => option.value)
-                )
-              }
-              className="w-full border border-gray-300 px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                Chọn thành viên
-              </option>
+            <div className="max-h-40 overflow-y-auto custom-scrollbar border border-gray-300 rounded-lg p-3 bg-white">
               {teamMembers.map((member) => (
-                <option key={member._id} value={member._id}>
+                <label
+                  key={member._id}
+                  className="flex items-center justify-between gap-2 py-1 text-sm text-gray-800 hover:bg-gray-100 rounded px-2"
+                >
                   {member.name}
-                </option>
+                  <input
+                    type="checkbox"
+                    checked={newGroupMembers.includes(member._id)}
+                    onChange={() => {
+                      setNewGroupMembers((prev) =>
+                        prev.includes(member._id)
+                          ? prev.filter((id) => id !== member._id)
+                          : [...prev, member._id]
+                      );
+                    }}
+                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                </label>
               ))}
-            </select>
-            <button
-              onClick={handleCreateGroup}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-            >
-              Tạo nhóm
-            </button>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNewGroupName("");
+                  setNewGroupMembers([]);
+                  setError(null);
+                  setCreatingGroup(false);
+                }}
+                className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateGroup();
+                }}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Tạo nhóm
+              </button>
+            </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
         )}
@@ -496,7 +648,9 @@ const ChatMember = () => {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => navigate("/chat/video-call")}
+                onClick={() =>
+                  navigate(`/chat/video-call/${selectedGroup._id}`)
+                }
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 title="Bắt đầu cuộc gọi video"
               >
@@ -652,21 +806,65 @@ const ChatMember = () => {
             )}
             {messages.map((msg) => {
               const isCurrentUser = msg.senderId === currentUser._id;
-              if (msg.system) {
-                return (
+              if (msg.system || msg.hidden) {
+                return msg.system ? (
                   <div
                     key={msg._id || msg.timestamp}
                     className="text-center text-xs italic text-gray-500 mb-3"
-                  ></div>
-                );
+                  >
+                    {msg.text}
+                  </div>
+                ) : null;
               }
               return (
                 <div
                   key={msg._id || msg.timestamp}
-                  className={`mb-4 flex flex-col ${
-                    isCurrentUser ? "items-end" : "items-start"
-                  }`}
+                  className={`mb-4 flex ${
+                    isCurrentUser ? "justify-end" : "justify-start"
+                  } items-center gap-2 group`}
                 >
+                  {isCurrentUser && (
+                    <div className="relative message-menu">
+                      <button
+                        onClick={() =>
+                          setOpenMenuId((prev) =>
+                            prev === msg._id ? null : msg._id
+                          )
+                        }
+                        className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <BiDotsVerticalRounded
+                          size={20}
+                          className="text-gray-600"
+                        />
+                      </button>
+                      {openMenuId === msg._id && (
+                        <div className="absolute right-0 bottom-8 bg-white border rounded-lg shadow z-10 w-32">
+                          <button
+                            onClick={() =>
+                              handleStartEditMessage(msg._id, msg.text)
+                            }
+                            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-gray-100 w-full text-sm"
+                          >
+                            <Edit2 size={14} /> Chỉnh sửa
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMessage(msg._id)}
+                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-sm"
+                          >
+                            <Trash2 size={14} /> Xóa
+                          </button>
+                          <button
+                            onClick={() => handleHideMessage(msg._id)}
+                            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-sm"
+                          >
+                            <FaRegEyeSlash className="w-4 h-4" />
+                            Ẩn
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div
                     className={`max-w-[70%] px-4 py-2 rounded-lg ${
                       isCurrentUser
@@ -679,8 +877,67 @@ const ChatMember = () => {
                         {msg.senderName}
                       </div>
                     )}
-                    <div>{msg.text}</div>
+                    {editingMessageId === msg._id && isCurrentUser ? (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="text"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-1 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveEditMessage(msg._id)}
+                            className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                          >
+                            Lưu
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="bg-gray-300 text-gray-800 px-3 py-1 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>{msg.text}</div>
+                    )}
                   </div>
+                  {!isCurrentUser && (
+                    <div className="relative message-menu">
+                      <button
+                        onClick={() =>
+                          setOpenMenuId((prev) =>
+                            prev === msg._id ? null : msg._id
+                          )
+                        }
+                        className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <BiDotsVerticalRounded
+                          size={20}
+                          className="text-gray-600"
+                        />
+                      </button>
+                      {openMenuId === msg._id && (
+                        <div className="absolute left-0 bottom-8 bg-white border rounded-lg shadow z-10 w-32">
+                          <button
+                            onClick={() => handleDeleteMessage(msg._id)}
+                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-sm"
+                          >
+                            <Trash2 size={14} /> Xóa
+                          </button>
+                          <button
+                            onClick={() => handleHideMessage(msg._id)}
+                            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 w-full text-sm"
+                          >
+                            <FaRegEyeSlash className="w-4 h-4" />
+                            Ẩn
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -688,25 +945,49 @@ const ChatMember = () => {
           </div>
 
           {/* Input to send message */}
-          <div className="border-t px-6 py-4 bg-white flex items-center gap-4">
+          <div className="border-t bg-white px-4 py-3 sm:px-6 sm:py-4 flex items-center gap-3">
+            <div className="relative">
+              <button
+                onClick={() => setShowFileInput(!showFileInput)}
+                className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-all duration-200"
+                title="Tải lên file"
+              >
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+              {showFileInput && (
+                <div className="absolute bottom-12 left-0 bg-white border border-gray-200 rounded-md shadow-md z-10 w-36">
+                  <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition rounded-md">
+                    <BiSolidImage className="text-xl" />
+                    Tải ảnh lên
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
             <input
               type="text"
               placeholder="Nhập tin nhắn..."
               value={inputText}
               onChange={handleInputChange}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSendMessage();
-                }
+                if (e.key === "Enter") handleSendMessage();
               }}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-gray-50 placeholder:text-gray-400"
             />
+
             <button
               onClick={handleSendMessage}
-              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+              disabled={!inputText.trim()}
+              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:bg-blue-300 transition-colors duration-200"
               title="Gửi tin nhắn"
             >
-              <Send size={20} />
+              <Send className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>

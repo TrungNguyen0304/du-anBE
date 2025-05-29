@@ -158,7 +158,7 @@ const Unassigned = () => {
   };
 
   return (
-    <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md max-w-7xl">
+    <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
         <h2 className="text-2xl font-bold">Quản Lý Dự Án</h2>
         <button

@@ -112,7 +112,6 @@ const Sidebar = () => {
           to: "/projects",
           icon: <FaProjectDiagram />,
         },
-
         {
           label: "Trò chuyện",
           to: "/chat",
@@ -159,7 +158,7 @@ const Sidebar = () => {
   return (
     <>
       <div
-        className={`sm:hidden fixed top-3 z-50 transition-all duration-300 ${
+        className={`lg:hidden fixed top-5 z-50 transition-all duration-300 ${
           isOpen ? "right-4" : "left-4"
         }`}
       >
@@ -172,17 +171,17 @@ const Sidebar = () => {
       </div>
 
       <aside
-        className={`fixed sm:static flex-shrink-0 top-0 left-0 w-64 min-h-screen bg-gradient-to-b from-[#183d5d] to-[#1d557a] text-white p-4 sm:p-5 flex flex-col shadow-lg transition-transform duration-300 z-40 ${
+        className={`fixed right-0 lg:static flex-shrink-0 top-0 left-0 w-64 min-h-screen bg-gradient-to-b from-[#183d5d] to-[#1d557a] text-white p-4 lg:p-5 flex flex-col shadow-lg transition-transform duration-300 z-40 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } sm:translate-x-0`}
+        } lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen`}
       >
-        <h1 className="text-lg sm:text-xl font-bold text-center mb-3">
+        <h1 className="text-lg lg:text-xl font-bold text-center mb-3">
           {currentMenu.title}
         </h1>
-        <hr className="border-gray-400 mb-4 sm:mb-6" />
+        <hr className="border-gray-400 mb-4 lg:mb-6" />
 
         <div className="mb-4">
-          <p className="text-xs sm:text-sm text-gray-300 font-semibold mb-2">
+          <p className="text-xs lg:text-sm text-gray-300 font-semibold mb-2">
             MAIN
           </p>
           {currentMenu.main.map((item, index) => (
@@ -197,7 +196,7 @@ const Sidebar = () => {
         </div>
 
         <div className="flex-1">
-          <p className="text-xs sm:text-sm text-gray-300 font-semibold mb-2">
+          <p className="text-xs lg:text-sm text-gray-300 font-semibold mb-2">
             MENU
           </p>
           <div className="flex flex-col gap-1">
@@ -256,12 +255,12 @@ const Sidebar = () => {
           </div>
         </div>
 
-        <hr className="mt-4 sm:mt-6 border-gray-400" />
+        <hr className="mt-4 lg:mt-6 border-gray-400" />
       </aside>
 
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 sm:hidden z-30"
+          className="fixed inset-0 bg-black/50 lg:hidden z-30"
           onClick={toggleSidebar}
         ></div>
       )}
@@ -279,7 +278,7 @@ const SidebarItem = ({ icon, label, to, onClick }) => (
     }
     onClick={onClick}
   >
-    {icon && <div className="text-base sm:text-lg">{icon}</div>}
+    {icon && <div className="text-base lg:text-lg">{icon}</div>}
     <span>{label}</span>
   </NavLink>
 );

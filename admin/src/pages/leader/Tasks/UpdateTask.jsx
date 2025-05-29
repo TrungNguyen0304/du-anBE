@@ -179,18 +179,21 @@ const UpdateTask = () => {
           <label className="block mb-2 font-semibold text-gray-700">
             Độ ưu tiên <span className="text-red-500">*</span>
           </label>
-          <input
-            type="number"
+          <select
             name="priority"
-            min="1"
-            max="3"
             value={formData.priority}
             onChange={handleChange}
             className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
               errors.priority ? "border-red-500" : "border-gray-300"
             }`}
-            placeholder="Nhập độ ưu tiên (1-Cao, 2-Trung bình, 3-Thấp)"
-          />
+          >
+            <option value="" disabled>
+              -- Chọn độ ưu tiên --
+            </option>
+            <option value={1}>Cao</option>
+            <option value={2}>Trung bình</option>
+            <option value={3}>Thấp</option>
+          </select>
           {errors.priority && (
             <p className="text-red-600 text-sm mt-1">{errors.priority}</p>
           )}

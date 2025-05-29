@@ -53,7 +53,7 @@ const CompanyLayout = () => {
   const userId = user?._id;
 
   return (
-    <div className="flex min-h-screen flex-col sm:flex-row overflow-hidden">
+    <div className="flex min-h-screen flex-col sm:flex-row">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Navbar userId={userId} />
@@ -125,7 +125,10 @@ const LeaderLayout = () => {
 
             <Route path="/chat" element={<ChatLeader />} />
             <Route path="/chat/requests" element={<JoinRequestsPageLeader />} />
-            <Route path="/chat/video-call/:groupId" element={<VideoCallPageLeader />} />
+            <Route
+              path="/chat/video-call/:groupId"
+              element={<VideoCallPageLeader />}
+            />
           </Routes>
         </main>
       </div>

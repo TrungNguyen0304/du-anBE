@@ -84,7 +84,7 @@ const TeamMember = () => {
           {paginatedTeams.map((team, index) => (
             <div
               key={team.id}
-              className="bg-gray-50 border border-gray-200 rounded-lg p-5 hover:shadow-md transition-all duration-200"
+              className="bg-gray-50 border border-gray-200 rounded-lg p-5 shadow-md transition-all duration-200"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
