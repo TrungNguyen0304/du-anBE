@@ -3,9 +3,10 @@ const admin = require("firebase-admin");
 let serviceAccount;
 
 try {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, "base64").toString("utf8");
+  serviceAccount = JSON.parse(decoded);
 } catch (error) {
-  console.error("Lỗi khi parse biến FIREBASE_SERVICE_ACCOUNT:", error.message);
+  console.error("Lỗi khi decode hoặc parse biến FIREBASE_SERVICE_ACCOUNT_BASE64:", error.message);
   process.exit(1); // Dừng server nếu có lỗi
 }
 
@@ -24,9 +25,9 @@ const sendNotification = async (token, title, body) => {
 
   try {
     const response = await admin.messaging().send(message);
-    console.log(" Notification sent:", response);
+    console.log("Notification sent:", response);
   } catch (error) {
-    console.error(" Error sending FCM notification:", error.message);
+    console.error("Error sending FCM notification:", error.message);
   }
 };
 
