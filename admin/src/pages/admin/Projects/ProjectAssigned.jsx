@@ -83,7 +83,7 @@ const ProjectAssigned = () => {
         }
       } else if (actionType === "revoke") {
         await axios.put(
-          `http://localhost:8001/api/company/revokeProject/${selectedProject}/revoke`,
+          `http://103.45.235.153/api/company/revokeProject/${selectedProject}/revoke`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
