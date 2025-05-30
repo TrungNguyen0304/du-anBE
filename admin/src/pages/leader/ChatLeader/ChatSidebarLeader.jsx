@@ -1,4 +1,5 @@
 import React from "react";
+import { Users } from "lucide-react";
 
 const ChatSidebarLeader = ({
   groups,
@@ -94,21 +95,36 @@ const ChatSidebarLeader = ({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto space-y-3">
-        {groups.map((group) => (
+      {groups.length === 0 && !creatingGroup ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+          <Users className="w-12 h-12 text-gray-600 mb-4 animate-pulse" />
+          <p className="text-gray-600 text-sm sm:text-base mb-4 animate-fade-in-up">
+            Chưa có nhóm chat nào. Hãy tạo nhóm mới để bắt đầu trò chuyện!
+          </p>
           <button
-            key={group._id}
-            onClick={() => setSelectedGroup(group)}
-            className={`w-full text-left px-3 sm:px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-sm sm:text-base ${
-              selectedGroup?._id === group._id
-                ? "bg-blue-100 font-semibold"
-                : "bg-white"
-            } shadow-sm`}
+            onClick={() => setCreatingGroup(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm sm:text-base"
           >
-            {group.name}
+            Tạo nhóm mới
           </button>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto space-y-3">
+          {groups.map((group) => (
+            <button
+              key={group._id}
+              onClick={() => setSelectedGroup(group)}
+              className={`w-full text-left px-3 sm:px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-sm sm:text-base ${
+                selectedGroup?._id === group._id
+                  ? "bg-blue-100 font-semibold"
+                  : "bg-white"
+              } shadow-sm`}
+            >
+              {group.name}
+            </button>
+          ))}
+        </div>
+      )}
       <hr />
     </div>
   );

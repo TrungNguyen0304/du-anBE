@@ -9,13 +9,20 @@ const PAGE_SIZE = 5;
 const UnassignedTasks = () => {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
+  const [members, setMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [selectedDeadline, setSelectedDeadline] = useState("");
+  const [assignError, setAssignError] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
 
+  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -47,6 +54,68 @@ const UnassignedTasks = () => {
 
     fetchTasks();
   }, []);
+
+  // Fetch members from showallTeam API when opening assign modal
+  const openAssignModal = async (taskId) => {
+    setSelectedTaskId(taskId);
+    setIsAssignModalOpen(true);
+    setAssignError("");
+    setSelectedMemberId("");
+    setSelectedDeadline("");
+    try {
+      const res = await axios.get(
+        "http://localhost:8001/api/leader/showallTeam",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      // Extract assignedMembers from all teams and flatten into a single array
+      const allMembers = res.data.teams.flatMap((team) => team.assignedMembers);
+      setMembers(allMembers || []);
+    } catch (error) {
+      setAssignError("Không thể tải danh sách thành viên.");
+    }
+  };
+
+  const handleAssign = async () => {
+    if (!selectedMemberId) {
+      setAssignError("Vui lòng chọn một thành viên.");
+      return;
+    }
+    if (!selectedDeadline) {
+      setAssignError("Vui lòng chọn ngày hết hạn.");
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      const response = await axios.post(
+        `http://localhost:8001/api/leader/assignTask/${selectedTaskId}`,
+        {
+          memberId: selectedMemberId,
+          deadline: selectedDeadline,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setTasks((prev) => prev.filter((t) => t.id !== selectedTaskId));
+      setIsAssignModalOpen(false);
+      setSelectedMemberId("");
+      setSelectedDeadline("");
+      alert(response.data.message || "Gán nhiệm vụ thành công!");
+    } catch (error) {
+      setAssignError(
+        error.response?.data?.message || "Không thể giao nhiệm vụ."
+      );
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const totalPages = Math.ceil(tasks.length / PAGE_SIZE);
   const paginatedTasks = tasks.slice(
@@ -166,7 +235,8 @@ const UnassignedTasks = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3">{task.deadline}</td>
-                    <td className="px-4 py-3 flex justify-center gap-2">
+
+                    <td className="px-4 py-3 flex items-center justify-center gap-2">
                       <button
                         onClick={() => navigate(`/task-detail/${task.id}`)}
                         title="Xem chi tiết"
@@ -192,7 +262,7 @@ const UnassignedTasks = () => {
                         <Trash2 className="w-5 h-5 text-red-500" />
                       </button>
                       <button
-                        onClick={() => navigate(`/assign-task/${task.id}`)}
+                        onClick={() => openAssignModal(task.id)}
                         title="Giao nhiệm vụ"
                         className="p-2 rounded hover:bg-green-100 group"
                       >
@@ -225,7 +295,7 @@ const UnassignedTasks = () => {
           </div>
         )}
 
-        {/* Modal */}
+        {/* Delete Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-lg p-8 w-96 max-w-full">
@@ -254,6 +324,60 @@ const UnassignedTasks = () => {
                   className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
                 >
                   {isDeleting ? "Đang xóa..." : "Xác nhận"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assign Modal */}
+        {isAssignModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-[400px] max-w-full">
+              <h3 className="text-xl font-semibold text-center mb-4 text-gray-800">
+                Giao nhiệm vụ
+              </h3>
+              {assignError && (
+                <p className="text-sm text-red-500 text-center mb-2">
+                  {assignError}
+                </p>
+              )}
+              <select
+                className="w-full border p-2 rounded mb-4"
+                value={selectedMemberId}
+                onChange={(e) => setSelectedMemberId(e.target.value)}
+              >
+                <option value="">-- Chọn thành viên --</option>
+                {members.map((member) => (
+                  <option key={member._id} value={member._id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="date"
+                name="deadline"
+                id="deadline"
+                className="w-full border p-2 rounded mb-4"
+                value={selectedDeadline}
+                onChange={(e) => setSelectedDeadline(e.target.value)}
+                min={new Date().toISOString().split("T")[0]} // Prevent past dates
+              />
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="px-5 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-700 font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleAssign}
+                  disabled={isAssigning}
+                  className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                >
+                  {isAssigning ? "Đang giao..." : "Xác nhận"}
                 </button>
               </div>
             </div>

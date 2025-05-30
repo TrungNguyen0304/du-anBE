@@ -115,7 +115,10 @@ const ChatMemberMain = ({
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
                 </h1>
-                <p className="text-xs text-gray-600">Bạn đang online</p>
+                <p className="flex items-center text-xs text-gray-600">
+                  <div className="bg-green-500 w-2 h-2 rounded-full mr-1"></div>
+                  Bạn đang online
+                </p>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}

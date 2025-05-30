@@ -47,7 +47,8 @@ const UpdateTask = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const newValue = name === "priority" ? parseInt(value, 10) : value;
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -190,9 +191,9 @@ const UpdateTask = () => {
             <option value="" disabled>
               -- Chọn độ ưu tiên --
             </option>
-            <option value={1}>Cao</option>
+            <option value={3}>Cao</option>
             <option value={2}>Trung bình</option>
-            <option value={3}>Thấp</option>
+            <option value={1}>Thấp</option>
           </select>
           {errors.priority && (
             <p className="text-red-600 text-sm mt-1">{errors.priority}</p>

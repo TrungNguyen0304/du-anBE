@@ -129,25 +129,41 @@ const progressChart = [
 const recentProjects = [
   {
     name: "Website Bán Hàng",
-    team: "Frontend",
-    progress: "100%",
+    description:
+      "Xây dựng giao diện và chức năng cho website thương mại điện tử",
     status: "Hoàn thành",
+    priority: 1,
   },
   {
     name: "App Chấm Công",
-    team: "Backend",
-    progress: "80%",
+    description: "Phát triển ứng dụng chấm công cho nhân viên",
     status: "Đang làm",
+    priority: 2,
   },
   {
     name: "CRM Nội Bộ",
-    team: "Fullstack",
-    progress: "65%",
+    description: "Hệ thống quản lý quan hệ khách hàng cho công ty",
     status: "Đang làm",
+    priority: 1,
   },
-  { name: "Dự Án 4", team: "Mobile", progress: "50%", status: "Đang làm" },
-  { name: "Dự Án 5", team: "DevOps", progress: "30%", status: "Đang làm" },
-  { name: "Dự Án 6", team: "Frontend", progress: "90%", status: "Hoàn thành" },
+  {
+    name: "Dự Án 4",
+    description: "Ứng dụng di động cho dịch vụ đặt xe",
+    status: "Đang làm",
+    priority: 3,
+  },
+  {
+    name: "Dự Án 5",
+    description: "Triển khai hệ thống CI/CD cho dự án",
+    status: "Đang làm",
+    priority: 2,
+  },
+  {
+    name: "Dự Án 6",
+    description: "Thiết kế giao diện người dùng cho ứng dụng web",
+    status: "Hoàn thành",
+    priority: 1,
+  },
 ];
 
 const feedbacks = [
@@ -196,6 +212,14 @@ const Home = () => {
     (feedbackPage - 1) * ITEMS_PER_PAGE,
     feedbackPage * ITEMS_PER_PAGE
   );
+
+  const truncateDescription = (description) => {
+    const words = description.split(" ");
+    if (words.length > 10) {
+      return words.slice(0, 10).join(" ") + "...";
+    }
+    return description;
+  };
 
   const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     const pages = [];
@@ -291,7 +315,7 @@ const Home = () => {
               contentStyle={{ borderRadius: 8, borderColor: "#9ca3af" }}
               itemStyle={{ color: "#374151", fontSize: "12px" }}
             />
-            <Legend verticalAlign="top" height={36} />
+            <Legend verticalAlign="bottom" height={36} />
             <Line
               type="monotone"
               dataKey="DuAnDaNhan"
@@ -343,13 +367,13 @@ const Home = () => {
                   Tên dự án
                 </th>
                 <th className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3 font-medium text-gray-700">
-                  Đội nhóm
-                </th>
-                <th className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3 font-medium text-gray-700">
-                  Tiến độ
+                  Mô tả
                 </th>
                 <th className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3 font-medium text-gray-700">
                   Trạng thái
+                </th>
+                <th className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3 font-medium text-gray-700">
+                  Độ ưu tiên
                 </th>
               </tr>
             </thead>
@@ -363,13 +387,17 @@ const Home = () => {
                     {project.name}
                   </td>
                   <td className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3">
-                    {project.team}
-                  </td>
-                  <td className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3">
-                    {project.progress}
+                    {truncateDescription(project.description)}
                   </td>
                   <td className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3">
                     {project.status}
+                  </td>
+                  <td className="border border-gray-300 px-3 sm:px-5 py-2 sm:py-3">
+                    {project.priority === 1
+                      ? "Cao"
+                      : project.priority === 2
+                      ? "Trung bình"
+                      : "Thấp"}
                   </td>
                 </tr>
               ))}

@@ -111,17 +111,21 @@ const TeamTable = ({ title = "Danh Sách Nhóm", originPage = "team" }) => {
                 return (
                   <tr
                     key={team.id}
-                    className="bg-white rounded-xl shadow transition hover:bg-[#eaf1fb] text-center"
+                    className="bg-white rounded-xl shadow transition hover:bg-[#eaf1fb]"
                   >
-                    <td className="px-4 py-3 font-semibold text-[#323338] rounded-l-xl">
+                    <td className="px-4 py-3 font-semibold text-[#323338] rounded-l-xl text-center">
                       {globalIndex}
                     </td>
-                    <td className="px-4 py-3 text-[#323338]">{team.name}</td>
-                    <td className="px-4 py-3 text-[#676879]">{team.leader}</td>
-                    <td className="px-4 py-3 text-[#676879]">
+                    <td className="px-4 py-3 text-[#323338] text-start sm:text-center">
+                      {team.name}
+                    </td>
+                    <td className="px-4 py-3 text-[#676879] text-center">
+                      {team.leader}
+                    </td>
+                    <td className="px-4 py-3 text-[#676879] text-center">
                       {team.memberCount}
                     </td>
-                    <td className="px-4 py-3 rounded-r-xl">
+                    <td className="px-4 py-3 rounded-r-xl text-center">
                       <NavLink
                         to="/team-detail"
                         state={{ team, index: globalIndex, originPage }}

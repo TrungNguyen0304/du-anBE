@@ -217,9 +217,9 @@ const CreateTask = () => {
               onChange={handleChange}
               className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value={1}>Cao</option>
+              <option value={3}>Cao</option>
               <option value={2}>Trung bình</option>
-              <option value={3}>Thấp</option>
+              <option value={1}>Thấp</option>
             </select>
           </div>
         </div>

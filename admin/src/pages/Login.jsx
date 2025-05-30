@@ -3,7 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { requestNotificationPermission } from "../services/notificationService"; // 🔹 Nhớ sửa path nếu cần
+import { requestNotificationPermission } from "../services/notificationService";
 
 const Login = () => {
   const navigate = useNavigate();
