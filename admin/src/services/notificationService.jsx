@@ -12,7 +12,7 @@ export const requestNotificationPermission = async (userId) => {
 
       console.log("FCM Token:", token);
 
-      await fetch("https://du-anbe.onrender.com/api/user/fcm-token", {
+      await fetch("http://103.45.235.153/api/user/fcm-token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
