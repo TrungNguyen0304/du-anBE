@@ -94,7 +94,7 @@ const Sidebar = () => {
       ],
       menu: [
         {
-          label: "Quản Lý Nhân Viên",
+          label: "Quản Lý Nhóm",
           icon: <FaUser />,
           to: "/teams-table",
         },

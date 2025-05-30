@@ -34,7 +34,7 @@ const DepartmentDetail = () => {
         }
 
         const response = await axios.get(
-          `https://du-anbe.onrender.com/api/company/viewTeam/${departmentId}`,
+          `http://localhost:8001/api/company/viewTeam/${departmentId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

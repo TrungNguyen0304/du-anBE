@@ -46,7 +46,7 @@ const UpdateUser = () => {
 
     try {
       await axios.put(
-        `https://du-anbe.onrender.com/api/company/updateUser/${employee._id}`,
+        `http://localhost:8001/api/company/updateUser/${employee._id}`,
         {
           name: formData.name,
           email: formData.email,

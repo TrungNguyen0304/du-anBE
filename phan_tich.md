@@ -4,9 +4,9 @@
 
 [1.1 Hoạt động và Yêu cầu chức năng Company	2](#_toc196727498)
 
-[1.2  Hoạt động và Yêu cầu chức năng leader team	2](#_toc196727499)
+[1.2  Hoạt động và Yêu cầu chức năng Leader Team	2](#_toc196727499)
 
-[1.3 Hoạt động và Yêu cầu chức năng member	3](#_toc196727500)
+[1.3 Hoạt động và Yêu cầu chức năng Member	3](#_toc196727500)
 
 [2.	Sơ đồ Use Case	4](#_toc196727501)
 
@@ -14,15 +14,15 @@
 
 [2.1.1 Đăng nhập	4](#_toc196727503)
 
-[2.1.2 Quản lý leader và member	5](#_toc196727504)
+[2.1.2 Quản lý Leader và Member	5](#_toc196727504)
 
-[2.1.3 Giao việc cho team	5](#_toc196727505)
+[2.1.3 Giao việc cho Team	5](#_toc196727505)
 
-[2.1.4 Xem báo cao dự án từ team	6](#_toc196727506)
+[2.1.4 Xem báo cao dự án từ Team	6](#_toc196727506)
 
 [2.1.5 Theo dõi tiến dộ báo cáo từ dự án	6](#_toc196727507)
 
-[2.1.6 Nhận thông báo khi team không báo cáo	7](#_toc196727508)
+[2.1.6 Nhận thông báo khi Team không báo cáo	7](#_toc196727508)
 
 [2.1.8 Theo dõi tiến độ task	8](#_toc196727509)
 
@@ -36,41 +36,41 @@
 
 [2.1.13 Gửi báo cáo task	10](#_toc196727514)
 
-[2.1.14 Xem phản hồi từ leader	11](#_toc196727515)
+[2.1.14 Xem phản hồi từ Leader	11](#_toc196727515)
 
 [3.	Mô hình lớp	12](#_toc196727516)
 
 
 
 1. ## <a name="_toc196727136"></a><a name="_toc196727199"></a><a name="_toc196727237"></a><a name="_toc196727248"></a><a name="_toc196727411"></a><a name="_toc196727497"></a>Mô tả bài toán
-` `Công ty (Company): Công ty có thể có nhiều team khác nhau. Mỗi team đảm nhận một nhiệm vụ, dự án hoặc chức năng riêng biệt.
+` `Công ty (Company): Công ty có thể có nhiều Team khác nhau. Mỗi một sẽ Team đảm nhận một nhiệm vụ, dự án hoặc chức năng riêng biệt.
 
-Team: Mỗi team trong công ty có thể có nhiều thành viên (members), và mỗi team sẽ có một team leader. Các team có thể chia sẻ nhiệm vụ hoặc phối hợp với nhau.
+Team: Mỗi Team trong công ty có thể có nhiều thành viên (Members), và mỗi Team sẽ có một Leader. Các Team có thể chia sẻ nhiệm vụ hoặc phối hợp với nhau.
 
-Member: Một thành viên có thể tham gia nhiều team trong công ty. Một thành viên sẽ đảm nhận các nhiệm vụ khác nhau ở các team khác nhau.
+Member: Một thành viên có thể tham gia nhiều Team trong công ty. Một thành viên sẽ đảm nhận các nhiệm vụ khác nhau ở các Team khác nhau.
 ### `      `<a name="_toc196727137"></a><a name="_toc196727200"></a><a name="_toc196727238"></a><a name="_toc196727249"></a><a name="_toc196727412"></a><a name="_toc196727498"></a>1.1 Hoạt động và Yêu cầu chức năng Company
 - Đăng nhập
-- Tạo và quản lý member và leader
-  - Thêm, sửa xóa, Thông tin nhân viên
-  - Gán nhân viên vào team
-- Giao dự án cho team
+- Tạo và quản lý Member và Leader
+  - Thêm, sửa xóa, xem thông tin chi tiết của nhân viên
+  - Gán nhân viên vào cho Team
+- Giao dự án cho Team
   - Tạo dự án mới
-  - Phân công dự án cho từng team
-  - Đặt thời hạn hoàng thành
-- Theo dõi tiến bộ và trạng thái dự án
-  - Xem danh sách dự án theo từng team
+  - Phân công dự án cho từng Team
+  - Đặt thời hạn hoàn thành cho dự án đã giao đóđó
+- Theo dõi tiến độ và trạng thái của dự án
+  - Xem danh sách dự án theo từng Team
   - Kiểm tra trạng thái và mức độ hoàn thành
-- Xem báo cáo dự án từ team	
-  - Xem nội dung báo cáo từ team
+- Xem báo cáo dự án từ Team	
+  - Xem nội dung báo cáo từ Team
   - Đánh giá hiệu quả làm việc 
-- Nhận thông báo khi team không gửi báo cáo
+- Nhận thông báo khi Team không gửi báo cáo
   - Hệ thống sẽ kiểm tra tấn suất gửi báo cáo 
-  - Nếu quá hạn Company không nhận được báo cáo từ team, hệ thống sẽ gửi thông báo cho company kịp thời để theo dõi và xử lý
-### <a name="_toc196727138"></a><a name="_toc196727201"></a><a name="_toc196727239"></a><a name="_toc196727250"></a><a name="_toc196727413"></a><a name="_toc196727499"></a>1.2  Hoạt động và Yêu cầu chức năng leader team
+  - Nếu quá hạn Company không nhận được báo cáo từ Team, hệ thống sẽ gửi thông báo cho company kịp thời để theo dõi và xử lý
+### <a name="_toc196727138"></a><a name="_toc196727201"></a><a name="_toc196727239"></a><a name="_toc196727250"></a><a name="_toc196727413"></a><a name="_toc196727499"></a>1.2  Hoạt động và Yêu cầu chức năng Leader Team
 - Đăng nhập
 - Quản lý task trong dự án
   - Tạo nhiệm vụ trong dự án
-  - Gán task cho member
+  - Gán task cho Member
   - Đặt deadline cho task
 - Theo dõi tiến độ task
   - Xem tiến độ và trạng thái làm việc
@@ -81,16 +81,16 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
   - Khi bị trễ deadline
   - Khi công ty gửi phản hồi báo cáo
 - Xem phản hồi từ company
-### ` `<a name="_toc196727139"></a><a name="_toc196727202"></a><a name="_toc196727240"></a><a name="_toc196727251"></a><a name="_toc196727414"></a><a name="_toc196727500"></a>1.3 Hoạt động và Yêu cầu chức năng member
+### ` `<a name="_toc196727139"></a><a name="_toc196727202"></a><a name="_toc196727240"></a><a name="_toc196727251"></a><a name="_toc196727414"></a><a name="_toc196727500"></a>1.3 Hoạt động và Yêu cầu chức năng Member
 - Đăng nhập
 - Nhận và thực hiện nhiệm vụ
   - Xem task được giao
   - Cập nhật tiến độ task
 - Gửi báo cáo công việc
   - Ghi lại những việc đã làm, tiến độ, khó khan
-  - Gửi báo cáo cho leader xem 
+  - Gửi báo cáo cho Leader xem 
 - Xem phản hồi từ quản lý (nếu có )
-  - Xem các nhận xét, đánh giá từ leader
+  - Xem các nhận xét, đánh giá từ Leader
 - Nhận thông báo từ hệ thống
   - Khi bị trễ deadline
   - Khi được gán task 
@@ -98,7 +98,7 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
 ![Mô tả ảnh](https://github.com/TrungNguyen0304/du-anBE/blob/main/images/95475795-0775-424b-9ed3-cc949712ea6f.jpg)
 ### <a name="_toc196727141"></a><a name="_toc196727204"></a><a name="_toc196727242"></a><a name="_toc196727253"></a><a name="_toc196727416"></a><a name="_toc196727502"></a>2.1 Mô tả sơ đồ use case
 #### <a name="_toc196727205"></a><a name="_toc196727254"></a><a name="_toc196727417"></a><a name="_toc196727503"></a>*2.1.1 Đăng nhập*
-- Tác nhân chính: company, leader, member
+- Tác nhân chính: company, Leader, Member
 - Điều kiện tiên quyết:
   - Người dùng đã có tài khoản trong hệ thống.
   - Truy cập vào giao diện đăng nhập của hệ thống.
@@ -112,12 +112,12 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
 - Luồng sự kiện thay thế:
   - Nếu thông tin đăng nhập không hợp lệ:
     - Hệ thống thông báo lỗi và yêu cầu nhập lại.
-#### <a name="_toc196727206"></a><a name="_toc196727255"></a><a name="_toc196727418"></a><a name="_toc196727504"></a>*2.1.2 Quản lý leader và member* 
+#### <a name="_toc196727206"></a><a name="_toc196727255"></a><a name="_toc196727418"></a><a name="_toc196727504"></a>*2.1.2 Quản lý Leader và Member* 
 - Tác nhân chính: company
 - Điều kiện tiên quyết:
   - Người dùng đã đăng nhập hệ thống với quyền company.
 - Luồng sự kiện chính: 
-  - Truy cập chức năng "Quản lý member và leader".
+  - Truy cập chức năng "Quản lý Member và Leader".
   - Thực hiện tạo mới, chỉnh sửa hoặc xóa thành viên.
   - Nhập thông tin (họ tên, email, vai trò) và lưu thay đổi.
 - Kết quả mong đợi:
@@ -125,21 +125,21 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
 - Luồng sự kiện thay thế:
   - Nếu nhập thiếu thông tin hoặc email trùng:
     - Hệ thống thông báo lỗi và yêu cầu chỉnh sửa.
-#### <a name="_toc196727207"></a><a name="_toc196727256"></a><a name="_toc196727419"></a><a name="_toc196727505"></a>*2.1.3 Giao việc cho team*
+#### <a name="_toc196727207"></a><a name="_toc196727256"></a><a name="_toc196727419"></a><a name="_toc196727505"></a>*2.1.3 Giao việc cho Team*
 - Tác nhân chính: company
 - Điều kiện tiên quyết:
   - company đã đăng nhập vào hệ thống.
-  - Đã có team và member trong hệ thống.
+  - Đã có Team và Member trong hệ thống.
 - Luồng sự kiện chính:
-  - Truy cập chức năng "Giao việc cho team".
-  - Chọn team, chọn thành viên và mô tả công việc.
+  - Truy cập chức năng "Giao việc cho Team".
+  - Chọn Team, chọn thành viên và mô tả công việc.
   - Xác định deadline và lưu nhiệm vụ.
 - Kết quả mong đợi:
   - Công việc được giao thành công cho thành viên.
 - Luồng sự kiện thay thế:
-  - Nếu thiếu thông tin (team, thành viên, mô tả, deadline):
+  - Nếu thiếu thông tin (Team, thành viên, mô tả, deadline):
     - Hệ thống thông báo lỗi và yêu cầu bổ sung.
-#### <a name="_toc196727208"></a><a name="_toc196727257"></a><a name="_toc196727420"></a><a name="_toc196727506"></a>*2.1.4 Xem báo cao dự án từ team*
+#### <a name="_toc196727208"></a><a name="_toc196727257"></a><a name="_toc196727420"></a><a name="_toc196727506"></a>*2.1.4 Xem báo cao dự án từ Team*
 - Tác nhân chính: company
 - Điều kiện tiên quyết:
   - company đã đăng nhập vào hệ thống.
@@ -147,17 +147,17 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
 - Luồng sự kiện chính:
   - Truy cập chức năng "Xem báo cáo dự án".
   - Chọn dự án cần xem.
-  - Xem chi tiết tiến độ, các báo cáo công việc từ team.
+  - Xem chi tiết tiến độ, các báo cáo công việc từ Team.
 - Kết quả mong đợi:
   - company nắm được tình hình thực hiện dự án.
 - Luồng sự kiện thay thế:
   - Nếu chưa có báo cáo:
-    - Hệ thống hiển thị thông báo "Chưa có báo cáo từ team".
+    - Hệ thống hiển thị thông báo "Chưa có báo cáo từ Team".
 #### ` 	`*<a name="_toc196727209"></a><a name="_toc196727258"></a><a name="_toc196727421"></a><a name="_toc196727507"></a>2.1.5 Theo dõi tiến dộ báo cáo từ dự án* 
 - Tác nhân chính: company
 - Điều kiện tiên quyết:
   - company đã đăng nhập vào hệ thống.
-  - Các team đang thực hiện và cập nhật báo cáo dự án.
+  - Các Team đang thực hiện và cập nhật báo cáo dự án.
 - Luồng sự kiện chính:
   - Truy cập chức năng "Theo dõi tiến độ báo cáo".
   - Chọn dự án cần theo dõi.
@@ -166,11 +166,11 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
 - Luồng sự kiện thay thế:
   - Nếu dự án không có cập nhật mới:
     - Hệ thống hiển thị thông báo "Chưa có báo cáo mới".
-#### <a name="_toc196727210"></a><a name="_toc196727259"></a><a name="_toc196727422"></a><a name="_toc196727508"></a>*2.1.6 Nhận thông báo khi team không báo cáo*
+#### <a name="_toc196727210"></a><a name="_toc196727259"></a><a name="_toc196727422"></a><a name="_toc196727508"></a>*2.1.6 Nhận thông báo khi Team không báo cáo*
 - Tác nhân chính: company
 - Điều kiện tiên quyết:
   - ` `Admin đã đăng nhập hệ thống.
-  - Đã thiết lập deadline báo cáo cho team.
+  - Đã thiết lập deadline báo cáo cho Team.
 - Luồng sự kiện chính:
   - Hệ thống tự động kiểm tra trạng thái báo cáo theo deadline.
   - Nếu quá hạn mà chưa có báo cáo, hệ thống gửi thông báo tới Admin.
@@ -186,7 +186,7 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
   - Được phân quyền quản lý dự án.
 - Luồng sự kiện chính:
   - Truy cập chức năng "Quản lý task".
-  - Tạo mới, phân công, chỉnh sửa hoặc cập nhật trạng thái task cho member.
+  - Tạo mới, phân công, chỉnh sửa hoặc cập nhật trạng thái task cho Member.
   - Theo dõi tiến độ thực hiện các task.
 - Kết quả mong đợi:
   - Công việc trong dự án được quản lý chặt chẽ, cập nhật đúng tiến độ.
@@ -203,7 +203,7 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
   - Xem trạng thái từng task: Đang thực hiện, Hoàn thành, Trễ hạn.
   - Cập nhật hoặc điều chỉnh phân công nếu cần.
 - Kết quả mong đợi:
-  - Leader nắm rõ tiến độ công việc của team.
+  - Leader nắm rõ tiến độ công việc của Team.
 - Luồng sự kiện thay thế:
   - Nếu task chưa được cập nhật tiến độ:
     - Hệ thống hiển thị cảnh báo hoặc yêu cầu cập nhật.
@@ -273,7 +273,7 @@ Member: Một thành viên có thể tham gia nhiều team trong công ty. Một
   - Leader nhận được báo cáo để theo dõi tiến độ và đánh giá công việc.
 - Luồng sự kiện thay thế:
   - Nếu thiếu thông tin bắt buộc, hệ thống yêu cầu Member bổ sung trước khi gửi.
-#### ` 	`*<a name="_toc196727429"></a><a name="_toc196727515"></a>2.1.14 Xem phản hồi từ leader*
+#### ` 	`*<a name="_toc196727429"></a><a name="_toc196727515"></a>2.1.14 Xem phản hồi từ Leader*
 - Tác nhân chính: Member
 - Điều kiện tiên quyết:
   - Member đã gửi báo cáo task.

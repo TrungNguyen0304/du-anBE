@@ -157,6 +157,16 @@ const Unassigned = () => {
     }
   };
 
+  // Function to truncate description to 10 words
+  const truncateDescription = (description) => {
+    if (!description) return "";
+    const words = description.split(" ");
+    if (words.length > 10) {
+      return words.slice(0, 15).join(" ") + "...";
+    }
+    return description;
+  };
+
   return (
     <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
@@ -198,7 +208,7 @@ const Unassigned = () => {
                     </div>
                     <p className="text-gray-600 mt-2">
                       <span className="font-semibold text-black">Mô tả:</span>{" "}
-                      {project.description}
+                      {truncateDescription(project.description)}
                     </p>
                     <p className="text-gray-600">
                       <strong>Trạng thái:</strong> {project.status}

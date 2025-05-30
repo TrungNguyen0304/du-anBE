@@ -8,7 +8,7 @@ const ManagementDetail = ({ fetchUrl, title, isLeader = false }) => {
   const navigate = useNavigate();
   const employeeIndex = location.state?.index;
   const originPage = location.state?.originPage;
-  const employeeId = location.state?.employee?.id;
+  const employeeId = location.state?.employee?._id;
   const fallbackEmployee = location.state?.employee;
 
   const [employee, setEmployee] = useState(null);

@@ -14,7 +14,7 @@ const Departments = () => {
     const fetchDepartments = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/company/showallTeam",
+          "http://localhost:8001/api/company/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -40,9 +40,9 @@ const Departments = () => {
   const handleView = (id) => {
     navigate("/department-detail", { state: { departmentId: id } });
   };
-const handleEdit = (id) => {
-  navigate(`/update-department/${id}`);
-};
+  const handleEdit = (id) => {
+    navigate(`/update-department/${id}`);
+  };
   const handleDeleteClick = (id) => {
     setSelectedDepartmentId(id);
     setIsConfirmModalOpen(true);
@@ -52,7 +52,7 @@ const handleEdit = (id) => {
     if (!selectedDepartmentId) return;
     try {
       await axios.delete(
-        `https://du-anbe.onrender.com/api/company/deleteTeam/${selectedDepartmentId}`,
+        `http://localhost:8001/api/company/deleteTeam/${selectedDepartmentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -156,7 +156,9 @@ const handleEdit = (id) => {
                     key={dept._id || `dept-${index}`}
                     className="hover:bg-gray-50 even:bg-gray-100"
                   >
-                    <td className="px-4 py-2 border text-center">{index + 1}</td>
+                    <td className="px-4 py-2 border text-center">
+                      {index + 1}
+                    </td>
                     <td className="px-4 py-2 border">{dept.name || "N/A"}</td>
                     <td className="px-4 py-2 border">
                       {dept.description || "N/A"}

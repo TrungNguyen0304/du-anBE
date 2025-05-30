@@ -21,13 +21,13 @@ const UpdateDepartment = () => {
     const fetchAll = async () => {
       try {
         const [teamRes, leadersRes, membersRes] = await Promise.all([
-          axios.get(`https://du-anbe.onrender.com/api/company/viewTeam/${id}`, {
+          axios.get(`http://localhost:8001/api/company/viewTeam/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("https://du-anbe.onrender.com/api/company/showallLeaders", {
+          axios.get("http://localhost:8001/api/company/showallLeaders", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("https://du-anbe.onrender.com/api/company/showallMember", {
+          axios.get("http://localhost:8001/api/company/showallMember", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -71,7 +71,7 @@ const UpdateDepartment = () => {
       };
 
       await axios.put(
-        `https://du-anbe.onrender.com/api/company/updateTeam/${id}`,
+        `http://localhost:8001/api/company/updateTeam/${id}`,
         payload,
         {
           headers: {
