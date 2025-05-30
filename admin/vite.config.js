@@ -7,13 +7,13 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8001',
+        target: 'http://103.45.235.153',
         changeOrigin: true,
         secure: false,
       },
       // 👇 Thêm proxy WebSocket cho Socket.IO
       '/socket.io': {
-        target: 'http://localhost:8001',
+        target: 'http://103.45.235.153',
         ws: true,             // Bắt buộc để hỗ trợ WebSocket
         changeOrigin: true,
       },
