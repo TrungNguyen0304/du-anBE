@@ -15,7 +15,7 @@ const TeamMember = () => {
     const fetchTeams = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8001/api/member/showallTeam",
+          "http://103.45.235.153/api/member/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

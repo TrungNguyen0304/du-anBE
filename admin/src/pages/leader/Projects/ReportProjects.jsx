@@ -11,7 +11,7 @@ const ReportProjects = () => {
     const fetchReport = async () => {
       try {
         const response = await axios.get(
-          `https://du-anbe.onrender.com/api/leader/viewReport`,
+          `http://103.45.235.153/api/leader/viewReport`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

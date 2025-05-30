@@ -21,7 +21,7 @@ const CreateDepartment = () => {
     const fetchLeaders = async () => {
       try {
         const res = await axios.get(
-          "https://du-anbe.onrender.com/api/company/showallLeaders",
+          "http://103.45.235.153/api/company/showallLeaders",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -40,7 +40,7 @@ const CreateDepartment = () => {
     const fetchMembers = async () => {
       try {
         const res = await axios.get(
-          "https://du-anbe.onrender.com/api/company/showallMember",
+          "http://103.45.235.153/api/company/showallMember",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -72,7 +72,7 @@ const CreateDepartment = () => {
 
     try {
       const res = await axios.post(
-        "https://du-anbe.onrender.com/api/company/createTeam",
+        "http://103.45.235.153/api/company/createTeam",
         newDepartment,
         {
           headers: {

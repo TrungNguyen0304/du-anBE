@@ -18,9 +18,9 @@ import io from "socket.io-client";
 import { BiDotsVerticalRounded, BiSolidImage } from "react-icons/bi";
 import { FaRegEyeSlash } from "react-icons/fa";
 
-const API_URL = "http://localhost:8001/api/group";
-const TEAM_API_URL = "http://localhost:8001/api/leader/showallTeam";
-const SOCKET_URL = "http://localhost:8001";
+const API_URL = "http://103.45.235.153/api/group";
+const TEAM_API_URL = "http://103.45.235.153/api/leader/showallTeam";
+const SOCKET_URL = "http://103.45.235.153";
 
 const ChatLeader = () => {
   const navigate = useNavigate();

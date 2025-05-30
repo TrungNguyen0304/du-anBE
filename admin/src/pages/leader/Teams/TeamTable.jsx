@@ -13,7 +13,7 @@ const TeamTable = ({ title = "Danh Sách Nhóm", originPage = "team" }) => {
     const fetchTeams = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/leader/showallTeam",
+          "http://103.45.235.153/api/leader/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

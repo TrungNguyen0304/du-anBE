@@ -12,7 +12,7 @@ const CreateProject = () => {
   const handleCreate = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post("https://du-anbe.onrender.com/api/company/createProject", {
+      const response = await axios.post("http://103.45.235.153/api/company/createProject", {
         name,
         description,
         status,

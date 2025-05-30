@@ -24,7 +24,7 @@ const CreateTask = () => {
     const fetchProject = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/leader/showallProject",
+          "http://103.45.235.153/api/leader/showallProject",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -76,7 +76,7 @@ const CreateTask = () => {
     setIsSubmitting(true); // ✅ Bắt đầu loading
     try {
       await axios.post(
-        "https://du-anbe.onrender.com/api/leader/createTask",
+        "http://103.45.235.153/api/leader/createTask",
         {
           ...formData,
           priority: parseInt(formData.priority),

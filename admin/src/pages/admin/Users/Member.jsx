@@ -5,8 +5,8 @@ const MemberPage = () => {
   return (
     <UserTable
       title="Quản Lý Nhân Viên"
-      fetchUrl="https://du-anbe.onrender.com/api/company/showallMember"
-      deleteUrl="https://du-anbe.onrender.com/api/company/deleteUser"
+      fetchUrl="http://103.45.235.153/api/company/showallMember"
+      deleteUrl="http://103.45.235.153/api/company/deleteUser"
       originPage="member"
       createLink="/create-user"
     />

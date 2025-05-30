@@ -21,7 +21,7 @@ const AssignedTasks = () => {
     const fetchAssignedTasks = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/leader/getAssignedTask",
+          "http://103.45.235.153/api/leader/getAssignedTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -64,7 +64,7 @@ const AssignedTasks = () => {
     setActionError("");
     try {
       await axios.delete(
-        `https://du-anbe.onrender.com/api/leader/deleteTask/${id}`,
+        `http://103.45.235.153/api/leader/deleteTask/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -83,7 +83,7 @@ const AssignedTasks = () => {
     setActionError("");
     try {
       await axios.put(
-        `https://du-anbe.onrender.com/api/leader/revokeTask/${id}/revoke`,
+        `http://103.45.235.153/api/leader/revokeTask/${id}/revoke`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

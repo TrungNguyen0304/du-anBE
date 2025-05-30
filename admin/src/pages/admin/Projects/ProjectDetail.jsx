@@ -13,7 +13,7 @@ const ProjectDetail = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `https://du-anbe.onrender.com/api/company/viewTeamProject/${id}`,
+          `http://103.45.235.153/api/company/viewTeamProject/${id}`,
           {
             method: "GET",
             headers: {

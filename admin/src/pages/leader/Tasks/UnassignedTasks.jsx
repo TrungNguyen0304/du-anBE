@@ -20,7 +20,7 @@ const UnassignedTasks = () => {
     const fetchTasks = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/leader/unassignedTask",
+          "http://103.45.235.153/api/leader/unassignedTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -58,7 +58,7 @@ const UnassignedTasks = () => {
     setIsDeleting(true);
     try {
       await axios.delete(
-        `https://du-anbe.onrender.com/api/leader/deleteTask/${id}`,
+        `http://103.45.235.153/api/leader/deleteTask/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }

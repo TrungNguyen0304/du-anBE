@@ -14,7 +14,7 @@ const Departments = () => {
     const fetchDepartments = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/company/showallTeam",
+          "http://103.45.235.153/api/company/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -52,7 +52,7 @@ const handleEdit = (id) => {
     if (!selectedDepartmentId) return;
     try {
       await axios.delete(
-        `https://du-anbe.onrender.com/api/company/deleteTeam/${selectedDepartmentId}`,
+        `http://103.45.235.153/api/company/deleteTeam/${selectedDepartmentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
