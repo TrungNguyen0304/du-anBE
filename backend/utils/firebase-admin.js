@@ -1,18 +1,33 @@
 const admin = require("firebase-admin");
 
+// Lấy biến môi trường FIREBASE_SERVICE_ACCOUNT_BASE64
+const firebaseServiceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+
 let serviceAccount;
 
-try {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-} catch (error) {
-  console.error("Lỗi khi parse biến FIREBASE_SERVICE_ACCOUNT:", error.message);
-  process.exit(1); // Dừng server nếu có lỗi
+// Kiểm tra xem biến môi trường có tồn tại không
+if (!firebaseServiceAccountBase64) {
+  console.error('Biến môi trường FIREBASE_SERVICE_ACCOUNT_BASE64 không được định nghĩa. Vui lòng kiểm tra cấu hình.');
+  process.exit(1); // Dừng server nếu biến không tồn tại
 }
 
+try {
+  const decodedJsonString = Buffer.from(firebaseServiceAccountBase64, 'base64').toString('utf8');
+
+  serviceAccount = JSON.parse(decodedJsonString);
+
+  console.log('Firebase Service Account loaded successfully from Base64.');
+} catch (error) {
+  console.error('Lỗi khi giải mã hoặc parse biến FIREBASE_SERVICE_ACCOUNT_BASE64:', error.message);
+  process.exit(1);
+}
+
+// Khởi tạo Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+// Hàm gửi thông báo
 const sendNotification = async (token, title, body) => {
   const message = {
     token,
