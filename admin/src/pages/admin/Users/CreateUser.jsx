@@ -42,7 +42,7 @@ const CreateUser = () => {
     try {
       setIsLoading(true);
       await axios.post(
-        "http://103.45.235.153/api/company/createUser",
+        "https://apitaskmanager.pdteam.net/api/company/createUser",
         {
           name: formData.name,
           email: formData.email,

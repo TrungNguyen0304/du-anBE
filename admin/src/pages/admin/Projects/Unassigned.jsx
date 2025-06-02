@@ -31,7 +31,7 @@ const Unassigned = () => {
         }
 
         const response = await axios.post(
-          "http://103.45.235.153/api/company/paginationunassigned",
+          "https://apitaskmanager.pdteam.net/api/company/paginationunassigned",
           { limit, page: currentPage },
           {
             headers: {
@@ -55,7 +55,7 @@ const Unassigned = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://103.45.235.153/api/company/showallTeam",
+          "https://apitaskmanager.pdteam.net/api/company/showallTeam",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ const Unassigned = () => {
 
       if (actionType === "delete") {
         await axios.delete(
-          `http://103.45.235.153/api/company/deleteProject/${selectedProject}`,
+          `https://apitaskmanager.pdteam.net/api/company/deleteProject/${selectedProject}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ const Unassigned = () => {
           return;
         }
         await axios.put(
-          `http://103.45.235.153/api/company/assignProject/${selectedProject}`,
+          `https://apitaskmanager.pdteam.net/api/company/assignProject/${selectedProject}`,
           { assignedTeam, deadline },
           {
             headers: {

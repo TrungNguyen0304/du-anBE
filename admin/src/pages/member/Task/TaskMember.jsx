@@ -18,7 +18,7 @@ const TaskMember = () => {
     const fetchTasks = async () => {
       try {
         const response = await axios.get(
-          "http://103.45.235.153/api/member/showallTask",
+          "https://apitaskmanager.pdteam.net/api/member/showallTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -81,7 +81,7 @@ const TaskMember = () => {
     try {
       // Gọi API cập nhật trạng thái nhiệm vụ
       await axios.put(
-        `http://103.45.235.153/api/member/updateTaskStatus/${task.id}`,
+        `https://apitaskmanager.pdteam.net/api/member/updateTaskStatus/${task.id}`,
         { status: newStatus },
         {
           headers: {

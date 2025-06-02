@@ -1,6 +1,6 @@
 // src/services/socketService.js
 import io from "socket.io-client";
-const socket = io("http://103.45.235.153:8001", {
+const socket = io("https://apitaskmanager.pdteam.net", {
   auth: {
     token: localStorage.getItem("jwtToken"), // Nếu dùng JWT
   },

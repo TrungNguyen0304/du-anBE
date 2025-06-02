@@ -27,7 +27,7 @@ const ProjectAssigned = () => {
         }
 
         const response = await axios.post(
-          "http://103.45.235.153/api/company/paginationgetassigned",
+          "https://apitaskmanager.pdteam.net/api/company/paginationgetassigned",
           { page: currentPage, limit },
           {
             headers: {
@@ -71,7 +71,7 @@ const ProjectAssigned = () => {
       const token = localStorage.getItem("token");
       if (actionType === "delete") {
         await axios.delete(
-          `http://103.45.235.153/api/company/deleteProject/${selectedProject}`,
+          `https://apitaskmanager.pdteam.net/api/company/deleteProject/${selectedProject}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setProjects(projects.filter((p) => p.id !== selectedProject));
@@ -83,7 +83,7 @@ const ProjectAssigned = () => {
         }
       } else if (actionType === "revoke") {
         await axios.put(
-          `http://103.45.235.153/api/company/revokeProject/${selectedProject}/revoke`,
+          `https://apitaskmanager.pdteam.net/api/company/revokeProject/${selectedProject}/revoke`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );

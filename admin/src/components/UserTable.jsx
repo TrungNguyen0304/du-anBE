@@ -118,8 +118,8 @@ const UserTable = ({
                   user.gender === "0" || user.gender === 0
                     ? "Nam"
                     : user.gender === "1" || user.gender === 1
-                    ? "Nữ"
-                    : user.gender || "";
+                      ? "Nữ"
+                      : user.gender || "";
 
                 const globalIndex = (currentPage - 1) * PAGE_SIZE + index + 1;
 
@@ -187,11 +187,10 @@ const UserTable = ({
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded ${
-              currentPage === 1
+            className={`px-3 py-1 rounded ${currentPage === 1
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                 : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+              }`}
           >
             Trước
           </button>
@@ -199,11 +198,10 @@ const UserTable = ({
             <button
               key={page}
               onClick={() => handlePageChange(page)}
-              className={`px-3 py-1 rounded ${
-                currentPage === page
+              className={`px-3 py-1 rounded ${currentPage === page
                   ? "bg-gradient-to-r from-[#183d5d] to-[#1d557a] text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+                }`}
             >
               {page}
             </button>
@@ -211,11 +209,10 @@ const UserTable = ({
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className={`px-3 py-1 rounded ${
-              currentPage === totalPages
+            className={`px-3 py-1 rounded ${currentPage === totalPages
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                 : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+              }`}
           >
             Sau
           </button>

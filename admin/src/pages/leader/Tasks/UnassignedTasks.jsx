@@ -20,7 +20,7 @@ const UnassignedTasks = () => {
     const fetchTasks = async () => {
       try {
         const response = await axios.get(
-          "http://103.45.235.153/api/leader/unassignedTask",
+          "https://apitaskmanager.pdteam.net/api/leader/unassignedTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -58,7 +58,7 @@ const UnassignedTasks = () => {
     setIsDeleting(true);
     try {
       await axios.delete(
-        `http://103.45.235.153/api/leader/deleteTask/${id}`,
+        `https://apitaskmanager.pdteam.net/api/leader/deleteTask/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }

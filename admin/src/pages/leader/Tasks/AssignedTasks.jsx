@@ -21,7 +21,7 @@ const AssignedTasks = () => {
     const fetchAssignedTasks = async () => {
       try {
         const response = await axios.get(
-          "http://103.45.235.153/api/leader/getAssignedTask",
+          "https://apitaskmanager.pdteam.net/api/leader/getAssignedTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -64,7 +64,7 @@ const AssignedTasks = () => {
     setActionError("");
     try {
       await axios.delete(
-        `http://103.45.235.153/api/leader/deleteTask/${id}`,
+        `https://apitaskmanager.pdteam.net/api/leader/deleteTask/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -83,7 +83,7 @@ const AssignedTasks = () => {
     setActionError("");
     try {
       await axios.put(
-        `http://103.45.235.153/api/leader/revokeTask/${id}/revoke`,
+        `https://apitaskmanager.pdteam.net/api/leader/revokeTask/${id}/revoke`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

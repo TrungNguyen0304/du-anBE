@@ -34,7 +34,7 @@ const DepartmentDetail = () => {
         }
 
         const response = await axios.get(
-          `http://103.45.235.153/api/company/viewTeam/${departmentId}`,
+          `https://apitaskmanager.pdteam.net/api/company/viewTeam/${departmentId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

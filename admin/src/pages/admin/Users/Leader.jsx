@@ -5,8 +5,8 @@ const Leader = () => {
   return (
     <UserTable
       title="Quản Lý Leader"
-      fetchUrl="http://103.45.235.153/api/company/showallLeaders"
-      deleteUrl="http://103.45.235.153/api/company/deleteUser"
+      fetchUrl="https://apitaskmanager.pdteam.net/api/company/showallLeaders"
+      deleteUrl="https://apitaskmanager.pdteam.net/api/company/deleteUser"
       originPage="leader"
       createLink="/create-leader"
     />

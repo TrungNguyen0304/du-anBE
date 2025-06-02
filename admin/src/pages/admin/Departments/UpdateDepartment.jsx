@@ -21,13 +21,13 @@ const UpdateDepartment = () => {
     const fetchAll = async () => {
       try {
         const [teamRes, leadersRes, membersRes] = await Promise.all([
-          axios.get(`http://103.45.235.153/api/company/viewTeam/${id}`, {
+          axios.get(`https://apitaskmanager.pdteam.net/api/company/viewTeam/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://103.45.235.153/api/company/showallLeaders", {
+          axios.get("https://apitaskmanager.pdteam.net/api/company/showallLeaders", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://103.45.235.153/api/company/showallMember", {
+          axios.get("https://apitaskmanager.pdteam.net/api/company/showallMember", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -71,7 +71,7 @@ const UpdateDepartment = () => {
       };
 
       await axios.put(
-        `http://103.45.235.153/api/company/updateTeam/${id}`,
+        `https://apitaskmanager.pdteam.net/api/company/updateTeam/${id}`,
         payload,
         {
           headers: {

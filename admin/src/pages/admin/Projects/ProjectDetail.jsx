@@ -13,7 +13,7 @@ const ProjectDetail = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `http://103.45.235.153/api/company/viewTeamProject/${id}`,
+          `https://apitaskmanager.pdteam.net/api/company/viewTeamProject/${id}`,
           {
             method: "GET",
             headers: {

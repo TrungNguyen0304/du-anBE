@@ -21,7 +21,7 @@ const UpdateTask = () => {
     const fetchTask = async () => {
       try {
         const response = await axios.get(
-          `http://103.45.235.153/api/leader/getTaskById/${id}`,
+          `https://apitaskmanager.pdteam.net/api/leader/getTaskById/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -71,7 +71,7 @@ const UpdateTask = () => {
 
     try {
       await axios.put(
-        `http://103.45.235.153/api/leader/updateTask/${id}`,
+        `https://apitaskmanager.pdteam.net/api/leader/updateTask/${id}`,
         formData,
         {
           headers: {
