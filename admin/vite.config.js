@@ -7,13 +7,13 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://103.45.235.153',
+        target: 'https://apitaskmanager.pdteam.net',
         changeOrigin: true,
         secure: false,
       },
       // 👇 Thêm proxy WebSocket cho Socket.IO
       '/socket.io': {
-        target: 'http://103.45.235.153',
+        target: 'https://apitaskmanager.pdteam.net',
         ws: true,             // Bắt buộc để hỗ trợ WebSocket
         changeOrigin: true,
       },
