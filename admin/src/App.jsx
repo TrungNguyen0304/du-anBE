@@ -2,7 +2,6 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/admin/Home";
-import ProjectProgress from "./pages/admin/ProjectProgress";
 import Login from "./pages/Login";
 import CreateUser from "./pages/admin/Users/CreateUser";
 import UpdateUser from "./pages/admin/Users/UpdateUser";
@@ -46,7 +45,8 @@ import JoinRequestsPage from "./pages/admin/Chat/JoinRequestsPage";
 import VideoCallPage from "./pages/admin/Chat/VideoCallPage";
 import TeamMember from "./pages/member/Task/TeamMember";
 import FeedbackMember from "./pages/member/Task/FeedbackMember";
-import FeedbackAdmin from "./pages/admin/Feedback/FeedbackAdmin";
+import ProjectProgress from "./pages/admin/ProjectProgress/ProjectProgress";
+import SeeReportAdmin from "./pages/admin/ReportAdmin/SeeReportAdmin";
 
 const CompanyLayout = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -82,7 +82,7 @@ const CompanyLayout = () => {
             <Route path="/project-detail/:id" element={<ProjectDetail />} />
             <Route path="/projectprogress" element={<ProjectProgress />} />
 
-            <Route path="/feedback-admin" element={<FeedbackAdmin />} />
+            <Route path="/seereport-admin" element={<SeeReportAdmin />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/requests" element={<JoinRequestsPage />} />
             <Route path="/chat/video-call" element={<VideoCallPage />} />

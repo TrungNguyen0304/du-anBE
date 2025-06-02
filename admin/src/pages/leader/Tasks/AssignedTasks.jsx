@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, RotateCcw, Trash2, Pencil } from "lucide-react";
-import { MdAddTask } from "react-icons/md";
+import { Eye, RotateCcw, Trash2, Pencil } from "lucide-react";
 import axios from "axios";
 
 const PAGE_SIZE = 5;
@@ -128,13 +127,6 @@ const AssignedTasks = () => {
           <h2 className="text-3xl font-bold text-gray-800 flex-1">
             Danh sách nhiệm vụ đã giao
           </h2>
-          <button
-            onClick={() => navigate("/create-task")}
-            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 flex items-center shadow transition"
-          >
-            <MdAddTask className="mr-2 text-xl" />
-            Thêm nhiệm vụ
-          </button>
         </div>
 
         {/* Table */}

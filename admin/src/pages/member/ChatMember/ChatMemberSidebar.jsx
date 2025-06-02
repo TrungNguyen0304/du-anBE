@@ -40,12 +40,6 @@ const ChatMemberSidebar = ({
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
           Nhóm của tôi
         </h2>
-        <button
-          onClick={() => setCreatingGroup(!creatingGroup)}
-          className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          {creatingGroup ? "" : "Tạo nhóm"}
-        </button>
       </div>
 
       {creatingGroup && (
@@ -115,15 +109,9 @@ const ChatMemberSidebar = ({
       {groups.length === 0 && !creatingGroup ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
           <Users className="w-12 h-12 text-gray-600 mb-4 animate-pulse" />
-          <p className="text-gray-600 text-sm sm:text-base mb-4 animate-fade-in-up">
-            Chưa có nhóm chat nào. Hãy tạo nhóm mới để bắt đầu trò chuyện!
+          <p className="text-gray-600 text-sm sm:text-base mb-2 animate-fade-in-up">
+            Bạn chưa có nhóm trò chuyện nào.
           </p>
-          <button
-            onClick={() => setCreatingGroup(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm sm:text-base"
-          >
-            Tạo nhóm mới
-          </button>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto space-y-3">

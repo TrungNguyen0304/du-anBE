@@ -2,7 +2,6 @@ import React from "react";
 import {
   MoreVertical,
   X,
-  UserPlus,
   Users,
   Send,
   Trash2,
@@ -27,17 +26,10 @@ const ChatMemberMain = ({
   setSidebarOpen,
   showMembers,
   setShowMembers,
-  addingMember,
-  setAddingMember,
-  newMemberId,
-  setNewMemberId,
   selectedMemberIndex,
   setSelectedMemberIndex,
-  handleConfirmAdd,
   handleRemoveMember,
-  handleLeaveGroup,
   currentUser,
-  teamMembers,
   typingUsers,
   onlineUsers,
   openMenuId,
@@ -51,7 +43,6 @@ const ChatMemberMain = ({
   handleDeleteMessage,
   handleHideMessage,
   chatEndRef,
-  addMemberRef,
   error,
   navigate,
 }) => {
@@ -158,84 +149,10 @@ const ChatMemberMain = ({
                           <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                         )}
                       </span>
-                      {member._id !== currentUser._id && (
-                        <div className="relative">
-                          <button
-                            onClick={() =>
-                              setSelectedMemberIndex((prev) =>
-                                prev === index ? null : index
-                              )
-                            }
-                            className="hover:bg-gray-100 rounded p-1 transition-colors"
-                          >
-                            <MoreVertical
-                              size={14}
-                              className="text-gray-600 sm:w-5 sm:h-5"
-                            />
-                          </button>
-                          {selectedMemberIndex === index && (
-                            <div className="absolute right-0 top-6 sm:top-8 bg-white border rounded-lg shadow z-10">
-                              <button
-                                onClick={() => handleRemoveMember(index)}
-                                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-xs sm:text-sm"
-                              >
-                                <Trash2 size={12} className="sm:w-4 sm:h-4" />{" "}
-                                Xóa
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
               )}
-
-              <div ref={addMemberRef}>
-                <button
-                  onClick={() => setAddingMember(!addingMember)}
-                  className="flex items-center gap-2 text-sm sm:text-base bg-gray-50 border rounded-lg hover:bg-gray-100 px-4 py-2 w-full transition-colors"
-                >
-                  <UserPlus size={14} className="text-blue-600 sm:w-5 sm:h-5" />{" "}
-                  Thêm thành viên
-                </button>
-                {addingMember && (
-                  <div className="flex gap-3 mt-3 items-center">
-                    <select
-                      value={newMemberId}
-                      onChange={(e) => setNewMemberId(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Chọn thành viên</option>
-                      {teamMembers
-                        .filter(
-                          (m) =>
-                            !selectedGroup.members.some(
-                              (member) => member._id === m._id
-                            )
-                        )
-                        .map((member) => (
-                          <option key={member._id} value={member._id}>
-                            {member.name}
-                          </option>
-                        ))}
-                    </select>
-                    <button
-                      onClick={handleConfirmAdd}
-                      className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm"
-                    >
-                      Thêm
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={handleLeaveGroup}
-                className="mt-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
-              >
-                Rời nhóm
-              </button>
             </div>
           </div>
         </>

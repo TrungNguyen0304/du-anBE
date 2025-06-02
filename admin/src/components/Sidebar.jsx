@@ -72,9 +72,9 @@ const Sidebar = () => {
           icon: <GiProgression />,
         },
         {
-          label: "Đánh Giá",
+          label: "Báo Cáo",
           icon: <VscFeedback />,
-          to: "/feedback-admin",
+          to: "/seereport-admin",
         },
         {
           label: "Trò chuyện",

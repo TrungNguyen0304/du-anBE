@@ -50,8 +50,6 @@ const ProjectAssigned = () => {
     fetchProjects();
   }, [navigate, currentPage, limit]);
 
-  const handleAdd = () => navigate("/create-projects");
-
   const handleEdit = (id) => navigate(`/update-projects/${id}`);
 
   const handleDelete = (id) => {
@@ -99,7 +97,9 @@ const ProjectAssigned = () => {
       navigate("/project-unassigned");
     } catch (error) {
       console.error("Lỗi khi thực hiện hành động:", error);
-      setError(error.response?.data?.message || "Không thể thực hiện hành động.");
+      setError(
+        error.response?.data?.message || "Không thể thực hiện hành động."
+      );
       setShowModal(false);
     }
   };
@@ -119,13 +119,6 @@ const ProjectAssigned = () => {
     <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold">Quản Lý Dự Án</h2>
-        <button
-          onClick={handleAdd}
-          className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm Dự Án
-        </button>
       </div>
 
       {loading ? (
@@ -146,7 +139,8 @@ const ProjectAssigned = () => {
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold">{project.name}</h3>
                     <p className="text-gray-600">
-                      <span className="font-semibold text-black">Mô tả:</span> {project.description}
+                      <span className="font-semibold text-black">Mô tả:</span>{" "}
+                      {project.description}
                     </p>
                     <p className="text-gray-600">
                       <strong>Trạng thái:</strong> {project.status}
@@ -209,19 +203,21 @@ const ProjectAssigned = () => {
                 >
                   Trước
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 border rounded ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 border rounded ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
