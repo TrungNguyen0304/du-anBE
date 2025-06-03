@@ -5,6 +5,7 @@ const {
   createReport,
   showAllFeedback,
   updateTaskStatus,
+  viewTeam
 } = require("../controller/member.js");
 const authenticateJWT = require("../middleware/auth.js");
 
@@ -24,5 +25,7 @@ router.post("/createReport/", authenticateJWT, createReport);
 
 // cập nhật trạng thái task
 router.put("/updateStatus/:id", authenticateJWT, updateTaskStatus);
+
+router.get("/viewTeam/:id", authenticateJWT, viewTeam);
 
 module.exports = router;

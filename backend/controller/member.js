@@ -355,10 +355,48 @@ const createReport = async (req, res) => {
   }
 };
 
+// vỉewTeam
+const viewTeam = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Lấy thông tin team và populate leader & members
+    const team = await Team.findById(id)
+      .populate("assignedLeader", "name email")
+      .populate("assignedMembers", "name email")
+      .lean();
+
+    if (!team) {
+      return res.status(404).json({ message: "Không tìm thấy team." });
+    }
+
+    // Lấy project của team này
+    const projects = await Project.find({ assignedTeam: id })
+      .select("name description deadline status")
+      .lean();
+
+    res.status(200).json({
+      message: `Thông tin Team: ${team.name}`,
+      team: {
+        _id: team._id,
+        name: team.name,
+        description: team.description,
+        assignedLeader: team.assignedLeader,
+        assignedMembers: team.assignedMembers,
+        projects,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin team:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
 module.exports = {
   getMyTeam,
   getMyTasks,
   createReport,
   showAllFeedback,
   updateTaskStatus,
+  viewTeam
 };
