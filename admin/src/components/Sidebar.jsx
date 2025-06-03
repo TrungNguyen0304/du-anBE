@@ -103,7 +103,7 @@ const Sidebar = () => {
           icon: <TbSubtask />,
           dropdown: true,
           items: [
-            { label: "Nhiệm Vụ Đã Giao", to: "/assigned-tasks" },
+            { label: "Nhiệm Vụ Đang Làm", to: "/assigned-tasks" },
             { label: "Nhiệm Vụ Chưa Giao", to: "/unassigned-tasks" },
           ],
         },
