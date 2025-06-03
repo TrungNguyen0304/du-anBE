@@ -18,7 +18,7 @@ const TaskMember = () => {
     const fetchTasks = async () => {
       try {
         const response = await axios.get(
-          "https://du-anbe.onrender.com/api/member/showallTask",
+          "http://localhost:8001/api/member/showallTask",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -81,7 +81,7 @@ const TaskMember = () => {
     try {
       // Gọi API cập nhật trạng thái nhiệm vụ
       await axios.put(
-        `https://du-anbe.onrender.com/api/member/updateTaskStatus/${task.id}`,
+        `http://localhost:8001/api/member/updateTaskStatus/${task.id}`,
         { status: newStatus },
         {
           headers: {

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import imgUser from "../assets/images/lequythien.png";
+import imgUser from "../assets/images/avatar-none.png";
 
 const ManagementDetail = ({ fetchUrl, title, isLeader = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const employeeIndex = location.state?.index;
-  const originPage = location.state?.originPage;
   const employeeId = location.state?.employee?._id;
   const fallbackEmployee = location.state?.employee;
 
@@ -62,7 +61,7 @@ const ManagementDetail = ({ fetchUrl, title, isLeader = false }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center bg-gray-100">
         <div className="text-lg font-semibold text-gray-600 animate-pulse">
           Đang tải dữ liệu...
         </div>
@@ -72,7 +71,7 @@ const ManagementDetail = ({ fetchUrl, title, isLeader = false }) => {
 
   if (!employee) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center bg-gray-100">
         <div className="p-8 bg-white rounded-xl shadow-lg w-full text-center">
           <p className="text-red-600 text-lg font-medium mb-4">
             {error || "Không có dữ liệu nhân viên."}
@@ -101,7 +100,7 @@ const ManagementDetail = ({ fetchUrl, title, isLeader = false }) => {
       : "N/A";
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
